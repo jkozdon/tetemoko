@@ -1,0 +1,15 @@
+#include "CONSTANTS.H"
+
+        subroutine SIMPLESETF(
+     &    CHF_CONST_REAL[aucs],
+     &    CHF_CONST_REAL[aucp],
+     &    CHF_CONST_REAL[aumu])
+
+#include "IBCCommon.fh"
+
+        cs = aucs
+        cp = aucp
+        mu = aumu
+
+        return
+        end
