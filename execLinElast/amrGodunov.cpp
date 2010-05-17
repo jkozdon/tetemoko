@@ -33,8 +33,8 @@ using std::ios;
 
 #include "AMR.H"
 #include "AMRLevel.H"
-// #include "AMRLevelPolytropicGasFactory.H"
-// #include "AMRLevelPolytropicGas.H"
+#include "AMRLevelLinElastFactory.H"
+#include "AMRLevelLinElast.H"
 
 #include "LinElastPhysics.H"
 
@@ -286,66 +286,66 @@ void amrGodunov()
     Real fillRatio = 0.75;
     ppcomp.get("fill_ratio",fillRatio);
 
-    //JK // Order of the normal predictor (CTU -> 0, PLM -> 1, PPM -> 2)
-    //JK std::string normalPred;
-    //JK int normalPredOrder;
-    //JK ppcomp.get("normal_predictor",normalPred);
-    //JK if (normalPred == "CTU" || normalPred == "ctu")
-    //JK {
-    //JK     normalPredOrder = 0;
-    //JK }
-    //JK else if (normalPred == "PLM" || normalPred == "plm")
-    //JK {
-    //JK     normalPredOrder = 1;
-    //JK }
-    //JK else if (normalPred == "PPM" || normalPred == "ppm")
-    //JK {
-    //JK     normalPredOrder = 2;
-    //JK }
-    //JK else
-    //JK {
-    //JK     MayDay::Error("Normal predictor must by PLM or PPM");
-    //JK }
+    // Order of the normal predictor (CTU -> 0, PLM -> 1, PPM -> 2)
+    std::string normalPred;
+    int normalPredOrder;
+    ppcomp.get("normal_predictor",normalPred);
+    if (normalPred == "CTU" || normalPred == "ctu")
+    {
+        normalPredOrder = 0;
+    }
+    else if (normalPred == "PLM" || normalPred == "plm")
+    {
+        normalPredOrder = 1;
+    }
+    else if (normalPred == "PPM" || normalPred == "ppm")
+    {
+        normalPredOrder = 2;
+    }
+    else
+    {
+        MayDay::Error("Normal predictor must by PLM or PPM");
+    }
 
-    //JK // Use fourth order slopes
-    //JK int inFourthOrderSlopes = 1;
-    //JK bool useFourthOrderSlopes;
-    //JK ppcomp.get("use_fourth_order_slopes",inFourthOrderSlopes);
-    //JK useFourthOrderSlopes = (inFourthOrderSlopes == 1);
+    // Use fourth order slopes
+    int inFourthOrderSlopes = 1;
+    bool useFourthOrderSlopes;
+    ppcomp.get("use_fourth_order_slopes",inFourthOrderSlopes);
+    useFourthOrderSlopes = (inFourthOrderSlopes == 1);
 
-    //JK // Do slope limiting
-    //JK int inPrimLimiting = 1;
-    //JK bool usePrimLimiting;
-    //JK ppcomp.get("use_prim_limiting",inPrimLimiting);
-    //JK usePrimLimiting = (inPrimLimiting == 1);
+    // Do slope limiting
+    int inPrimLimiting = 1;
+    bool usePrimLimiting;
+    ppcomp.get("use_prim_limiting",inPrimLimiting);
+    usePrimLimiting = (inPrimLimiting == 1);
 
-    //JK // Do slope limiting using characteristics
-    //JK int inCharLimiting = 0;
-    //JK bool useCharLimiting;
-    //JK ppcomp.get("use_char_limiting",inCharLimiting);
-    //JK useCharLimiting = (inCharLimiting == 1);
+    // Do slope limiting using characteristics
+    int inCharLimiting = 0;
+    bool useCharLimiting;
+    ppcomp.get("use_char_limiting",inCharLimiting);
+    useCharLimiting = (inCharLimiting == 1);
 
-    //JK // Do slope flattening
-    //JK int inFlattening = 1;
-    //JK bool useFlattening;
-    //JK ppcomp.get("use_flattening",inFlattening);
-    //JK useFlattening = (inFlattening == 1);
+    // Do slope flattening
+    int inFlattening = 1;
+    bool useFlattening;
+    ppcomp.get("use_flattening",inFlattening);
+    useFlattening = (inFlattening == 1);
 
-    //JK // Apply artificial viscosity
-    //JK int inArtificialViscosity = 1;
-    //JK bool useArtificialViscosity;
-    //JK ppcomp.get("use_artificial_viscosity",inArtificialViscosity);
-    //JK useArtificialViscosity = (inArtificialViscosity == 1);
+    // Apply artificial viscosity
+    int inArtificialViscosity = 1;
+    bool useArtificialViscosity;
+    ppcomp.get("use_artificial_viscosity",inArtificialViscosity);
+    useArtificialViscosity = (inArtificialViscosity == 1);
 
-    //JK // Artificial viscosity coefficient/multiplier
-    //JK Real artificialViscosity = 0.1;
-    //JK ppcomp.get("artificial_viscosity",artificialViscosity);
+    // Artificial viscosity coefficient/multiplier
+    Real artificialViscosity = 0.1;
+    ppcomp.get("artificial_viscosity",artificialViscosity);
 
-    //JK // Don't use high-order limiter by default
-    //JK int inHighOrderLimiter = 0;
-    //JK bool highOrderLimiter;
-    //JK ppcomp.query("high_order_limiter", inHighOrderLimiter);
-    //JK highOrderLimiter = (inHighOrderLimiter == 1);
+    // Don't use high-order limiter by default
+    int inHighOrderLimiter = 0;
+    bool highOrderLimiter;
+    ppcomp.query("high_order_limiter", inHighOrderLimiter);
+    highOrderLimiter = (inHighOrderLimiter == 1);
 
     // Set up checkpointing
     int checkpointInterval = 0;
@@ -401,12 +401,13 @@ void amrGodunov()
     //JK // A minimum pressure needed to construct PolytropicPhysics - used in slope
     //JK // flattening
     //JK Real smallPressure;
-    //JK 
-    //JK // Don't use source term by default
-    //JK bool useSourceTerm = false;
-    //JK 
-    //JK // Source term multiplier
-    //JK Real sourceTermScaling = 0.0;
+
+    //JK Don't think that we need this
+    // Don't use source term by default
+    bool useSourceTerm = false;
+    
+    // Source term multiplier
+    Real sourceTermScaling = 0.0;
 
     // Define IBC for ramp problem
     SimpleIBC* simpleibc = new SimpleIBC(cs,cp,mu);
@@ -527,171 +528,171 @@ void amrGodunov()
     // Cast to physics base class pointer for technical reasons
     GodunovPhysics* godunovPhysics = static_cast<GodunovPhysics*> (&linElastPhysics);
 
-    //   // Set up the AMRLevel... factory
-    //   AMRLevelPolytropicGasFactory amrGodFact;
-    // 
-    //   amrGodFact.define(cfl,
-    //                     domainLength,
-    //                     verbosity,
-    //                     refineThresh,
-    //                     tagBufferSize,
-    //                     initialCFL,
-    //                     godunovPhysics,
-    //                     normalPredOrder,
-    //                     useFourthOrderSlopes,
-    //                     usePrimLimiting,
-    //                     useCharLimiting,
-    //                     useFlattening,
-    //                     useArtificialViscosity,
-    //                     artificialViscosity,
-    //                     useSourceTerm,
-    //                     sourceTermScaling,
-    //                     highOrderLimiter);
-    // 
-    //   AMR amr;
-    // 
-    //   // Set up the AMR object
-    //   amr.define(maxLevel,refRatios,probDomain,&amrGodFact);
-    // 
-    //   if (fixedDt > 0)
-    //   {
-    //     amr.fixedDt(fixedDt);
-    //   }
-    // 
-    //   // Set grid generation parameters
-    //   amr.maxGridSize(maxGridSize);
-    //   amr.blockFactor(blockFactor);
-    //   amr.fillRatio(fillRatio);
-    // 
-    //   // The hyperbolic codes use a grid buffer of 1
-    //   amr.gridBufferSize(1);
-    // 
-    //   // Set output parameters
-    //   amr.checkpointInterval(checkpointInterval);
-    //   amr.plotInterval(plotInterval);
-    //   amr.regridIntervals(regridIntervals);
-    //   amr.maxDtGrow(maxDtGrowth);
-    //   amr.dtToleranceFactor(dtToleranceFactor);
-    // 
-    //   // Set up output files
-    //   if (ppgodunov.contains("plot_prefix"))
-    //   {
-    //     std::string prefix;
-    //     ppgodunov.query("plot_prefix",prefix);
-    //     amr.plotPrefix(prefix);
-    //   }
-    // 
-    //   if (ppgodunov.contains("chk_prefix"))
-    //   {
-    //     std::string prefix;
-    //     ppgodunov.query("chk_prefix",prefix);
-    //     amr.checkpointPrefix(prefix);
-    //   }
-    // 
-    //   amr.verbosity(verbosity);
-    // 
-    //   // Set up input files
-    //   if (!ppgodunov.contains("restart_file"))
-    //   {
-    //     if (!ppgodunov.contains("fixed_hierarchy"))
-    //     {
-    //       // initialize from scratch for AMR run
-    //       // initialize hierarchy of levels
-    //       amr.setupForNewAMRRun();
-    //     }
-    //     else
-    //     {
-    //       std::string gridFile;
-    //       ppgodunov.query("fixed_hierarchy",gridFile);
-    // 
-    //       // initialize from a list of grids in "gridFile"
-    //       Vector<Vector<Box> > amrGrids(maxLevel+1);
-    //       setupFixedGrids(amrGrids,
-    //                       probDomain,
-    //                       maxLevel,
-    //                       maxGridSize,
-    //                       blockFactor,
-    //                       verbosity,
-    //                       gridFile);
-    //       amr.setupForFixedHierarchyRun(amrGrids,1);
-    //     }
-    //   }
-    //   else
-    //   {
-    //     std::string restartFile;
-    //     ppgodunov.query("restart_file",restartFile);
-    // 
-    // #ifdef CH_USE_HDF5
-    //     HDF5Handle handle(restartFile,HDF5Handle::OPEN_RDONLY);
-    //     // read from checkpoint file
-    //     amr.setupForRestart(handle);
-    //     handle.close();
-    // #else
-    //     MayDay::Error("amrGodunov restart only defined with hdf5");
-    // #endif
-    //   }
-    // 
-    //   // End timing AMR solver setup
-    //   TimeSetupAMR.stop();
-    // 
-    // #ifndef CH_NTIMER
-    //   pout() << "AMR Setup completed ---- "
-    //          << "mem: "
-    //          << setw(8) << setprecision(3)
-    //          << setiosflags(ios::fixed)
-    //          << get_memory_usage_from_OS()
-    //          << " MB, time: "
-    //          << setw(8) << setprecision(3)
-    //          << setiosflags(ios::fixed)
-    //          << TimeSetupAMR.wc_time()
-    //          << " sec (wall-clock)" << endl;
-    // 
-    //   if (verbosity >= 1)
-    //   {
-    //     pout() << endl;
-    //   }
-    // #endif
-    // 
-    //   // Run and time the computation
-    //   TimeRun.start();
-    //   amr.run(stopTime,nstop);
-    //   TimeRun.stop();
-    // 
-    // #ifndef CN_NTIMER
-    //   if (verbosity >= 1)
-    //   {
-    //     pout() << endl;
-    //   }
-    // 
-    //   pout() << "AMR Run completed ------ "
-    //          << "mem: "
-    //          << setw(8) << setprecision(3)
-    //          << setiosflags(ios::fixed)
-    //          << get_memory_usage_from_OS()
-    //          << " MB, time: "
-    //          << setw(8) << setprecision(3)
-    //          << setiosflags(ios::fixed)
-    //          << TimeRun.wc_time()
-    //          << " sec (wall-clock)" << endl;
-    // #endif
-    // 
-    //   // Output the last plot file and statistics - time the process
-    //   TimeConclude.start();
-    //   amr.conclude();
-    //   TimeConclude.stop();
-    // 
-    // #ifndef CH_NTIMER
-    //   pout() << "AMR Conclude completed - "
-    //          << "mem: "
-    //          << setw(8) << setprecision(3)
-    //          << setiosflags(ios::fixed)
-    //          << get_memory_usage_from_OS()
-    //          << " MB, time: "
-    //          << setw(8) << setprecision(3)
-    //          << setiosflags(ios::fixed)
-    //          << TimeConclude.wc_time()
-    //          << " sec (wall-clock)" << endl;
-    // #endif
+    // Set up the AMRLevel... factory
+    AMRLevelLinElastFactory amrGodFact;
+
+    amrGodFact.define(cfl,
+        domainLength,
+        verbosity,
+        refineThresh,
+        tagBufferSize,
+        initialCFL,
+        godunovPhysics,
+        normalPredOrder,
+        useFourthOrderSlopes,
+        usePrimLimiting,
+        useCharLimiting,
+        useFlattening,
+        useArtificialViscosity,
+        artificialViscosity,
+        useSourceTerm,
+        sourceTermScaling,
+        highOrderLimiter);
+
+    AMR amr;
+    
+    // Set up the AMR object
+    amr.define(maxLevel,refRatios,probDomain,&amrGodFact);
+    
+    if (fixedDt > 0)
+    {
+      amr.fixedDt(fixedDt);
+    }
+    
+    // Set grid generation parameters
+    amr.maxGridSize(maxGridSize);
+    amr.blockFactor(blockFactor);
+    amr.fillRatio(fillRatio);
+    
+    // The hyperbolic codes use a grid buffer of 1
+    amr.gridBufferSize(1);
+    
+    // Set output parameters
+    amr.checkpointInterval(checkpointInterval);
+    amr.plotInterval(plotInterval);
+    amr.regridIntervals(regridIntervals);
+    amr.maxDtGrow(maxDtGrowth);
+    amr.dtToleranceFactor(dtToleranceFactor);
+
+    // Set up output files
+    if (ppcomp.contains("plot_prefix"))
+    {
+        std::string prefix;
+        ppcomp.query("plot_prefix",prefix);
+        amr.plotPrefix(prefix);
+    }
+
+    if (ppcomp.contains("chk_prefix"))
+    {
+        std::string prefix;
+        ppcomp.query("chk_prefix",prefix);
+        amr.checkpointPrefix(prefix);
+    }
+
+    amr.verbosity(verbosity);
+
+    // Set up input files
+    if (!ppcomp.contains("restart_file"))
+    {
+        if (!ppcomp.contains("fixed_hierarchy"))
+        {
+            // initialize from scratch for AMR run
+            // initialize hierarchy of levels
+            amr.setupForNewAMRRun();
+        }
+        else
+        {
+            std::string gridFile;
+            ppcomp.query("fixed_hierarchy",gridFile);
+
+            // initialize from a list of grids in "gridFile"
+            Vector<Vector<Box> > amrGrids(maxLevel+1);
+            setupFixedGrids(amrGrids,
+                probDomain,
+                maxLevel,
+                maxGridSize,
+                blockFactor,
+                verbosity,
+                gridFile);
+            amr.setupForFixedHierarchyRun(amrGrids,1);
+        }
+    }
+    else
+    {
+        std::string restartFile;
+        ppcomp.query("restart_file",restartFile);
+
+#ifdef CH_USE_HDF5
+        HDF5Handle handle(restartFile,HDF5Handle::OPEN_RDONLY);
+        // read from checkpoint file
+        amr.setupForRestart(handle);
+        handle.close();
+#else
+        MayDay::Error("amrGodunov restart only defined with hdf5");
+#endif
+    }
+
+    // End timing AMR solver setup
+    TimeSetupAMR.stop();
+
+#ifndef CH_NTIMER
+    pout() << "AMR Setup completed ---- "
+        << "mem: "
+        << setw(8) << setprecision(3)
+        << setiosflags(ios::fixed)
+        << get_memory_usage_from_OS()
+        << " MB, time: "
+        << setw(8) << setprecision(3)
+        << setiosflags(ios::fixed)
+        << TimeSetupAMR.wc_time()
+        << " sec (wall-clock)" << endl;
+
+    if (verbosity >= 1)
+    {
+        pout() << endl;
+    }
+#endif
+
+    // Run and time the computation
+    TimeRun.start();
+    amr.run(stopTime,nstop);
+    TimeRun.stop();
+
+#ifndef CN_NTIMER
+    if (verbosity >= 1)
+    {
+        pout() << endl;
+    }
+
+    pout() << "AMR Run completed ------ "
+        << "mem: "
+        << setw(8) << setprecision(3)
+        << setiosflags(ios::fixed)
+        << get_memory_usage_from_OS()
+        << " MB, time: "
+        << setw(8) << setprecision(3)
+        << setiosflags(ios::fixed)
+        << TimeRun.wc_time()
+        << " sec (wall-clock)" << endl;
+#endif
+
+    // Output the last plot file and statistics - time the process
+    TimeConclude.start();
+    amr.conclude();
+    TimeConclude.stop();
+
+#ifndef CH_NTIMER
+    pout() << "AMR Conclude completed - "
+        << "mem: "
+        << setw(8) << setprecision(3)
+        << setiosflags(ios::fixed)
+        << get_memory_usage_from_OS()
+        << " MB, time: "
+        << setw(8) << setprecision(3)
+        << setiosflags(ios::fixed)
+        << TimeConclude.wc_time()
+        << " sec (wall-clock)" << endl;
+#endif
 }
 
 // setupFixedGrids allows fixed grids to be read in and used in this AMR
@@ -704,6 +705,7 @@ void setupFixedGrids(Vector<Vector<Box> >& a_amrGrids,
     int                   a_verbosity,
     std::string           a_gridFile)
 {
+    MayDay::Error("setupFixedGrids not defined");
     //  // Run this task on one processor
     //  if (procID() == uniqueProc(SerialTask::compute))
     //  {
