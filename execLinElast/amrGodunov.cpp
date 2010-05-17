@@ -36,7 +36,7 @@ using std::ios;
 // #include "AMRLevelPolytropicGasFactory.H"
 // #include "AMRLevelPolytropicGas.H"
 
-// #include "PolytropicPhysics.H"
+#include "LinElastPhysics.H"
 
 #include "SimpleIBC.H"
 
@@ -513,20 +513,20 @@ void amrGodunov()
         pout() << "maximum_dt_growth    = " << maxDtGrowth << endl;
         pout() << "dt_tolerance_factor  = " << dtToleranceFactor << endl;
     }
-    
+
     ProblemDomain probDomain (IntVect::Zero,
-                              IntVect(D_DECL(numCells[0]-1,
-                                             numCells[1]-1,
-                                             numCells[2]-1)),
-                              isPeriodic);
+        IntVect(D_DECL(numCells[0]-1,
+                numCells[1]-1,
+                numCells[2]-1)),
+        isPeriodic);
     
-    // Set up the physics for polytropic gas dynamics
-    //   PolytropicPhysics polytropicPhysics(smallPressure);
-    //   polytropicPhysics.setPhysIBC(ibc);
-    // 
-    //   // Cast to physics base class pointer for technical reasons
-    //   GodunovPhysics* godunovPhysics = static_cast<GodunovPhysics*> (&polytropicPhysics);
-    // 
+    // Set up the physics for linear elasticitiy
+    LinElastPhysics linElastPhysics(0 /*JUNK*/);
+    linElastPhysics.setPhysIBC(ibc);
+
+    // Cast to physics base class pointer for technical reasons
+    GodunovPhysics* godunovPhysics = static_cast<GodunovPhysics*> (&linElastPhysics);
+
     //   // Set up the AMRLevel... factory
     //   AMRLevelPolytropicGasFactory amrGodFact;
     // 

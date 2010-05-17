@@ -39,6 +39,8 @@ public:
       */
     PhysIBC *new_physIBC();
 
+    void setFortranCommonSet();
+
     /// Set up initial conditions
     /**
     */
