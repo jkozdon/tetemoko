@@ -52,7 +52,7 @@ comp.artificial_viscosity = 0.1
 # Plot file information
 comp.plot_interval = 10
 # comp.plot_interval = 1
-comp.plot_prefix  = ramp.
+comp.plot_prefix  = test.
 
 # Checkpoint file information
 comp.checkpoint_interval = -1
