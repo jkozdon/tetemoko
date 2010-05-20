@@ -1,0 +1,367 @@
+C
+C       Return the maximum wave speed, which is just the max of cs and cp
+C
+        subroutine MAXWAVESPEEDF(
+     &    CHF_REAL[cmax],
+     &    CHF_CONST_FRA[U],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+
+        cmax = max(cs,cp)
+
+        return
+        end
+
+
+C
+C       Compute the magnitude of the fields
+C       THIS IS CHOMBO CODE
+C
+        subroutine MAGNITUDEF(
+     &    CHF_FRA1[magdata],
+     &    CHF_CONST_FRA[data],
+     &    CHF_BOX[box])
+
+        integer CHF_DDECL[i;j;k]
+        integer iv
+        real_t cur,sum
+
+        CHF_MULTIDO[box;i;j;k]
+          sum = zero
+
+c
+c         Compute sum over all directions (x,y,z)
+c
+          do iv = 0,CHF_NCOMP[data]-1
+            cur = data(CHF_IX[i;j;k],iv)
+            sum = sum + cur*cur
+          enddo
+
+          magdata(CHF_IX[i;j;k]) = sqrt(sum)
+        CHF_ENDDO
+
+        return
+        end
+
+
+
+C
+C       Compute the relative gradient
+C       difference / average in each direction
+C       THIS IS CHOMBO CODE
+C
+        subroutine GETRELGRADF(
+     &    CHF_FRA1[du],
+     &    CHF_CONST_FRA1[u],
+     &    CHF_CONST_INT[idir],
+     &    CHF_BOX[loBox],
+     &    CHF_CONST_INT[hasLo],
+     &    CHF_BOX[hiBox],
+     &    CHF_CONST_INT[hasHi],
+     &    CHF_BOX[centerBox])
+
+        integer CHF_DDECL[i   ;j   ;k   ]
+        integer CHF_DDECL[ioff;joff;koff]
+        real_t diff,aver
+
+        CHF_DTERM[
+        ioff = CHF_ID(0,idir);
+        joff = CHF_ID(1,idir);
+        koff = CHF_ID(2,idir)]
+
+c       Perform first difference calculation in the interior.
+c       Centered difference / Average
+
+        CHF_MULTIDO[centerBox;i;j;k]
+          diff = half*(u(CHF_IX[i+ioff;j+joff;k+koff])
+     &                -u(CHF_IX[i-ioff;j-joff;k-koff]))
+          aver = half*(u(CHF_IX[i+ioff;j+joff;k+koff])
+     &                +u(CHF_IX[i-ioff;j-joff;k-koff]))
+          du(CHF_IX[i;j;k]) = diff / aver
+        CHF_ENDDO
+
+c       Perform calculation on the cells adjacent to the domain boundary in
+c       current direction, if required.
+
+        if (hasLo .eq. 1) then
+          CHF_MULTIDO[loBox;i;j;k]
+            diff = (u(CHF_IX[i+ioff;j+joff;k+koff])
+     &             -u(CHF_IX[i     ;j     ;k     ]))
+            aver = half*(u(CHF_IX[i+ioff;j+joff;k+koff])
+     &                  +u(CHF_IX[i     ;j     ;k     ]))
+            du(CHF_IX[i;j;k]) = diff / aver
+          CHF_ENDDO
+        endif
+
+        if (hasHi .eq. 1) then
+          CHF_MULTIDO[hiBox;i;j;k]
+            diff = (u(CHF_IX[i     ;j     ;k     ])
+     &             -u(CHF_IX[i-ioff;j-joff;k-koff]))
+            aver = half*(u(CHF_IX[i     ;j     ;k     ])
+     &                  +u(CHF_IX[i-ioff;j-joff;k-koff]))
+            du(CHF_IX[i;j;k]) = diff / aver
+          CHF_ENDDO
+        endif
+
+        return
+        end
+
+
+C
+C       Compute the flux from the physical variables
+C       THIS IS MODIFIED CHOMBO CODE
+C
+        subroutine GETFLUXF(
+     &    CHF_FRA[F],
+     &    CHF_CONST_FRA[Wgdnv],
+     &    CHF_CONST_INT[idir],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+
+        integer CHF_DDECL[i     ;j     ;k    ]
+        real_t  vx, vy, vz, sxx, syy, szz, sxy, sxz, syz
+
+C
+C       There is alsmost certainly a way to do this better without the if
+C       statements
+C
+        if(idir .eq. 0) then
+          CHF_MULTIDO[box;i;j;k]
+            vx  = Wgdnv(CHF_IX[i;j;k],0)
+            vy  = Wgdnv(CHF_IX[i;j;k],1)
+            vz  = Wgdnv(CHF_IX[i;j;k],2)
+            sxx = Wgdnv(CHF_IX[i;j;k],3)
+            syy = Wgdnv(CHF_IX[i;j;k],4)
+            szz = Wgdnv(CHF_IX[i;j;k],5)
+            sxy = Wgdnv(CHF_IX[i;j;k],6)
+            sxz = Wgdnv(CHF_IX[i;j;k],7)
+            syz = Wgdnv(CHF_IX[i;j;k],8)
+
+            F(CHF_IX[i;j;k],0) = sxx / rho
+            F(CHF_IX[i;j;k],1) = sxy / rho
+            F(CHF_IX[i;j;k],2) = sxz / rho
+            F(CHF_IX[i;j;k],3) = vx * (lam + 2 * mu)
+            F(CHF_IX[i;j;k],4) = vx * lam
+            F(CHF_IX[i;j;k],5) = vx * lam
+            F(CHF_IX[i;j;k],6) = vy * mu
+            F(CHF_IX[i;j;k],7) = vz * mu
+            F(CHF_IX[i;j;k],8) = 0
+
+          CHF_ENDDO
+        else if(idir .eq. 1) then
+          CHF_MULTIDO[box;i;j;k]
+            vx  = Wgdnv(CHF_IX[i;j;k],0)
+            vy  = Wgdnv(CHF_IX[i;j;k],1)
+            vz  = Wgdnv(CHF_IX[i;j;k],2)
+            sxx = Wgdnv(CHF_IX[i;j;k],3)
+            syy = Wgdnv(CHF_IX[i;j;k],4)
+            szz = Wgdnv(CHF_IX[i;j;k],5)
+            sxy = Wgdnv(CHF_IX[i;j;k],6)
+            sxz = Wgdnv(CHF_IX[i;j;k],7)
+            syz = Wgdnv(CHF_IX[i;j;k],8)
+
+            F(CHF_IX[i;j;k],0) = sxy / rho
+            F(CHF_IX[i;j;k],1) = syy / rho
+            F(CHF_IX[i;j;k],2) = syz / rho
+            F(CHF_IX[i;j;k],3) = vy * lam
+            F(CHF_IX[i;j;k],4) = vy * (lam + 2 * mu)
+            F(CHF_IX[i;j;k],5) = vy * lam
+            F(CHF_IX[i;j;k],6) = vx * mu
+            F(CHF_IX[i;j;k],7) = 0
+            F(CHF_IX[i;j;k],8) = vz * mu
+
+          CHF_ENDDO
+        else if(idir .eq. 2) then
+          CHF_MULTIDO[box;i;j;k]
+            vx  = Wgdnv(CHF_IX[i;j;k],0)
+            vy  = Wgdnv(CHF_IX[i;j;k],1)
+            vz  = Wgdnv(CHF_IX[i;j;k],2)
+            sxx = Wgdnv(CHF_IX[i;j;k],3)
+            syy = Wgdnv(CHF_IX[i;j;k],4)
+            szz = Wgdnv(CHF_IX[i;j;k],5)
+            sxy = Wgdnv(CHF_IX[i;j;k],6)
+            sxz = Wgdnv(CHF_IX[i;j;k],7)
+            syz = Wgdnv(CHF_IX[i;j;k],8)
+
+            F(CHF_IX[i;j;k],0) = sxz / rho
+            F(CHF_IX[i;j;k],1) = syz / rho
+            F(CHF_IX[i;j;k],2) = szz / rho
+            F(CHF_IX[i;j;k],3) = vz * lam
+            F(CHF_IX[i;j;k],4) = vz * lam
+            F(CHF_IX[i;j;k],5) = vz * (lam + 2 * mu)
+            F(CHF_IX[i;j;k],6) = 0
+            F(CHF_IX[i;j;k],7) = vx * mu
+            F(CHF_IX[i;j;k],8) = vy * mu
+
+          CHF_ENDDO
+        endif
+
+        return
+        end
+
+C
+C       Convert to characteristic variables
+C       assumes cp >= cs
+C
+        subroutine CHARANALYSISF(
+     &    CHF_FRA[dW],
+     &    CHF_CONST_FRA[W],
+     &    CHF_CONST_INT[normdir],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+
+        real_t  vx, vy, vz, sxx, syy, szz, sxy, sxz, syz
+
+        integer CHF_DDECL[i;j;k]
+        integer cx,cy,cz
+
+        if(normdir .eq. 0) then
+          cx = 0
+          cy = 1
+          cz = 2
+        else if(normdir .eq. 1) then
+          cx = 2
+          cy = 0
+          cz = 1
+        else if(normdir .eq. 2) then
+          cx = 1
+          cy = 2
+          cz = 0
+        endif
+
+        CHF_MULTIDO[box;i;j;k]
+          vx  = W(CHF_IX[i;j;k],cx    )
+          vy  = W(CHF_IX[i;j;k],cy    )
+          vz  = W(CHF_IX[i;j;k],cz    )
+          sxx = W(CHF_IX[i;j;k],cx + 3)
+          syy = W(CHF_IX[i;j;k],cy + 3)
+          szz = W(CHF_IX[i;j;k],cz + 3)
+          sxy = W(CHF_IX[i;j;k],cx + 6)
+          sxz = W(CHF_IX[i;j;k],cy + 6)
+          syz = W(CHF_IX[i;j;k],cz + 6)
+
+          dW(CHF_IX[i;j;k],0) = sxx - vx  * Zp
+          dW(CHF_IX[i;j;k],1) = sxy - vy  * Zs
+          dW(CHF_IX[i;j;k],2) = sxz - vz  * Zs
+          dW(CHF_IX[i;j;k],3) = syy - sxx * lam / (2 * mu + lam)
+          dW(CHF_IX[i;j;k],4) = szz - sxx * lam / (2 * mu + lam)
+          dW(CHF_IX[i;j;k],5) = syz
+          dW(CHF_IX[i;j;k],6) = sxy + vy * Zs
+          dW(CHF_IX[i;j;k],7) = sxx + vz * Zp
+          dW(CHF_IX[i;j;k],8) = sxz + vx * Zs
+        CHF_ENDDO
+
+
+        return
+        end
+
+C
+C       Convert to characteristic variables
+C       assumes cp >= cs
+C
+        subroutine CHARSYNTHESISF(
+     &    CHF_FRA[dW],
+     &    CHF_CONST_FRA[W],
+     &    CHF_CONST_INT[normdir],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+
+        real_t  wxxp, wxxm, wxyp, wxym, wxzp, wxzm, wyy, wzz, wyz, sxx
+
+        integer CHF_DDECL[i;j;k]
+        integer cx,cy,cz
+
+        if(normdir .eq. 0) then
+          cx = 0
+          cy = 1
+          cz = 2
+        else if(normdir .eq. 1) then
+          cx = 2
+          cy = 0
+          cz = 1
+        else if(normdir .eq. 2) then
+          cx = 1
+          cy = 2
+          cz = 0
+        endif
+
+        CHF_MULTIDO[box;i;j;k]
+          wxxp = W(CHF_IX[i;j;k],cx    )
+          wxyp = W(CHF_IX[i;j;k],cy    )
+          wxzp = W(CHF_IX[i;j;k],cz    )
+          wyy  = W(CHF_IX[i;j;k],cx + 3)
+          wzz  = W(CHF_IX[i;j;k],cy + 3)
+          wyz  = W(CHF_IX[i;j;k],cz + 3)
+          wxym = W(CHF_IX[i;j;k],cx + 6)
+          wxzm = W(CHF_IX[i;j;k],cy + 6)
+          wxxm = W(CHF_IX[i;j;k],cz + 6)
+
+          sxx = (wxxm + wxxp) / 2 / Zp
+
+          dW(CHF_IX[i;j;k],0) = (wxxm - wxxp) / 2 / Zp
+          dW(CHF_IX[i;j;k],1) = (wxym - wxyp) / 2 / Zs
+          dW(CHF_IX[i;j;k],2) = (wxzm - wxzp) / 2 / Zs
+          dW(CHF_IX[i;j;k],3) =  sxx
+          dW(CHF_IX[i;j;k],4) =  wyy  + sxx * lam / (2 * mu + lam)
+          dW(CHF_IX[i;j;k],5) =  wzz  + sxx * lam / (2 * mu + lam)
+          dW(CHF_IX[i;j;k],6) = (wxym + wxyp) / 2
+          dW(CHF_IX[i;j;k],7) = (wxzm + wxzp) / 2
+          dW(CHF_IX[i;j;k],8) =  wyz
+        CHF_ENDDO
+
+
+        return
+        end
+
+
+C
+C       Return the eigenvalues, which for us are easy, in order high to low
+C
+        subroutine CHARVALUESF(
+     &    CHF_FRA[lambda],
+     &    CHF_BOX[box])
+ 
+#include "IBCCommon.fh"
+ 
+        integer CHF_DDECL[i;j;k]
+
+        CHF_MULTIDO[box;i;j;k]
+          lambda(CHF_IX[i;j;k],0) =  cp
+          lambda(CHF_IX[i;j;k],1) =  cs
+          lambda(CHF_IX[i;j;k],2) =  cs
+          lambda(CHF_IX[i;j;k],3) =   0
+          lambda(CHF_IX[i;j;k],4) =   0
+          lambda(CHF_IX[i;j;k],5) =   0
+          lambda(CHF_IX[i;j;k],6) = -cs
+          lambda(CHF_IX[i;j;k],7) = -cs
+          lambda(CHF_IX[i;j;k],8) = -cp
+        CHF_ENDDO
+
+        return
+        end
+
+
+C
+C       Solve the Riemann problem
+C       
+        subroutine RIEMANNF(
+     &    CHF_FRA[Wgdnv],
+     &    CHF_CONST_FRA[WLeft],
+     &    CHF_CONST_FRA[WRight],
+     &    CHF_CONST_INT[idir],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+
+        integer CHF_DDECL[i; j; k]
+
+
+        CHF_MULTIDO[box;i;j;k]
+        CHF_ENDDO
+
+        return
+        end

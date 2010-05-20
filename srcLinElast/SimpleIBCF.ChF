@@ -1,15 +1,83 @@
+C
+C Set the constant parameters
+C
 #include "CONSTANTS.H"
 
         subroutine SIMPLESETF(
      &    CHF_CONST_REAL[aucs],
      &    CHF_CONST_REAL[aucp],
-     &    CHF_CONST_REAL[aumu])
+     &    CHF_CONST_REAL[aumu],
+     &    CHF_CONST_REAL[ar0],
+     &    CHF_CONST_REAL[amag],
+     &    CHF_CONST_REAL[asig])
 
 #include "IBCCommon.fh"
+#include "SimpleCommon.fh"
 
-        cs = aucs
-        cp = aucp
-        mu = aumu
+c
+c       physical parameters
+c
+        cs  = aucs
+        cp  = aucp
+        mu  = aumu
+
+c
+c       other physical (dependent) parameters
+c
+        rho = mu / cs / cs
+        lam = cp * cp * rho - 2.0d0 * mu
+        r0  = ar0
+        Zs  = rho * cs
+        Zp  = rho * cp
+
+c
+c       simulation parameters
+c
+
+        mag = amag
+        sig = asig
+
+        return
+        end
+
+
+
+C
+C This is a very very very simple gaussian pulse initial condition
+C
+        subroutine SIMPLEINITF(
+     &    CHF_FRA[U],
+     &    CHF_CONST_REAL[dx],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+#include "SimpleCommon.fh"
+
+        integer CHF_DDECL[i;j;k]
+        real_t CHF_DDECL[x;y;z]
+
+        real_t rrs
+
+        CHF_MULTIDO[box;i;j;k]
+          CHF_DTERM[
+          x = (i + half) * dx - r0;
+          y = (j + half) * dx - r0;
+          z = (k + half) * dx - r0]
+
+          rrs = (CHF_DTERM[x*x;+y*y;+z*z]) / sig
+          rrs = rrs*rrs*rrs
+
+          U(CHF_IX[i;j;k],0) = mag * exp(-rrs)
+          U(CHF_IX[i;j;k],1) = mag * exp(-rrs)
+          U(CHF_IX[i;j;k],2) = mag * exp(-rrs)
+          U(CHF_IX[i;j;k],3) = mag * exp(-rrs)
+          U(CHF_IX[i;j;k],4) = mag * exp(-rrs)
+          U(CHF_IX[i;j;k],5) = mag * exp(-rrs)
+          U(CHF_IX[i;j;k],6) = mag * exp(-rrs)
+          U(CHF_IX[i;j;k],7) = mag * exp(-rrs)
+          U(CHF_IX[i;j;k],8) = mag * exp(-rrs)
+
+        CHF_ENDDO
 
         return
         end

@@ -197,6 +197,21 @@ void amrGodunov()
     ppphysics.query("mu",mu);
     CH_assert(mu >= 0);
 
+    // Pulse Location
+    Real r0 = 0.5;
+    ppphysics.query("r0",r0);
+    CH_assert(r0 >= 0);
+
+    // Pulse Magnitude
+    Real mag = 1;
+    ppphysics.query("mag",mag);
+    CH_assert(mag >= 0);
+
+    // Pulse Width
+    Real sig = 10;
+    ppphysics.query("sig",sig);
+    CH_assert(sig >= 0);
+
     // Output the physical parameters if doing output
     if(verbosity >= 1)
     {
@@ -204,9 +219,12 @@ void amrGodunov()
            pout() << ":::::::::::::::::::::::::::" << endl;
            pout() << ":: Simulation Parameters ::" << endl;
            pout() << ":::::::::::::::::::::::::::" << endl << endl;
-           pout() << "S-wave Speed  = " << cs << endl;
-           pout() << "P-wave Speed  = " << cp << endl;
-           pout() << "Shear Modulus = " << mu << endl << endl;
+           pout() << "S-wave Speed    = " << cs << endl;
+           pout() << "P-wave Speed    = " << cp << endl;
+           pout() << "Shear Modulus   = " << mu << endl << endl;
+           pout() << "Pulse Location  = " << r0 << endl;
+           pout() << "Pulse Magnitude = " << mag << endl;
+           pout() << "Pulse Width     = " << sig << endl << endl;
     }
 
 
@@ -326,15 +344,17 @@ void amrGodunov()
     useCharLimiting = (inCharLimiting == 1);
 
     // Do slope flattening
-    int inFlattening = 1;
+    int inFlattening = 0;
     bool useFlattening;
-    ppcomp.get("use_flattening",inFlattening);
+    //JK NOT CURRENTLY IMPLEMENTED
+    // ppcomp.get("use_flattening",inFlattening);
     useFlattening = (inFlattening == 1);
 
     // Apply artificial viscosity
-    int inArtificialViscosity = 1;
+    int inArtificialViscosity = 0;
     bool useArtificialViscosity;
-    ppcomp.get("use_artificial_viscosity",inArtificialViscosity);
+    //JK NOT CURRENTLY IMPLEMENTED
+    // ppcomp.get("use_artificial_viscosity",inArtificialViscosity);
     useArtificialViscosity = (inArtificialViscosity == 1);
 
     // Artificial viscosity coefficient/multiplier
@@ -410,7 +430,7 @@ void amrGodunov()
     Real sourceTermScaling = 0.0;
 
     // Define IBC for ramp problem
-    SimpleIBC* simpleibc = new SimpleIBC(cs,cp,mu);
+    SimpleIBC* simpleibc = new SimpleIBC(cs,cp,mu,r0,mag,sig);
     //simpleibc->setFortranCommon(smallPressure,
     //                          gamma,
     //                          alpha,

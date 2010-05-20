@@ -22,7 +22,10 @@ public:
     */
     SimpleIBC(const Real& cs,
         const Real& cp,
-        const Real& mu);
+        const Real& mu,
+        const Real& r0,
+        const Real& mag,
+        const Real& sig);
 
     /// Destructor
     /**

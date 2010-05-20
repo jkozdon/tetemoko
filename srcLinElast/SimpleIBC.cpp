@@ -12,9 +12,15 @@ SimpleIBC::SimpleIBC()
 /// Constructor which defines parameters used by Fortran routines
 SimpleIBC::SimpleIBC(const Real& a_cs,
     const Real& a_cp,
-    const Real& a_mu)
+    const Real& a_mu,
+    const Real& a_r0,
+    const Real& a_mag,
+    const Real& a_sig)
 {
-    FORT_SIMPLESETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu));
+    pout() << a_r0 << endl;
+    pout() << a_mag << endl;
+    pout() << a_sig << endl;
+    FORT_SIMPLESETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_REAL(a_r0),CHF_CONST_REAL(a_mag),CHF_CONST_REAL(a_sig));
     m_isFortranCommonSet = true;
 }
 
@@ -47,7 +53,7 @@ PhysIBC* SimpleIBC::new_physIBC()
 /// Set up initial conditions
 void SimpleIBC::initialize(LevelData<FArrayBox>& a_U)
 {
-    pout() << "NOT SETUP :: SimpleIBC::initialize" << endl;
+    pout() << "SimpleIBC::initialize" << endl;
     CH_assert(m_isFortranCommonSet == true);
     CH_assert(m_isDefined == true);
 
@@ -63,9 +69,9 @@ void SimpleIBC::initialize(LevelData<FArrayBox>& a_U)
         uBox &= m_domain;
 
         // Set up initial condition in this grid
-        //JK FORT_RAMPINITF(CHF_FRA(U),
-        //JK     CHF_CONST_REAL(m_dx),
-        //JK     CHF_BOX(uBox));
+        FORT_SIMPLEINITF(CHF_FRA(U),
+            CHF_CONST_REAL(m_dx),
+            CHF_BOX(uBox));
     }
 }
 

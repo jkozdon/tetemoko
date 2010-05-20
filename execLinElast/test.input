@@ -1,10 +1,14 @@
 # Physical parameters: S- and P- wave speed, shear modulus
-physics.cs = 3
-physics.cp = 5.2
+physics.cs =  3
+physics.cp =  5.2
 physics.mu = 30
 
+physics.r0   =  0.5
+physics.mag  = 1.0
+physics.sig  = 0.005
+
 # Turn on some output
-comp.verbosity = 1
+comp.verbosity = 3
 
 # Number of steps, final time, and time step
 comp.max_step = 200
@@ -16,20 +20,20 @@ comp.domain_length = 1.0
 
 # Coarsest grid
 # comp.num_cells = 32 8 4
-comp.num_cells = 64 16 8
+comp.num_cells = 64 64 8
 comp.is_periodic = 0 0 0
 
 # Grid refinement
 comp.max_level = 2
 # For 2D
-comp.ref_ratio = 4 4 4 4 4
+comp.ref_ratio = 2 2 2 2 2
 # For 3D
 # comp.ref_ratio = 2 2 2 2 2
 
 # Regridding parameters
 comp.regrid_interval = 2 2 2 2 2 2
 comp.tag_buffer_size = 3
-comp.refine_thresh = 0.015
+comp.refine_thresh = 0.05
 
 # Grid generation parameters
 comp.block_factor = 4

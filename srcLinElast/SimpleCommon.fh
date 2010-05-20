@@ -1,0 +1,5 @@
+C
+C   Simple problem constants
+C
+        real_t r0,mag,sig
+        common /wp/ r0,mag,sig

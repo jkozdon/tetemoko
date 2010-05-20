@@ -30,7 +30,8 @@
 
 #include "AMRLevelLinElast.H"
 
-//JK #include "PolytropicPhysicsF_F.H"
+#include "LinElastPhysicsF_F.H"
+#include "GodunovUtilitiesF_F.H"
 
 // Constructor
 AMRLevelLinElast::AMRLevelLinElast()
@@ -474,20 +475,25 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
             const Box bHi     = b & adjCellHi(bCenter,dir);
             const int hasHi = ! bHi.isEmpty();
 
-            //JK FORT_GETRELGRADF(CHF_FRA1(gradFab,dir),
-            //JK     CHF_CONST_FRA1(UFab,0),
-            //JK     CHF_CONST_INT(dir),
-            //JK     CHF_BOX(bLo),
-            //JK     CHF_CONST_INT(hasLo),
-            //JK     CHF_BOX(bHi),
-            //JK     CHF_CONST_INT(hasHi),
-            //JK     CHF_BOX(bCenter));
+            // Chombo sample code all uses Relative Gradients, but this doesn't
+            // seem to work for me
+
+            // FORT_GETRELGRADF(
+            FORT_GETGRADF(
+                CHF_FRA1(gradFab,dir),
+                CHF_CONST_FRA1(UFab,0), // Only do on 0 component
+                CHF_CONST_INT(dir),
+                CHF_BOX(bLo),
+                CHF_CONST_INT(hasLo),
+                CHF_BOX(bHi),
+                CHF_CONST_INT(hasHi),
+                CHF_BOX(bCenter));
         }
 
         FArrayBox gradMagFab(b,1);
-        //JK FORT_MAGNITUDEF(CHF_FRA1(gradMagFab,0),
-        //JK     CHF_CONST_FRA(gradFab),
-        //JK     CHF_BOX(b));
+        FORT_MAGNITUDEF(CHF_FRA1(gradMagFab,0),
+            CHF_CONST_FRA(gradFab),
+            CHF_BOX(b));
 
         // Tag where gradient exceeds threshold
         BoxIterator bit(b);
@@ -498,6 +504,7 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
             if (gradMagFab(iv) >= m_refineThresh)
             {
                 localTags |= iv;
+                //pout() << gradFab(iv,0) << "     " << gradFab(iv,1) << "     " << gradMagFab(iv) << "    " << m_refineThresh << endl;
             }
         }
     }

@@ -12,7 +12,7 @@
 
 #include "LinElastPhysics.H"
 
-//JK #include "PolytropicPhysicsF_F.H"
+#include "LinElastPhysicsF_F.H"
 
 
 /// Constructor
@@ -29,15 +29,16 @@ LinElastPhysics::~LinElastPhysics()
 Real LinElastPhysics::getMaxWaveSpeed(const FArrayBox& a_U,
     const Box&       a_box)
 {
-    pout() << "NOT DEFINED :: LinElastPhysics::getMaxWaveSpeed" << endl;
         CH_assert(isDefined());
     CH_assert(a_U.contains(a_box));
 
     Real speed = 0.0;
 
-    //JK FORT_MAXWAVESPEEDF(CHF_REAL(speed),
-    //JK                    CHF_CONST_FRA(a_U),
-    //JK                    CHF_BOX(a_box));
+    FORT_MAXWAVESPEEDF(CHF_REAL(speed),
+                       CHF_CONST_FRA(a_U),
+                       CHF_BOX(a_box));
+
+    //JK pout() << "LinElastPhysics::getMaxWaveSpeed :: SPEED = " << speed << endl;
 
     return speed;
 }
@@ -111,13 +112,13 @@ void LinElastPhysics::getFlux(FArrayBox&       a_flux,
     const int&       a_dir,
     const Box&       a_box)
 {
-    pout() << "NOT DEFINED :: LinElastPhysics::getFlux" << endl;
+    //JK pout() << "LinElastPhysics::getFlux :: " << a_dir << endl;
     CH_assert(isDefined());
 
-    //JK FORT_GETFLUXF(CHF_FRA(a_flux),
-    //JK     CHF_CONST_FRA(a_whalf),
-    //JK     CHF_CONST_INT(a_dir),
-    //JK     CHF_BOX(a_box));
+    FORT_GETFLUXF(CHF_FRA(a_flux),
+        CHF_CONST_FRA(a_whalf),
+        CHF_CONST_INT(a_dir),
+        CHF_BOX(a_box));
 }
 
 /// Number of primitive variables
@@ -129,7 +130,7 @@ void LinElastPhysics::getFlux(FArrayBox&       a_flux,
 int LinElastPhysics::numPrimitives()
 {
     CH_assert(isDefined());
-    pout() << "MAY NOT BE RIGHT :: LinElastPhysics::getFlux" << endl;
+    //JK pout() << "LinElastPhysics::numPrimitives" << endl;
 
     //JK NOT SURE IF THIS SHOULD BE THE SAME
     return numConserved();
@@ -149,13 +150,16 @@ void LinElastPhysics::charAnalysis(FArrayBox&       a_dW,
     const int&       a_dir,
     const Box&       a_box)
 {
-    pout() << "NOT DEFINED :: LinElastPhysics::charAnalysis" << endl;
+    //JK pout() << "LinElastPhysics::charAnalysis" << endl;
     CH_assert(isDefined());
 
-    //JK FORT_CHARANALYSISF(CHF_FRA(a_dW),
-    //JK     CHF_CONST_FRA(a_W),
-    //JK     CHF_CONST_INT(a_dir),
-    //JK     CHF_BOX(a_box));
+    /*
+     * This routine assumes that cp >= cs
+     */
+    FORT_CHARANALYSISF(CHF_FRA(a_dW),
+        CHF_CONST_FRA(a_W),
+        CHF_CONST_INT(a_dir),
+        CHF_BOX(a_box));
 }
 
 /// Transform a_dW from characteristic to primitive variables
@@ -172,13 +176,13 @@ void LinElastPhysics::charSynthesis(FArrayBox&       a_dW,
     const int&       a_dir,
     const Box&       a_box)
 {
-    pout() << "NOT DEFINED :: LinElastPhysics::charSynthesis" << endl;
+    //JK pout() << "LinElastPhysics::charSynthesis" << endl;
     CH_assert(isDefined());
 
-    //JK FORT_CHARSYNTHESISF(CHF_FRA(a_dW),
-    //JK     CHF_CONST_FRA(a_W),
-    //JK     CHF_CONST_INT(a_dir),
-    //JK     CHF_BOX(a_box));
+    FORT_CHARSYNTHESISF(CHF_FRA(a_dW),
+        CHF_CONST_FRA(a_W),
+        CHF_CONST_INT(a_dir),
+        CHF_BOX(a_box));
 }
 
 /// Compute the characteristic values (eigenvalues)
@@ -194,13 +198,11 @@ void LinElastPhysics::charValues(FArrayBox&       a_lambda,
     const int&       a_dir,
     const Box&       a_box)
 {
-    pout() << "NOT DEFINED :: LinElastPhysics::charValues" << endl;
+    //JK pout() << "LinElastPhysics::charValues" << endl;
     CH_assert(isDefined());
 
-    //JK FORT_CHARVALUESF(CHF_FRA(a_lambda),
-    //JK     CHF_CONST_FRA(a_W),
-    //JK     CHF_CONST_INT(a_dir),
-    //JK     CHF_BOX(a_box));
+    FORT_CHARVALUESF(CHF_FRA(a_lambda),
+        CHF_BOX(a_box));
 }
 
 /// Add to (increment) the source terms given the current state
@@ -213,7 +215,7 @@ void LinElastPhysics::incrementSource(FArrayBox&       a_S,
     const FArrayBox& a_W,
     const Box&       a_box)
 {
-    pout() << "MAY NOT BE RIGHT :: LinElastPhysics::incrementSource" << endl;
+    //JK pout() << "LinElastPhysics::incrementSource" << endl;
 }
 
 /// Compute the solution to the Riemann problem.
@@ -237,6 +239,48 @@ void LinElastPhysics::riemann(/// face-centered solution to Riemann problem
     const Box&       a_box)
 {
     pout() << "NOT DEFINED :: LinElastPhysics::riemann" << endl;
+    CH_assert(isDefined());
+
+    CH_assert(a_WStar.box().contains(a_box));
+
+    // Get the numbers of relevant variables
+    int numPrim = numPrimitives();
+
+    CH_assert(a_WStar .nComp() == numPrim);
+    CH_assert(a_WLeft .nComp() == numPrim);
+    CH_assert(a_WRight.nComp() == numPrim);
+
+    // Cast away "const" inputs so their boxes can be shifted left or right
+    // 1/2 cell and then back again (no net change is made!)
+    FArrayBox& shiftWLeft  = (FArrayBox&)a_WLeft;
+    FArrayBox& shiftWRight = (FArrayBox&)a_WRight;
+
+    // Solution to the Riemann problem
+
+    // Shift the left and right primitive variable boxes 1/2 cell so they are
+    // face centered
+    shiftWLeft .shiftHalf(a_dir, 1);
+    shiftWRight.shiftHalf(a_dir,-1);
+
+    CH_assert(shiftWLeft .box().contains(a_box));
+    CH_assert(shiftWRight.box().contains(a_box));
+
+    // Riemann solver computes Wgdnv all edges that are not on the physical
+    // boundary.
+    FORT_RIEMANNF(CHF_FRA(a_WStar),
+        CHF_CONST_FRA(shiftWLeft),
+        CHF_CONST_FRA(shiftWRight),
+        CHF_CONST_INT(a_dir),
+        CHF_BOX(a_box));
+
+    // Call boundary Riemann solver (note: periodic BC's are handled there).
+    m_bc->primBC(a_WStar,shiftWLeft ,a_W,a_dir,Side::Hi,a_time);
+    m_bc->primBC(a_WStar,shiftWRight,a_W,a_dir,Side::Lo,a_time);
+
+    // Shift the left and right primitive variable boxes back to their original
+    // position.
+    shiftWLeft .shiftHalf(a_dir,-1);
+    shiftWRight.shiftHalf(a_dir, 1);
 }
 
 /// Post-normal predictor calculation.
@@ -252,7 +296,9 @@ void LinElastPhysics::postNormalPred(FArrayBox&       a_dWMinus,
     const int&       a_dir,
     const Box&       a_box)
 {
-    pout() << "NOT DEFINED :: LinElastPhysics::postNormalPred" << endl;
+    //JK I don't think that this applies to our equations
+    //JK pout() << "LinElastPhysics::postNormalPred" << endl;
+
     // Bound "a_dWMinus" and "a_dWPlus" so that density and pressure will never
     // be less than "smallr" and "smallp", respectively
     //JK FORT_POSTNORMALPREDF(CHF_FRA(a_dWMinus),
@@ -271,9 +317,12 @@ void LinElastPhysics::quasilinearUpdate(FArrayBox&       a_dWdx,
     const int&       a_dir,
     const Box&       a_box)
 {
-    pout() << "NOT DEFINED :: LinElastPhysics::quasilinear" << endl;
+    //JK pout() << "LinElastPhysics::quasilinear" << endl;
     CH_assert(isDefined());
     CH_assert(a_dWdx.box().contains(a_box));
+
+    //JK We have a linear problem, so we can use the getFlux call
+    getFlux(a_dWdx,a_wHalf,a_dir,a_box);
 
     //JK FORT_GETADWDXF(CHF_FRA(a_dWdx),
     //JK     CHF_CONST_FRA(a_WHalf),
@@ -290,7 +339,8 @@ void LinElastPhysics::consToPrim(FArrayBox&       a_W,
     const FArrayBox& a_U,
     const Box&       a_box)
 {
-    pout() << "NOT DEFINED :: LinElastPhysics::consToPrim" << endl;
+    //JK Our primitives are our conserved variables
+    //JK pout() << "LinElastPhysics::consToPrim" << endl;
     CH_assert(isDefined());
     CH_assert(a_U.box().contains(a_box));
     CH_assert(a_W.box().contains(a_box));
