@@ -484,45 +484,45 @@ void amrGodunov()
         pout() << "max_grid_size        = " << maxGridSize << endl;
         pout() << "fill_ratio           = " << fillRatio << endl;
 
-        //JK pout() << "normal_predictor = ";
-        //JK if (normalPredOrder == 0)
-        //JK {
-        //JK     pout() << "CTU" << endl;
-        //JK }
-        //JK else if (normalPredOrder == 1)
-        //JK {
-        //JK     pout() << "PLM" << endl;
-        //JK }
-        //JK else if (normalPredOrder == 2)
-        //JK {
-        //JK     pout() << "PPM" << endl;
-        //JK }
-        //JK else
-        //JK {
-        //JK     pout() << "Unknown (" << normalPredOrder << ")" << endl;
-        //JK }
+        pout() << "normal_predictor = ";
+        if (normalPredOrder == 0)
+        {
+            pout() << "CTU" << endl;
+        }
+        else if (normalPredOrder == 1)
+        {
+            pout() << "PLM" << endl;
+        }
+        else if (normalPredOrder == 2)
+        {
+            pout() << "PPM" << endl;
+        }
+        else
+        {
+            pout() << "Unknown (" << normalPredOrder << ")" << endl;
+        }
 
-        //JK pout() << "slope_order = "
-        //JK     << (useFourthOrderSlopes ? "2nd" : "4th") << endl;
-        //JK pout() << "use_primitive_slope_limiting = "
-        //JK     << (usePrimLimiting ? "yes" : "no") << endl;
-        //JK pout() << "use_characteristic_slope_limiting = "
-        //JK     << (useCharLimiting ? "yes" : "no") << endl;
-        //JK pout() << "use_slope_flattening = "
-        //JK     << (useFlattening ? "yes" : "no") << endl;
+        pout() << "slope_order     = "
+            << (useFourthOrderSlopes ? "2nd" : "4th") << endl;
+        pout() << "use_primitive_slope_limiting      = "
+            << (usePrimLimiting ? "yes" : "no") << endl;
+        pout() << "use_characteristic_slope_limiting = "
+            << (useCharLimiting ? "yes" : "no") << endl;
+        pout() << "use_slope_flattening              = "
+            << (useFlattening ? "yes" : "no") << endl;
 
         //JK pout() << "use_artificial_viscosity = "
         //JK     << (useArtificialViscosity ? "yes" : "no") << endl;
         //JK if (useArtificialViscosity)
         //JK {
-        //JK     pout() << "artificial_viscosity = " << artificialViscosity << endl;
+        //JK     pout() << "artificial_viscosity     = " << artificialViscosity << endl;
         //JK }
 
-        //JK pout() << "use_source_term = "
+        //JK pout() << "use_source_term          = "
         //JK     << (useSourceTerm ? "yes" : "no") << endl;
         //JK if (useSourceTerm)
         //JK {
-        //JK     pout() << "source_term_scaling = " << sourceTermScaling << endl;
+        //JK     pout() << "source_term_scaling  = " << sourceTermScaling << endl;
         //JK }
 
         pout() << "checkpoint_interval  = " << checkpointInterval << endl;

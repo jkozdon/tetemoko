@@ -83,7 +83,10 @@ void SimpleIBC::primBC(FArrayBox&            a_WGdnv,
     const Side::LoHiSide& a_side,
     const Real&           a_time)
 {
-    pout() << "NOT SETUP :: SimpleIBC::primBC" << endl;
+    if (! m_domain.isPeriodic(a_dir))
+    {
+        MayDay::Error("SimpleIBC::primBC: All directions must be periodic");
+    }
 }
 
 /// Set boundary slopes
@@ -93,7 +96,10 @@ void SimpleIBC::setBdrySlopes(FArrayBox&       a_dW,
     const int&       a_dir,
     const Real&      a_time)
 {
-    pout() << "NOT SETUP :: SimpleIBC::setBdrySlopes" << endl;
+    if (! m_domain.isPeriodic(a_dir))
+    {
+        MayDay::Error("SimpleIBC::setBdrySlopes: All directions must be periodic");
+    }
 }
 
 void SimpleIBC::artViscBC(FArrayBox&       a_F,

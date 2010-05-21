@@ -256,23 +256,23 @@ Real AMRLevelLinElast::advance()
     LevelData<FArrayBox> sourceData;
 
     // Set up source term for hyperbolic update
-    if (m_useSourceTerm)
-    {
-        // Define source term leveldata
-        IntVect ivGhost = m_numGhost * IntVect::Unit;
-        sourceData.define(m_grids,m_gdnvPhysics->numPrimitives(),ivGhost);
+    //JK if (m_useSourceTerm)
+    //JK {
+    //JK     // Define source term leveldata
+    //JK     IntVect ivGhost = m_numGhost * IntVect::Unit;
+    //JK     sourceData.define(m_grids,m_gdnvPhysics->numPrimitives(),ivGhost);
 
-        for (DataIterator dit = sourceData.dataIterator(); dit.ok(); ++dit)
-        {
-            FArrayBox& sourceFAB = sourceData[dit()];
-            const FArrayBox& consFAB = m_UNew[dit()];
+    //JK     for (DataIterator dit = sourceData.dataIterator(); dit.ok(); ++dit)
+    //JK     {
+    //JK         FArrayBox& sourceFAB = sourceData[dit()];
+    //JK         const FArrayBox& consFAB = m_UNew[dit()];
 
-            //JK FORT_SETSOURCEPRIM(CHF_FRA(sourceFAB),
-            //JK     CHF_CONST_FRA(consFAB),
-            //JK     CHF_CONST_REAL(m_sourceTermScaling),
-            //JK     CHF_BOX(sourceFAB.box()));
-        }
-    }
+    //JK         FORT_SETSOURCEPRIM(CHF_FRA(sourceFAB),
+    //JK             CHF_CONST_FRA(consFAB),
+    //JK             CHF_CONST_REAL(m_sourceTermScaling),
+    //JK             CHF_BOX(sourceFAB.box()));
+    //JK     }
+    //JK }
 
     // we don't need the flux in the simple hyperbolic case...
     LevelData<FArrayBox> flux[SpaceDim];
@@ -291,37 +291,37 @@ Real AMRLevelLinElast::advance()
         m_dt);
 
     // Update with source term (2nd order accurate)
-    if (m_useSourceTerm)
-    {
-        for (DataIterator dit = sourceData.dataIterator(); dit.ok(); ++dit)
-        {
-            const FArrayBox& consOldFAB = m_UOld[dit()];
-            FArrayBox&       consNewFAB = m_UNew[dit()];
+    //JK if (m_useSourceTerm)
+    //JK {
+    //JK     for (DataIterator dit = sourceData.dataIterator(); dit.ok(); ++dit)
+    //JK     {
+    //JK         const FArrayBox& consOldFAB = m_UOld[dit()];
+    //JK         FArrayBox&       consNewFAB = m_UNew[dit()];
 
-            FArrayBox sourceFAB(consNewFAB.box(),consNewFAB.nComp());
+    //JK         FArrayBox sourceFAB(consNewFAB.box(),consNewFAB.nComp());
 
-            //JK FORT_SETSOURCECONS(CHF_FRA(sourceFAB),
-            //JK     CHF_CONST_FRA(consOldFAB),
-            //JK     CHF_CONST_REAL(m_sourceTermScaling),
-            //JK     CHF_BOX(sourceFAB.box()));
+    //JK         FORT_SETSOURCECONS(CHF_FRA(sourceFAB),
+    //JK             CHF_CONST_FRA(consOldFAB),
+    //JK             CHF_CONST_REAL(m_sourceTermScaling),
+    //JK             CHF_BOX(sourceFAB.box()));
 
-            sourceFAB *= m_dt;
-            consNewFAB += sourceFAB;
+    //JK         sourceFAB *= m_dt;
+    //JK         consNewFAB += sourceFAB;
 
-            FArrayBox sourceTildeFAB(consNewFAB.box(),consNewFAB.nComp());
+    //JK         FArrayBox sourceTildeFAB(consNewFAB.box(),consNewFAB.nComp());
 
-            //JK FORT_SETSOURCECONS(CHF_FRA(sourceTildeFAB),
-            //JK     CHF_CONST_FRA(consNewFAB),
-            //JK     CHF_CONST_REAL(m_sourceTermScaling),
-            //JK     CHF_BOX(sourceTildeFAB.box()));
+    //JK         FORT_SETSOURCECONS(CHF_FRA(sourceTildeFAB),
+    //JK             CHF_CONST_FRA(consNewFAB),
+    //JK             CHF_CONST_REAL(m_sourceTermScaling),
+    //JK             CHF_BOX(sourceTildeFAB.box()));
 
-            sourceTildeFAB *= m_dt;
-            sourceTildeFAB -= sourceFAB;
-            sourceTildeFAB *= 0.5;
+    //JK         sourceTildeFAB *= m_dt;
+    //JK         sourceTildeFAB -= sourceFAB;
+    //JK         sourceTildeFAB *= 0.5;
 
-            consNewFAB += sourceTildeFAB;
-        }
-    }
+    //JK         consNewFAB += sourceTildeFAB;
+    //JK     }
+    //JK }
 
     // Update the time and store the new timestep
     m_time += m_dt;
@@ -364,7 +364,7 @@ void AMRLevelLinElast::postTimeStep()
     {
         int nRefFine = 1;
 
-        pout() << "AMRLevelPolyTropicGas::postTimeStep:" << endl;
+        pout() << "AMRLevelLinElast::postTimeStep:" << endl;
         pout() << "  Sums:" << endl;
         for (int comp = 0; comp < m_numStates; comp++)
         {

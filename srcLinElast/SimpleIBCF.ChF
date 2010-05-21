@@ -65,7 +65,7 @@ C
           z = (k + half) * dx - r0]
 
           rrs = (CHF_DTERM[x*x;+y*y;+z*z]) / sig
-          rrs = rrs*rrs*rrs
+C          rrs = (x*x) / sig
 
           U(CHF_IX[i;j;k],0) = mag * exp(-rrs)
           U(CHF_IX[i;j;k],1) = mag * exp(-rrs)

@@ -132,7 +132,7 @@ int LinElastPhysics::numPrimitives()
     CH_assert(isDefined());
     //JK pout() << "LinElastPhysics::numPrimitives" << endl;
 
-    //JK NOT SURE IF THIS SHOULD BE THE SAME
+    //JK Same for us
     return numConserved();
 }
 
@@ -238,7 +238,7 @@ void LinElastPhysics::riemann(/// face-centered solution to Riemann problem
     /// face-centered box on which to set a_WStar
     const Box&       a_box)
 {
-    pout() << "NOT DEFINED :: LinElastPhysics::riemann" << endl;
+    //JK pout() << "LinElastPhysics::riemann" << endl;
     CH_assert(isDefined());
 
     CH_assert(a_WStar.box().contains(a_box));
@@ -345,9 +345,9 @@ void LinElastPhysics::consToPrim(FArrayBox&       a_W,
     CH_assert(a_U.box().contains(a_box));
     CH_assert(a_W.box().contains(a_box));
 
-    //JK FORT_CONSTOPRIMF(CHF_FRA(a_W),
-    //JK     CHF_CONST_FRA(a_U),
-    //JK     CHF_BOX(a_box));
+    FORT_COPYF(CHF_FRA(a_W),
+        CHF_CONST_FRA(a_U),
+        CHF_BOX(a_box));
 }
 
 /// Interval within the primitive variables corresponding to the velocities
