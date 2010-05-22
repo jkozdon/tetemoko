@@ -8,8 +8,8 @@ C
 
 #include "IBCCommon.fh"
 
-CLIN    cmax = max(cs,cp)
-        cmax = 1
+        cmax = max(cs,cp)
+CLIN    cmax = cp
 
         return
         end
@@ -131,35 +131,35 @@ C
         cz = mod(idir+2,3)
 
         CHF_MULTIDO[box;i;j;k]
-CLIN      vx  = Wgdnv(CHF_IX[i;j;k],cx    )
-CLIN      vy  = Wgdnv(CHF_IX[i;j;k],cy    )
-CLIN      vz  = Wgdnv(CHF_IX[i;j;k],cz    )
-CLIN      sxx = Wgdnv(CHF_IX[i;j;k],cx + 3)
-CLIN      syy = Wgdnv(CHF_IX[i;j;k],cy + 3)
-CLIN      szz = Wgdnv(CHF_IX[i;j;k],cz + 3)
-CLIN      sxy = Wgdnv(CHF_IX[i;j;k],cx + 6)
-CLIN      sxz = Wgdnv(CHF_IX[i;j;k],cy + 6)
-CLIN      syz = Wgdnv(CHF_IX[i;j;k],cz + 6)
-CLIN
-CLIN      F(CHF_IX[i;j;k],cx    ) = sxx / rho
-CLIN      F(CHF_IX[i;j;k],cy    ) = sxy / rho
-CLIN      F(CHF_IX[i;j;k],cz    ) = sxz / rho
-CLIN      F(CHF_IX[i;j;k],cx + 3) = vx * (lam + 2.0d0 * mu)
-CLIN      F(CHF_IX[i;j;k],cy + 3) = vx * lam
-CLIN      F(CHF_IX[i;j;k],cz + 3) = vx * lam
-CLIN      F(CHF_IX[i;j;k],cx + 6) = vy * mu
-CLIN      F(CHF_IX[i;j;k],cy + 6) = vz * mu
-CLIN      F(CHF_IX[i;j;k],cz + 6) = 0
+          vx  = Wgdnv(CHF_IX[i;j;k],cx    )
+          vy  = Wgdnv(CHF_IX[i;j;k],cy    )
+          vz  = Wgdnv(CHF_IX[i;j;k],cz    )
+          sxx = Wgdnv(CHF_IX[i;j;k],cx + 3)
+          syy = Wgdnv(CHF_IX[i;j;k],cy + 3)
+          szz = Wgdnv(CHF_IX[i;j;k],cz + 3)
+          sxy = Wgdnv(CHF_IX[i;j;k],cx + 6)
+          sxz = Wgdnv(CHF_IX[i;j;k],cy + 6)
+          syz = Wgdnv(CHF_IX[i;j;k],cz + 6)
 
-          F(CHF_IX[i;j;k],0) = Wgdnv(CHF_IX[i;j;k],0)
-          F(CHF_IX[i;j;k],1) = Wgdnv(CHF_IX[i;j;k],1)
-          F(CHF_IX[i;j;k],2) = Wgdnv(CHF_IX[i;j;k],2)
-          F(CHF_IX[i;j;k],3) = Wgdnv(CHF_IX[i;j;k],3)
-          F(CHF_IX[i;j;k],4) = Wgdnv(CHF_IX[i;j;k],4)
-          F(CHF_IX[i;j;k],5) = Wgdnv(CHF_IX[i;j;k],5)
-          F(CHF_IX[i;j;k],6) = Wgdnv(CHF_IX[i;j;k],6)
-          F(CHF_IX[i;j;k],7) = Wgdnv(CHF_IX[i;j;k],7)
-          F(CHF_IX[i;j;k],8) = Wgdnv(CHF_IX[i;j;k],8)
+          F(CHF_IX[i;j;k],cx    ) = sxx / rho
+          F(CHF_IX[i;j;k],cy    ) = sxy / rho
+          F(CHF_IX[i;j;k],cz    ) = sxz / rho
+          F(CHF_IX[i;j;k],cx + 3) = vx * (lam + 2.0d0 * mu)
+          F(CHF_IX[i;j;k],cy + 3) = vx * lam
+          F(CHF_IX[i;j;k],cz + 3) = vx * lam
+          F(CHF_IX[i;j;k],cx + 6) = vy * mu
+          F(CHF_IX[i;j;k],cy + 6) = vz * mu
+          F(CHF_IX[i;j;k],cz + 6) = 0
+
+CLIN      F(CHF_IX[i;j;k],0) = cp * Wgdnv(CHF_IX[i;j;k],0)
+CLIN      F(CHF_IX[i;j;k],1) = cp * Wgdnv(CHF_IX[i;j;k],1)
+CLIN      F(CHF_IX[i;j;k],2) = cp * Wgdnv(CHF_IX[i;j;k],2)
+CLIN      F(CHF_IX[i;j;k],3) = cp * Wgdnv(CHF_IX[i;j;k],3)
+CLIN      F(CHF_IX[i;j;k],4) = cp * Wgdnv(CHF_IX[i;j;k],4)
+CLIN      F(CHF_IX[i;j;k],5) = cp * Wgdnv(CHF_IX[i;j;k],5)
+CLIN      F(CHF_IX[i;j;k],6) = cp * Wgdnv(CHF_IX[i;j;k],6)
+CLIN      F(CHF_IX[i;j;k],7) = cp * Wgdnv(CHF_IX[i;j;k],7)
+CLIN      F(CHF_IX[i;j;k],8) = cp * Wgdnv(CHF_IX[i;j;k],8)
 
 C          print *," -- STATE -- "
 C          print *,vx 
@@ -209,35 +209,35 @@ C
         cz = mod(idir+2,3)
 
         CHF_MULTIDO[box;i;j;k]
-CLIN      vx  = W(CHF_IX[i;j;k],cx    )
-CLIN      vy  = W(CHF_IX[i;j;k],cy    )
-CLIN      vz  = W(CHF_IX[i;j;k],cz    )
-CLIN      sxx = W(CHF_IX[i;j;k],cx + 3)
-CLIN      syy = W(CHF_IX[i;j;k],cy + 3)
-CLIN      szz = W(CHF_IX[i;j;k],cz + 3)
-CLIN      sxy = W(CHF_IX[i;j;k],cx + 6)
-CLIN      sxz = W(CHF_IX[i;j;k],cy + 6)
-CLIN      syz = W(CHF_IX[i;j;k],cz + 6)
-CLIN
-CLIN      dW(CHF_IX[i;j;k],0) = sxx + vx  * Zp
-CLIN      dW(CHF_IX[i;j;k],1) = sxy + vy  * Zs
-CLIN      dW(CHF_IX[i;j;k],2) = sxz + vz  * Zs
-CLIN      dW(CHF_IX[i;j;k],3) = syy - sxx * lam / (2.0d0 * mu + lam)
-CLIN      dW(CHF_IX[i;j;k],4) = szz - sxx * lam / (2.0d0 * mu + lam)
-CLIN      dW(CHF_IX[i;j;k],5) = syz
-CLIN      dW(CHF_IX[i;j;k],6) = sxz - vz * Zs
-CLIN      dW(CHF_IX[i;j;k],7) = sxy - vy * Zs
-CLIN      dW(CHF_IX[i;j;k],8) = sxx - vx * Zp
+          vx  = W(CHF_IX[i;j;k],cx    )
+          vy  = W(CHF_IX[i;j;k],cy    )
+          vz  = W(CHF_IX[i;j;k],cz    )
+          sxx = W(CHF_IX[i;j;k],cx + 3)
+          syy = W(CHF_IX[i;j;k],cy + 3)
+          szz = W(CHF_IX[i;j;k],cz + 3)
+          sxy = W(CHF_IX[i;j;k],cx + 6)
+          sxz = W(CHF_IX[i;j;k],cy + 6)
+          syz = W(CHF_IX[i;j;k],cz + 6)
 
-          dW(CHF_IX[i;j;k],0) = W(CHF_IX[i;j;k],0)
-          dW(CHF_IX[i;j;k],1) = W(CHF_IX[i;j;k],1)
-          dW(CHF_IX[i;j;k],2) = W(CHF_IX[i;j;k],2)
-          dW(CHF_IX[i;j;k],3) = W(CHF_IX[i;j;k],3)
-          dW(CHF_IX[i;j;k],4) = W(CHF_IX[i;j;k],4)
-          dW(CHF_IX[i;j;k],5) = W(CHF_IX[i;j;k],5)
-          dW(CHF_IX[i;j;k],6) = W(CHF_IX[i;j;k],6)
-          dW(CHF_IX[i;j;k],7) = W(CHF_IX[i;j;k],7)
-          dW(CHF_IX[i;j;k],8) = W(CHF_IX[i;j;k],8)
+          dW(CHF_IX[i;j;k],0) = sxx + vx  * Zp
+          dW(CHF_IX[i;j;k],1) = sxy + vy  * Zs
+          dW(CHF_IX[i;j;k],2) = sxz + vz  * Zs
+          dW(CHF_IX[i;j;k],3) = syy - sxx * lam / (2.0d0 * mu + lam)
+          dW(CHF_IX[i;j;k],4) = szz - sxx * lam / (2.0d0 * mu + lam)
+          dW(CHF_IX[i;j;k],5) = syz
+          dW(CHF_IX[i;j;k],6) = sxz - vz * Zs
+          dW(CHF_IX[i;j;k],7) = sxy - vy * Zs
+          dW(CHF_IX[i;j;k],8) = sxx - vx * Zp
+
+CLIN      dW(CHF_IX[i;j;k],0) = W(CHF_IX[i;j;k],0)
+CLIN      dW(CHF_IX[i;j;k],1) = W(CHF_IX[i;j;k],1)
+CLIN      dW(CHF_IX[i;j;k],2) = W(CHF_IX[i;j;k],2)
+CLIN      dW(CHF_IX[i;j;k],3) = W(CHF_IX[i;j;k],3)
+CLIN      dW(CHF_IX[i;j;k],4) = W(CHF_IX[i;j;k],4)
+CLIN      dW(CHF_IX[i;j;k],5) = W(CHF_IX[i;j;k],5)
+CLIN      dW(CHF_IX[i;j;k],6) = W(CHF_IX[i;j;k],6)
+CLIN      dW(CHF_IX[i;j;k],7) = W(CHF_IX[i;j;k],7)
+CLIN      dW(CHF_IX[i;j;k],8) = W(CHF_IX[i;j;k],8)
         CHF_ENDDO
 
 
@@ -266,37 +266,37 @@ C
         cz = mod(idir+2,3)
 
         CHF_MULTIDO[box;i;j;k]
-CLIN      wxxm = W(CHF_IX[i;j;k],0)
-CLIN      wxym = W(CHF_IX[i;j;k],1)
-CLIN      wxzm = W(CHF_IX[i;j;k],2)
-CLIN      wyy  = W(CHF_IX[i;j;k],3)
-CLIN      wzz  = W(CHF_IX[i;j;k],4)
-CLIN      wyz  = W(CHF_IX[i;j;k],5)
-CLIN      wxzp = W(CHF_IX[i;j;k],6)
-CLIN      wxyp = W(CHF_IX[i;j;k],7)
-CLIN      wxxp = W(CHF_IX[i;j;k],8)
-CLIN
-CLIN      sxx = (wxxm + wxxp) / 2.0d0
-CLIN
-CLIN      dW(CHF_IX[i;j;k],cx    ) = (wxxm - wxxp) / 2.0d0 / Zp
-CLIN      dW(CHF_IX[i;j;k],cy    ) = (wxym - wxyp) / 2.0d0 / Zs
-CLIN      dW(CHF_IX[i;j;k],cz    ) = (wxzm - wxzp) / 2.0d0 / Zs
-CLIN      dW(CHF_IX[i;j;k],cx + 3) =  sxx
-CLIN      dW(CHF_IX[i;j;k],cy + 3) =  wyy  + sxx * lam / (2.0d0 * mu + lam)
-CLIN      dW(CHF_IX[i;j;k],cz + 3) =  wzz  + sxx * lam / (2.0d0 * mu + lam)
-CLIN      dW(CHF_IX[i;j;k],cx + 6) = (wxym + wxyp) / 2.0d0
-CLIN      dW(CHF_IX[i;j;k],cy + 6) = (wxzm + wxzp) / 2.0d0
-CLIN      dW(CHF_IX[i;j;k],cz + 6) =  wyz
+          wxxm = W(CHF_IX[i;j;k],0)
+          wxym = W(CHF_IX[i;j;k],1)
+          wxzm = W(CHF_IX[i;j;k],2)
+          wyy  = W(CHF_IX[i;j;k],3)
+          wzz  = W(CHF_IX[i;j;k],4)
+          wyz  = W(CHF_IX[i;j;k],5)
+          wxzp = W(CHF_IX[i;j;k],6)
+          wxyp = W(CHF_IX[i;j;k],7)
+          wxxp = W(CHF_IX[i;j;k],8)
 
-          dW(CHF_IX[i;j;k],0) = W(CHF_IX[i;j;k],0)
-          dW(CHF_IX[i;j;k],1) = W(CHF_IX[i;j;k],1)
-          dW(CHF_IX[i;j;k],2) = W(CHF_IX[i;j;k],2)
-          dW(CHF_IX[i;j;k],3) = W(CHF_IX[i;j;k],3)
-          dW(CHF_IX[i;j;k],4) = W(CHF_IX[i;j;k],4)
-          dW(CHF_IX[i;j;k],5) = W(CHF_IX[i;j;k],5)
-          dW(CHF_IX[i;j;k],6) = W(CHF_IX[i;j;k],6)
-          dW(CHF_IX[i;j;k],7) = W(CHF_IX[i;j;k],7)
-          dW(CHF_IX[i;j;k],8) = W(CHF_IX[i;j;k],8)
+          sxx = (wxxm + wxxp) / 2.0d0
+
+          dW(CHF_IX[i;j;k],cx    ) = (wxxm - wxxp) / 2.0d0 / Zp
+          dW(CHF_IX[i;j;k],cy    ) = (wxym - wxyp) / 2.0d0 / Zs
+          dW(CHF_IX[i;j;k],cz    ) = (wxzm - wxzp) / 2.0d0 / Zs
+          dW(CHF_IX[i;j;k],cx + 3) =  sxx
+          dW(CHF_IX[i;j;k],cy + 3) =  wyy  + sxx * lam / (2.0d0 * mu + lam)
+          dW(CHF_IX[i;j;k],cz + 3) =  wzz  + sxx * lam / (2.0d0 * mu + lam)
+          dW(CHF_IX[i;j;k],cx + 6) = (wxym + wxyp) / 2.0d0
+          dW(CHF_IX[i;j;k],cy + 6) = (wxzm + wxzp) / 2.0d0
+          dW(CHF_IX[i;j;k],cz + 6) =  wyz
+
+CLIN      dW(CHF_IX[i;j;k],0) = W(CHF_IX[i;j;k],0)
+CLIN      dW(CHF_IX[i;j;k],1) = W(CHF_IX[i;j;k],1)
+CLIN      dW(CHF_IX[i;j;k],2) = W(CHF_IX[i;j;k],2)
+CLIN      dW(CHF_IX[i;j;k],3) = W(CHF_IX[i;j;k],3)
+CLIN      dW(CHF_IX[i;j;k],4) = W(CHF_IX[i;j;k],4)
+CLIN      dW(CHF_IX[i;j;k],5) = W(CHF_IX[i;j;k],5)
+CLIN      dW(CHF_IX[i;j;k],6) = W(CHF_IX[i;j;k],6)
+CLIN      dW(CHF_IX[i;j;k],7) = W(CHF_IX[i;j;k],7)
+CLIN      dW(CHF_IX[i;j;k],8) = W(CHF_IX[i;j;k],8)
         CHF_ENDDO
 
 
@@ -316,24 +316,25 @@ C
         integer CHF_DDECL[i;j;k]
 
         CHF_MULTIDO[box;i;j;k]
-CLIN      lambda(CHF_IX[i;j;k],0) = -cp
-CLIN      lambda(CHF_IX[i;j;k],1) = -cs
-CLIN      lambda(CHF_IX[i;j;k],2) = -cs
-CLIN      lambda(CHF_IX[i;j;k],3) =   0
-CLIN      lambda(CHF_IX[i;j;k],4) =   0
-CLIN      lambda(CHF_IX[i;j;k],5) =   0
-CLIN      lambda(CHF_IX[i;j;k],6) =  cs
-CLIN      lambda(CHF_IX[i;j;k],7) =  cs
-CLIN      lambda(CHF_IX[i;j;k],8) =  cp
-          lambda(CHF_IX[i;j;k],0) = 1
-          lambda(CHF_IX[i;j;k],1) = 1
-          lambda(CHF_IX[i;j;k],2) = 1
-          lambda(CHF_IX[i;j;k],3) = 1
-          lambda(CHF_IX[i;j;k],4) = 1
-          lambda(CHF_IX[i;j;k],5) = 1
-          lambda(CHF_IX[i;j;k],6) = 1
-          lambda(CHF_IX[i;j;k],7) = 1
-          lambda(CHF_IX[i;j;k],8) = 1
+          lambda(CHF_IX[i;j;k],0) = -cp
+          lambda(CHF_IX[i;j;k],1) = -cs
+          lambda(CHF_IX[i;j;k],2) = -cs
+          lambda(CHF_IX[i;j;k],3) =   0
+          lambda(CHF_IX[i;j;k],4) =   0
+          lambda(CHF_IX[i;j;k],5) =   0
+          lambda(CHF_IX[i;j;k],6) =  cs
+          lambda(CHF_IX[i;j;k],7) =  cs
+          lambda(CHF_IX[i;j;k],8) =  cp
+
+CLIN      lambda(CHF_IX[i;j;k],0) = cp
+CLIN      lambda(CHF_IX[i;j;k],1) = cp
+CLIN      lambda(CHF_IX[i;j;k],2) = cp
+CLIN      lambda(CHF_IX[i;j;k],3) = cp
+CLIN      lambda(CHF_IX[i;j;k],4) = cp
+CLIN      lambda(CHF_IX[i;j;k],5) = cp
+CLIN      lambda(CHF_IX[i;j;k],6) = cp
+CLIN      lambda(CHF_IX[i;j;k],7) = cp
+CLIN      lambda(CHF_IX[i;j;k],8) = cp
         CHF_ENDDO
 
         return
@@ -377,140 +378,67 @@ C       These permute the variables so we only need one loop
         cz = mod(idir+2,3)
 
         CHF_MULTIDO[box;i;j;k]
-            Wgdnv(CHF_IX[i;j;k],0) = WLeft(CHF_IX[i;j;k],0)
-            Wgdnv(CHF_IX[i;j;k],1) = WLeft(CHF_IX[i;j;k],1)
-            Wgdnv(CHF_IX[i;j;k],2) = WLeft(CHF_IX[i;j;k],2)
-            Wgdnv(CHF_IX[i;j;k],3) = WLeft(CHF_IX[i;j;k],3)
-            Wgdnv(CHF_IX[i;j;k],4) = WLeft(CHF_IX[i;j;k],4)
-            Wgdnv(CHF_IX[i;j;k],5) = WLeft(CHF_IX[i;j;k],5)
-            Wgdnv(CHF_IX[i;j;k],6) = WLeft(CHF_IX[i;j;k],6)
-            Wgdnv(CHF_IX[i;j;k],7) = WLeft(CHF_IX[i;j;k],7)
-            Wgdnv(CHF_IX[i;j;k],8) = WLeft(CHF_IX[i;j;k],8)
 
 C         Set the right state variables
-CLIN      Rvx  = WRight(CHF_IX[i;j;k],cx    )
-CLIN      Rvy  = WRight(CHF_IX[i;j;k],cy    )
-CLIN      Rvz  = WRight(CHF_IX[i;j;k],cz    )
-CLIN      Rsxx = WRight(CHF_IX[i;j;k],cx + 3)
-CLIN      Rsyy = WRight(CHF_IX[i;j;k],cy + 3)
-CLIN      Rszz = WRight(CHF_IX[i;j;k],cz + 3)
-CLIN      Rsxy = WRight(CHF_IX[i;j;k],cx + 6)
-CLIN      Rsxz = WRight(CHF_IX[i;j;k],cy + 6)
-CLIN      Rsyz = WRight(CHF_IX[i;j;k],cz + 6)
+          Rvx  = WRight(CHF_IX[i;j;k],cx    )
+          Rvy  = WRight(CHF_IX[i;j;k],cy    )
+          Rvz  = WRight(CHF_IX[i;j;k],cz    )
+          Rsxx = WRight(CHF_IX[i;j;k],cx + 3)
+          Rsyy = WRight(CHF_IX[i;j;k],cy + 3)
+          Rszz = WRight(CHF_IX[i;j;k],cz + 3)
+          Rsxy = WRight(CHF_IX[i;j;k],cx + 6)
+          Rsxz = WRight(CHF_IX[i;j;k],cy + 6)
+          Rsyz = WRight(CHF_IX[i;j;k],cz + 6)
 
 C         Set the left state variables
-CLIN      Lvx  = WLeft(CHF_IX[i;j;k],cx    )
-CLIN      Lvy  = WLeft(CHF_IX[i;j;k],cy    )
-CLIN      Lvz  = WLeft(CHF_IX[i;j;k],cz    )
-CLIN      Lsxx = WLeft(CHF_IX[i;j;k],cx + 3)
-CLIN      Lsyy = WLeft(CHF_IX[i;j;k],cy + 3)
-CLIN      Lszz = WLeft(CHF_IX[i;j;k],cz + 3)
-CLIN      Lsxy = WLeft(CHF_IX[i;j;k],cx + 6)
-CLIN      Lsxz = WLeft(CHF_IX[i;j;k],cy + 6)
-CLIN      Lsyz = WLeft(CHF_IX[i;j;k],cz + 6)
+          Lvx  = WLeft(CHF_IX[i;j;k],cx    )
+          Lvy  = WLeft(CHF_IX[i;j;k],cy    )
+          Lvz  = WLeft(CHF_IX[i;j;k],cz    )
+          Lsxx = WLeft(CHF_IX[i;j;k],cx + 3)
+          Lsyy = WLeft(CHF_IX[i;j;k],cy + 3)
+          Lszz = WLeft(CHF_IX[i;j;k],cz + 3)
+          Lsxy = WLeft(CHF_IX[i;j;k],cx + 6)
+          Lsxz = WLeft(CHF_IX[i;j;k],cy + 6)
+          Lsyz = WLeft(CHF_IX[i;j;k],cz + 6)
 
 C         Set the state averages
-CLIN      Qvx  = (Rvx  + Lvx ) / 2.0d0
-CLIN      Qvy  = (Rvy  + Lvy ) / 2.0d0
-CLIN      Qvz  = (Rvz  + Lvz ) / 2.0d0
-CLIN      Qsxx = (Rsxx + Lsxx) / 2.0d0
-CLIN      Qsyy = (Rsyy + Lsyy) / 2.0d0
-CLIN      Qszz = (Rszz + Lszz) / 2.0d0
-CLIN      Qsxy = (Rsxy + Lsxy) / 2.0d0
-CLIN      Qsxz = (Rsxz + Lsxz) / 2.0d0
-CLIN      Qsyz = (Rsyz + Lsyz) / 2.0d0
+          Qvx  = (Lvx  + Rvx ) / 2.0d0
+          Qvy  = (Lvy  + Rvy ) / 2.0d0
+          Qvz  = (Lvz  + Rvz ) / 2.0d0
+          Qsxx = (Lsxx + Rsxx) / 2.0d0
+          Qsyy = (Lsyy + Rsyy) / 2.0d0
+          Qszz = (Lszz + Rszz) / 2.0d0
+          Qsxy = (Lsxy + Rsxy) / 2.0d0
+          Qsxz = (Lsxz + Rsxz) / 2.0d0
+          Qsyz = (Lsyz + Rsyz) / 2.0d0
 
 C         Set the state differences
-CLIN      Dvx  = (Rvx  - Lvx ) / 2.0d0
-CLIN      Dvy  = (Rvy  - Lvy ) / 2.0d0
-CLIN      Dvz  = (Rvz  - Lvz ) / 2.0d0
-CLIN      Dsxx = (Rsxx - Lsxx) / 2.0d0
-CLIN      Dsxy = (Rsxy - Lsxy) / 2.0d0
-CLIN      Dsxz = (Rsxz - Lsxz) / 2.0d0
+          Dvx  = (Lvx  - Rvx ) / 2.0d0
+          Dvy  = (Lvy  - Rvy ) / 2.0d0
+          Dvz  = (Lvz  - Rvz ) / 2.0d0
+          Dsxx = (Lsxx - Rsxx) / 2.0d0
+          Dsxy = (Lsxy - Rsxy) / 2.0d0
+          Dsxz = (Lsxz - Rsxz) / 2.0d0
 
-C          Wgdnv(CHF_IX[i;j;k],cx    ) = 0
-C          Wgdnv(CHF_IX[i;j;k],cy    ) = 0
-C          Wgdnv(CHF_IX[i;j;k],cz    ) = 0
-C          Wgdnv(CHF_IX[i;j;k],cx + 3) = 0
-C          Wgdnv(CHF_IX[i;j;k],cy + 3) = 0
-C          Wgdnv(CHF_IX[i;j;k],cz + 3) = 0
-C          Wgdnv(CHF_IX[i;j;k],cx + 6) = 0
-C          Wgdnv(CHF_IX[i;j;k],cy + 6) = 0
-C          Wgdnv(CHF_IX[i;j;k],cz + 6) = 0
+          Wgdnv(CHF_IX[i;j;k],cx    ) =      Qvx + Dsxx / Zp
+          Wgdnv(CHF_IX[i;j;k],cy    ) =      Qvy + Dsxy / Zs
+          Wgdnv(CHF_IX[i;j;k],cz    ) =      Qvz + Dsxz / Zs
+          Wgdnv(CHF_IX[i;j;k],cx + 3) = Zp * Dvx + Qsxx
+          Wgdnv(CHF_IX[i;j;k],cy + 3) =  B * Dvx + Qsyy
+          Wgdnv(CHF_IX[i;j;k],cz + 3) =  B * Dvx + Qszz
+          Wgdnv(CHF_IX[i;j;k],cx + 6) = Zs * Dvy + Qsxy
+          Wgdnv(CHF_IX[i;j;k],cy + 6) = Zs * Dvz + Qsxz
+          Wgdnv(CHF_IX[i;j;k],cz + 6) =            Qsyz
 
-C          if (idir .eq. 1) then
-CLIN        Wgdnv(CHF_IX[i;j;k],cx    ) =      Qvx + Dsxx / Zp
-CLIN        Wgdnv(CHF_IX[i;j;k],cy    ) =      Qvy + Dsxy / Zs
-CLIN        Wgdnv(CHF_IX[i;j;k],cz    ) =      Qvz + Dsxz / Zs
-CLIN        Wgdnv(CHF_IX[i;j;k],cx + 3) = Zp * Dvx + Qsxx
-CLIN        Wgdnv(CHF_IX[i;j;k],cy + 3) =  B * Dvx + Qsyy
-CLIN        Wgdnv(CHF_IX[i;j;k],cz + 3) =  B * Dvx + Qszz
-CLIN        Wgdnv(CHF_IX[i;j;k],cx + 6) = Zs * Dvy + Qsxy
-CLIN        Wgdnv(CHF_IX[i;j;k],cy + 6) = Zs * Dvz + Qsxz
-CLIN        Wgdnv(CHF_IX[i;j;k],cz + 6) =            Qsyz
-C          else
-C            Wgdnv(CHF_IX[i;j;k],cx    ) = 0
-C            Wgdnv(CHF_IX[i;j;k],cy    ) = 0
-C            Wgdnv(CHF_IX[i;j;k],cz    ) = 0
-C            Wgdnv(CHF_IX[i;j;k],cx + 3) = 0
-C            Wgdnv(CHF_IX[i;j;k],cy + 3) = 0
-C            Wgdnv(CHF_IX[i;j;k],cz + 3) = 0
-C            Wgdnv(CHF_IX[i;j;k],cx + 6) = 0
-C            Wgdnv(CHF_IX[i;j;k],cy + 6) = 0
-C            Wgdnv(CHF_IX[i;j;k],cz + 6) = 0
-C          endif
-
-C          print *," -- RIGHT -- "
-C          print *,Rvx 
-C          print *,Rvy 
-C          print *,Rvz 
-C          print *,Rsxx
-C          print *,Rsyy
-C          print *,Rszz
-C          print *,Rsxy
-C          print *,Rsxz
-C          print *,Rsyz
-C
-C          print *," -- LEFT -- "
-C          print *,Lvx 
-C          print *,Lvy 
-C          print *,Lvz 
-C          print *,Lsxx
-C          print *,Lsyy
-C          print *,Lszz
-C          print *,Lsxy
-C          print *,Lsxz
-C          print *,Lsyz
-C
-C          print *," -- AVERAGE -- "
-C          print *,Qvx 
-C          print *,Qvy 
-C          print *,Qvz 
-C          print *,Qsxx
-C          print *,Qsyy
-C          print *,Qszz
-C          print *,Qsxy
-C          print *,Qsxz
-C          print *,Qsyz
-C
-C          print *," -- DIFFERENCE -- "
-C          print *,Dvx 
-C          print *,Dvy 
-C          print *,Dvz 
-C          print *,Dsxx
-C          print *,Dsxy
-C          print *,Dsxz
-C
-C          print *," -- GDNV -- "
-C          print *,Wgdnv(CHF_IX[i;j;k],cx    )
-C          print *,Wgdnv(CHF_IX[i;j;k],cy    )
-C          print *,Wgdnv(CHF_IX[i;j;k],cz    )
-C          print *,Wgdnv(CHF_IX[i;j;k],cx + 3)
-C          print *,Wgdnv(CHF_IX[i;j;k],cy + 3)
-C          print *,Wgdnv(CHF_IX[i;j;k],cz + 3)
-C          print *,Wgdnv(CHF_IX[i;j;k],cx + 6)
-C          print *,Wgdnv(CHF_IX[i;j;k],cy + 6)
-C          print *,Wgdnv(CHF_IX[i;j;k],cz + 6)
+CLIN      Wgdnv(CHF_IX[i;j;k],0) = WLeft(CHF_IX[i;j;k],0)
+CLIN      Wgdnv(CHF_IX[i;j;k],1) = WLeft(CHF_IX[i;j;k],1)
+CLIN      Wgdnv(CHF_IX[i;j;k],2) = WLeft(CHF_IX[i;j;k],2)
+CLIN      Wgdnv(CHF_IX[i;j;k],3) = WLeft(CHF_IX[i;j;k],3)
+CLIN      Wgdnv(CHF_IX[i;j;k],4) = WLeft(CHF_IX[i;j;k],4)
+CLIN      Wgdnv(CHF_IX[i;j;k],5) = WLeft(CHF_IX[i;j;k],5)
+CLIN      Wgdnv(CHF_IX[i;j;k],6) = WLeft(CHF_IX[i;j;k],6)
+CLIN      Wgdnv(CHF_IX[i;j;k],7) = WLeft(CHF_IX[i;j;k],7)
+CLIN      Wgdnv(CHF_IX[i;j;k],8) = WLeft(CHF_IX[i;j;k],8)
         CHF_ENDDO
 
         return
@@ -532,6 +460,76 @@ C
             W(CHF_IX[i;j;k],iv) = U(CHF_IX[i;j;k],iv)
           CHF_ENDDO
         enddo
+
+        return
+        end
+
+
+C
+C       This is a quasilinear update, i.e. A*(wl - wr)
+C
+        subroutine GETADWDXF(
+     &    CHF_FRA[AdWdx],
+     &    CHF_CONST_FRA[WHalf],
+     &    CHF_CONST_FRA[W],
+     &    CHF_CONST_REAL[scale],
+     &    CHF_CONST_INT[idir],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+
+        integer CHF_DDECL[i;j;k]
+        integer CHF_DDECL[ioff;joff;koff]
+        integer n
+        real_t  vx, vy, vz, sxx, syy, szz, sxy, sxz, syz
+        integer cx,cy,cz
+
+        cx = idir
+        cy = mod(idir+1,3)
+        cz = mod(idir+2,3)
+
+        CHF_DTERM[
+        ioff = CHF_ID(0,idir);
+        joff = CHF_ID(1,idir);
+        koff = CHF_ID(2,idir)]
+
+        CHF_MULTIDO[box;i;j;k]
+          vx  = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cx    )
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],cx    )
+          vy  = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cy    )
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],cy    )
+          vz  = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cz    )
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],cz    )
+          sxx = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cx + 3) 
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],cx + 3)
+          syy = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cy + 3)
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],cy + 3)
+          szz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cz + 3)
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],cz + 3)
+          sxy = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cx + 6)
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],cx + 6)
+          sxz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cy + 6)
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],cy + 6)
+          syz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cz + 6)
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],cz + 6)
+
+          AdWdx(CHF_IX[i;j;k],cx    ) = scale * sxx / rho
+          AdWdx(CHF_IX[i;j;k],cy    ) = scale * sxy / rho
+          AdWdx(CHF_IX[i;j;k],cz    ) = scale * sxz / rho
+          AdWdx(CHF_IX[i;j;k],cx + 3) = scale * vx  * (lam + 2.0d0 * mu)
+          AdWdx(CHF_IX[i;j;k],cy + 3) = scale * vx  * lam
+          AdWdx(CHF_IX[i;j;k],cz + 3) = scale * vx  * lam
+          AdWdx(CHF_IX[i;j;k],cx + 6) = scale * vy  * mu
+          AdWdx(CHF_IX[i;j;k],cy + 6) = scale * vz  * mu
+          AdWdx(CHF_IX[i;j;k],cz + 6) = scale * 0
+        CHF_ENDDO
+
+CLIN    do n=0, CHF_NCOMP[AdWdx]-1
+CLIN      CHF_MULTIDO[box;i;j;k]
+CLIN        AdWdx(CHF_IX[i;j;k],n) = scale * cp *
+CLIN &        (WHalf(CHF_IX[i+ioff;j+joff;k+koff],n) - WHalf(CHF_IX[i;j;k],n))
+CLIN      CHF_ENDDO
+CLIN    end do
 
         return
         end

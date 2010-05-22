@@ -26,7 +26,6 @@ c       other physical (dependent) parameters
 c
         rho = mu / cs / cs
         lam = cp * cp * rho - 2.0d0 * mu
-        r0  = ar0
         Zs  = rho * cs
         Zp  = rho * cp
 
@@ -34,6 +33,7 @@ c
 c       simulation parameters
 c
 
+        r0  = ar0
         mag = amag
         sig = asig
 
@@ -65,7 +65,7 @@ C
           z = (k + half) * dx - r0]
 
           rrs = (CHF_DTERM[x*x;+y*y;+z*z]) / sig
-C          rrs = (x*x) / sig
+c         rrs = (x*x) / sig
 
           U(CHF_IX[i;j;k],0) = mag * exp(-rrs)
           U(CHF_IX[i;j;k],1) = mag * exp(-rrs)

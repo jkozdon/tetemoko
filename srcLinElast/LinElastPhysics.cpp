@@ -321,15 +321,12 @@ void LinElastPhysics::quasilinearUpdate(FArrayBox&       a_dWdx,
     CH_assert(isDefined());
     CH_assert(a_dWdx.box().contains(a_box));
 
-    //JK We have a linear problem, so we can use the getFlux call
-    getFlux(a_dWdx,a_wHalf,a_dir,a_box);
-
-    //JK FORT_GETADWDXF(CHF_FRA(a_dWdx),
-    //JK     CHF_CONST_FRA(a_WHalf),
-    //JK     CHF_CONST_FRA(a_W),
-    //JK     CHF_CONST_REAL(a_scale),
-    //JK     CHF_CONST_INT(a_dir),
-    //JK     CHF_BOX(a_box));
+    FORT_GETADWDXF(CHF_FRA(a_dWdx),
+        CHF_CONST_FRA(a_wHalf),
+        CHF_CONST_FRA(a_W),
+        CHF_CONST_REAL(a_scale),
+        CHF_CONST_INT(a_dir),
+        CHF_BOX(a_box));
 }
 
 /// Compute primitive variables from conserved variables.
