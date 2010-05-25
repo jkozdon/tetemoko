@@ -24,7 +24,7 @@ public:
         const Real& cp,
         const Real& mu,
         const Real& r0,
-        const Real& mag,
+        const vector<Real> mag,
         const Real& sig);
 
     /// Destructor

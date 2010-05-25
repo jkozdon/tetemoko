@@ -1,5 +1,6 @@
 C
 C   Simple problem constants
 C
-        real_t r0,mag,sig
+        real_t r0,sig
+        real_t mag(0:8)
         common /wp/ r0,mag,sig

@@ -1,10 +1,10 @@
 # Physical parameters: S- and P- wave speed, shear modulus
 physics.cs = 1
-physics.cp = 2
+physics.cp = 1.73205081
 physics.mu = 1
 
 physics.r0   =  0.5
-physics.mag  = 100.0
+physics.mag  = 100 100 0 0 0 0 0 0 0
 physics.sig  = 0.0005
 
 # Turn on some output
@@ -21,13 +21,13 @@ comp.domain_length = 1.0
 
 # Coarsest grid
 # comp.num_cells = 32 8 4
-comp.num_cells = 32 32 8
+comp.num_cells = 64 64 32
 comp.is_periodic = 1 1 1
 
 # Grid refinement
 comp.max_level = 2
 # For 2D
-comp.ref_ratio = 4 2 2 2 2
+comp.ref_ratio = 2 2 2 2 2
 # comp.ref_ratio = 4 4 4 4 4
 # For 3D
 # comp.ref_ratio = 2 2 2 2 2

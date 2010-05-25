@@ -14,13 +14,10 @@ SimpleIBC::SimpleIBC(const Real& a_cs,
     const Real& a_cp,
     const Real& a_mu,
     const Real& a_r0,
-    const Real& a_mag,
+    const vector<Real> a_mag,
     const Real& a_sig)
 {
-    pout() << a_r0 << endl;
-    pout() << a_mag << endl;
-    pout() << a_sig << endl;
-    FORT_SIMPLESETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_REAL(a_r0),CHF_CONST_REAL(a_mag),CHF_CONST_REAL(a_sig));
+    FORT_SIMPLESETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_REAL(a_r0),CHF_CONST_VR(a_mag),CHF_CONST_REAL(a_sig));
     m_isFortranCommonSet = true;
 }
 

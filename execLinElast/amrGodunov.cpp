@@ -203,9 +203,8 @@ void amrGodunov()
     CH_assert(r0 >= 0);
 
     // Pulse Magnitude
-    Real mag = 1;
-    ppphysics.query("mag",mag);
-    CH_assert(mag >= 0);
+    vector<Real> mag(9,0.0);
+    ppphysics.getarr("mag",mag,0,9);
 
     // Pulse Width
     Real sig = 10;
@@ -223,7 +222,17 @@ void amrGodunov()
            pout() << "P-wave Speed    = " << cp << endl;
            pout() << "Shear Modulus   = " << mu << endl << endl;
            pout() << "Pulse Location  = " << r0 << endl;
-           pout() << "Pulse Magnitude = " << mag << endl;
+           pout() << "Pulse Magnitude = " << 
+               mag[0] << " " <<
+               mag[1] << " " <<
+               mag[2] << " " <<
+               mag[3] << " " <<
+               mag[4] << " " <<
+               mag[5] << " " <<
+               mag[6] << " " <<
+               mag[7] << " " <<
+               mag[8] << " " <<
+               endl;
            pout() << "Pulse Width     = " << sig << endl << endl;
     }
 

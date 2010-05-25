@@ -8,7 +8,7 @@ C
      &    CHF_CONST_REAL[aucp],
      &    CHF_CONST_REAL[aumu],
      &    CHF_CONST_REAL[ar0],
-     &    CHF_CONST_REAL[amag],
+     &    CHF_CONST_VR[amag],
      &    CHF_CONST_REAL[asig])
 
 #include "IBCCommon.fh"
@@ -34,7 +34,15 @@ c       simulation parameters
 c
 
         r0  = ar0
-        mag = amag
+        mag(0) = amag(0)
+        mag(1) = amag(1)
+        mag(2) = amag(2)
+        mag(3) = amag(3)
+        mag(4) = amag(4)
+        mag(5) = amag(5)
+        mag(6) = amag(6)
+        mag(7) = amag(7)
+        mag(8) = amag(8)
         sig = asig
 
         return
@@ -67,15 +75,15 @@ C
           rrs = (CHF_DTERM[x*x;+y*y;+z*z]) / sig
 c         rrs = (x*x) / sig
 
-          U(CHF_IX[i;j;k],0) = mag * exp(-rrs)
-          U(CHF_IX[i;j;k],1) = mag * exp(-rrs)
-          U(CHF_IX[i;j;k],2) = mag * exp(-rrs)
-          U(CHF_IX[i;j;k],3) = mag * exp(-rrs)
-          U(CHF_IX[i;j;k],4) = mag * exp(-rrs)
-          U(CHF_IX[i;j;k],5) = mag * exp(-rrs)
-          U(CHF_IX[i;j;k],6) = mag * exp(-rrs)
-          U(CHF_IX[i;j;k],7) = mag * exp(-rrs)
-          U(CHF_IX[i;j;k],8) = mag * exp(-rrs)
+          U(CHF_IX[i;j;k],0) = mag(0) * exp(-rrs)
+          U(CHF_IX[i;j;k],1) = mag(1) * exp(-rrs)
+          U(CHF_IX[i;j;k],2) = mag(2) * exp(-rrs)
+          U(CHF_IX[i;j;k],3) = mag(3) * exp(-rrs)
+          U(CHF_IX[i;j;k],4) = mag(4) * exp(-rrs)
+          U(CHF_IX[i;j;k],5) = mag(5) * exp(-rrs)
+          U(CHF_IX[i;j;k],6) = mag(6) * exp(-rrs)
+          U(CHF_IX[i;j;k],7) = mag(7) * exp(-rrs)
+          U(CHF_IX[i;j;k],8) = mag(8) * exp(-rrs)
 
         CHF_ENDDO
 
