@@ -3,16 +3,16 @@ C Set the constant parameters
 C
 #include "CONSTANTS.H"
 
-        subroutine SIMPLESETF(
+        subroutine LOCKSLIDESETF(
      &    CHF_CONST_REAL[aucs],
      &    CHF_CONST_REAL[aucp],
      &    CHF_CONST_REAL[aumu],
      &    CHF_CONST_REAL[ar0],
-     &    CHF_CONST_VR[amag],
-     &    CHF_CONST_REAL[asig])
+     &    CHF_CONST_REAL[aedge],
+     &    CHF_CONST_VR[aback])
 
 #include "IBCCommon.fh"
-#include "SimpleCommon.fh"
+#include "LockSlideCommon.fh"
 
 c
 c       physical parameters
@@ -33,17 +33,17 @@ c
 c       simulation parameters
 c
 
-        r0     = ar0
-        mag(0) = amag(0)
-        mag(1) = amag(1)
-        mag(2) = amag(2)
-        mag(3) = amag(3)
-        mag(4) = amag(4)
-        mag(5) = amag(5)
-        mag(6) = amag(6)
-        mag(7) = amag(7)
-        mag(8) = amag(8)
-        sig    = asig
+        r0 = ar0
+        edge = aedge
+        background(0) = aback(0)
+        background(1) = aback(1)
+        background(2) = aback(2)
+        background(3) = aback(3)
+        background(4) = aback(4)
+        background(5) = aback(5)
+        background(6) = aback(6)
+        background(7) = aback(7)
+        background(8) = aback(8)
 
         return
         end
@@ -53,48 +53,38 @@ c
 C
 C This is a very very very simple gaussian pulse initial condition
 C
-        subroutine SIMPLEINITF(
+        subroutine LOCKSLIDEINITF(
      &    CHF_FRA[U],
      &    CHF_CONST_REAL[dx],
      &    CHF_BOX[box])
 
 #include "IBCCommon.fh"
-#include "SimpleCommon.fh"
+#include "LockSlideCommon.fh"
 
         integer CHF_DDECL[i;j;k]
         real_t CHF_DDECL[x;y;z]
 
-        real_t rrs
-
         CHF_MULTIDO[box;i;j;k]
-          CHF_DTERM[
-          x = (i + half) * dx - r0;
-          y = (j + half) * dx - r0;
-          z = (k + half) * dx - r0]
 
-          rrs = (CHF_DTERM[x*x;+y*y;+z*z])/sig
-C         rrs = rrs*rrs*rrs*rrs*rrs*rrs*rrs
-C         rrs = (x*x) / sig
-
-          U(CHF_IX[i;j;k],0) = mag(0) * exp(-rrs)
-          U(CHF_IX[i;j;k],1) = mag(1) * exp(-rrs)
-          U(CHF_IX[i;j;k],2) = mag(2) * exp(-rrs)
-          U(CHF_IX[i;j;k],3) = mag(3) * exp(-rrs)
-          U(CHF_IX[i;j;k],4) = mag(4) * exp(-rrs)
-          U(CHF_IX[i;j;k],5) = mag(5) * exp(-rrs)
-          U(CHF_IX[i;j;k],6) = mag(6) * exp(-rrs)
-          U(CHF_IX[i;j;k],7) = mag(7) * exp(-rrs)
-          U(CHF_IX[i;j;k],8) = mag(8) * exp(-rrs)
+          U(CHF_IX[i;j;k],0) = background(0)
+          U(CHF_IX[i;j;k],1) = background(1)
+          U(CHF_IX[i;j;k],2) = background(2)
+          U(CHF_IX[i;j;k],3) = background(3)
+          U(CHF_IX[i;j;k],4) = background(4)
+          U(CHF_IX[i;j;k],5) = background(5)
+          U(CHF_IX[i;j;k],6) = background(6)
+          U(CHF_IX[i;j;k],7) = background(7)
+          U(CHF_IX[i;j;k],8) = background(8)
 
         CHF_ENDDO
-
+        
         return
         end
 
 C
 C Set the the boundary flux for a free surface
 C
-        subroutine SIMPLEFREEBCF(
+        subroutine LOCKSLIDEFREEBCF(
      &    CHF_FRA[Wgdnv],
      &    CHF_CONST_FRA[WInside],
      &    CHF_CONST_FRA[W],
@@ -111,12 +101,6 @@ C
         real_t wpx, wpy, wpz
         real_t wmx, wmy, wmz
         real_t sxx, SHF
-        wpx = 0
-        wpy = 0
-        wpz = 0
-        wmx = 0
-        wmy = 0
-        wmz = 0
 
         cx = idir
         cy = mod(idir+1,3)
@@ -185,9 +169,9 @@ C          Wgdnv(CHF_IX[i;j;k],cz + 6) = WInside(CHF_IX[i;j;k],cz + 6)
         end
 
 C
-C Set the the boundary flux for a free surface
+C Set the the boundary flux for a outflow surface
 C
-        subroutine SIMPLEOUTBCF(
+        subroutine LOCKSLIDEOUTBCF(
      &    CHF_FRA[Wgdnv],
      &    CHF_CONST_FRA[WInside],
      &    CHF_CONST_FRA[W],
@@ -197,6 +181,7 @@ C
      &    CHF_BOX[box])
 
 #include "IBCCommon.fh"
+#include "LockSlideCommon.fh"
 
         integer CHF_DDECL[i;j;k]
 
@@ -204,12 +189,6 @@ C
         real_t wpx, wpy, wpz
         real_t wmx, wmy, wmz
         real_t sxx, SHF
-        wpx = 0
-        wpy = 0
-        wpz = 0
-        wmx = 0
-        wmy = 0
-        wmz = 0
 
         cx = idir
         cy = mod(idir+1,3)
@@ -229,20 +208,27 @@ C
           cyz = 6
         endif
 
+        wpx = background(cx + 3) - Zp * background(cx)
+        wpy = background(cxy   ) - Zs * background(cy)
+        wpz = background(cxz   ) - Zs * background(cz)
+
+        wmx = background(cx + 3) + Zp * background(cx)
+        wmy = background(cxy   ) + Zs * background(cy)
+        wmz = background(cxz   ) + Zs * background(cz)
+
         CHF_MULTIDO[box;i;j;k]
 C         This is a left boundary
-C         so we set w+ = -w-
           if (lohisign .eq. -1) then
             wmx = (WInside(CHF_IX[i;j;k],cx + 3) + Zp * WInside(CHF_IX[i;j;k],cx))
             wmy = (WInside(CHF_IX[i;j;k],cxy   ) + Zs * WInside(CHF_IX[i;j;k],cy))
             wmz = (WInside(CHF_IX[i;j;k],cxz   ) + Zs * WInside(CHF_IX[i;j;k],cz))
 C         This is a right boundary
-C         so we set w- = -w+
           else
             wpx = (WInside(CHF_IX[i;j;k],cx + 3) - Zp * WInside(CHF_IX[i;j;k],cx))
             wpy = (WInside(CHF_IX[i;j;k],cxy   ) - Zs * WInside(CHF_IX[i;j;k],cy))
             wpz = (WInside(CHF_IX[i;j;k],cxz   ) - Zs * WInside(CHF_IX[i;j;k],cz))
           endif
+
           sxx = (wmx + wpx) / (2.0d0)
           SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * mu)
           Wgdnv(CHF_IX[i;j;k],cx    ) = (wmx - wpx) / (2.0d0 * Zp)
@@ -255,15 +241,118 @@ C         so we set w- = -w+
           Wgdnv(CHF_IX[i;j;k],cxz   ) = (wmz + wpz) / (2.0d0)
           Wgdnv(CHF_IX[i;j;k],cyz   ) = WInside(CHF_IX[i;j;k],cyz  )
 
-C          Wgdnv(CHF_IX[i;j;k],cx    ) = WInside(CHF_IX[i;j;k],cx    )
-C          Wgdnv(CHF_IX[i;j;k],cy    ) = WInside(CHF_IX[i;j;k],cy    )
-C          Wgdnv(CHF_IX[i;j;k],cz    ) = WInside(CHF_IX[i;j;k],cz    )
-C          Wgdnv(CHF_IX[i;j;k],cx + 3) = WInside(CHF_IX[i;j;k],cx + 3)
-C          Wgdnv(CHF_IX[i;j;k],cy + 3) = WInside(CHF_IX[i;j;k],cy + 3)
-C          Wgdnv(CHF_IX[i;j;k],cz + 3) = WInside(CHF_IX[i;j;k],cz + 3)
-C          Wgdnv(CHF_IX[i;j;k],cx + 6) = WInside(CHF_IX[i;j;k],cx + 6)
-C          Wgdnv(CHF_IX[i;j;k],cy + 6) = WInside(CHF_IX[i;j;k],cy + 6)
-C          Wgdnv(CHF_IX[i;j;k],cz + 6) = WInside(CHF_IX[i;j;k],cz + 6)
+C           if(idir .eq. 1 .or. lohisign .eq. 1) then
+C               Wgdnv(CHF_IX[i;j;k],cx    ) = WInside(CHF_IX[i;j;k],cx    )
+C               Wgdnv(CHF_IX[i;j;k],cy    ) = WInside(CHF_IX[i;j;k],cy    )
+C               Wgdnv(CHF_IX[i;j;k],cz    ) = WInside(CHF_IX[i;j;k],cz    )
+C               Wgdnv(CHF_IX[i;j;k],cx + 3) = WInside(CHF_IX[i;j;k],cx + 3)
+C               Wgdnv(CHF_IX[i;j;k],cy + 3) = WInside(CHF_IX[i;j;k],cy + 3)
+C               Wgdnv(CHF_IX[i;j;k],cz + 3) = WInside(CHF_IX[i;j;k],cz + 3)
+C               Wgdnv(CHF_IX[i;j;k],cx + 6) = WInside(CHF_IX[i;j;k],cx + 6)
+C               Wgdnv(CHF_IX[i;j;k],cy + 6) = WInside(CHF_IX[i;j;k],cy + 6)
+C               Wgdnv(CHF_IX[i;j;k],cz + 6) = WInside(CHF_IX[i;j;k],cz + 6)
+C           endif
+        CHF_ENDDO
+
+        return
+        end
+
+
+C
+C Set the the boundary flux for a outflow surface
+C
+        subroutine LOCKSLIDEFAULTBCF(
+     &    CHF_FRA[Wgdnv],
+     &    CHF_CONST_FRA[WInside],
+     &    CHF_CONST_FRA[W],
+     &    CHF_CONST_INT[lohisign],
+     &    CHF_CONST_REAL[dx],
+     &    CHF_CONST_REAL[t],
+     &    CHF_CONST_INT[idir],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+#include "LockSlideCommon.fh"
+
+        integer CHF_DDECL[i;j;k]
+        real_t CHF_DDECL[x;y;z]
+
+        integer cx,cy,cz,cxy,cxz,cyz
+        integer mx,my,mz
+        real_t wpx, wpy, wpz
+        real_t wmx, wmy, wmz
+        real_t sxx, SHF
+        real_t R, rat
+
+        cx = idir
+        cy = mod(idir+1,3)
+        cz = mod(idir+2,3)
+
+        if (idir .eq. 0) then
+          cxy = 6
+          cxz = 7
+          cyz = 8
+          mx = 0
+          my = 1
+          mz = 1
+        else if (idir .eq. 1) then
+          cxy = 8
+          cxz = 6
+          cyz = 7
+          mx = 1
+          my = 0
+          mz = 1
+        else
+          cxy = 7
+          cxz = 8
+          cyz = 6
+          mx = 1
+          my = 1
+          mz = 0
+        endif
+
+        wpx = background(cx + 3) - Zp * background(cx)
+        wmx = background(cx + 3) + Zp * background(cx)
+        wpy = background(cxy   ) - Zs * background(cy)
+        wmy = background(cxy   ) + Zs * background(cy)
+        wpz = background(cxz   ) - Zs * background(cz)
+        wmz = background(cxz   ) + Zs * background(cz)
+
+        CHF_MULTIDO[box;i;j;k]
+          CHF_DTERM[x = mx*((i + half) * dx-r0);
+          y = my*((j + half) * dx-r0);
+          z = mz*((k + half) * dx-r0)]
+          R = sqrt(CHF_DTERM[x*x;+y*y;+z*z])
+
+          rat = 2 * max(0.0d0, min(1.0d0, (R + dx / 2.0d0 - edge) / dx)) - 1
+          rat = 1 - (1-rat)*((1.0d0 - cos(min(t,1.0d0)*(2*acos(0.0d0))))/2.0d0)
+
+C         This is a left boundary
+          if (lohisign .eq. -1) then
+            wmx = (WInside(CHF_IX[i;j;k],cx + 3) + Zp * WInside(CHF_IX[i;j;k],cx))
+            wmy = (WInside(CHF_IX[i;j;k],cxy   ) + Zs * WInside(CHF_IX[i;j;k],cy))
+            wmz = (WInside(CHF_IX[i;j;k],cxz   ) + Zs * WInside(CHF_IX[i;j;k],cz))
+            wpy = rat * wmy
+C         This is a right boundary
+          else
+            wpx = (WInside(CHF_IX[i;j;k],cx + 3) - Zp * WInside(CHF_IX[i;j;k],cx))
+            wpy = (WInside(CHF_IX[i;j;k],cxy   ) - Zs * WInside(CHF_IX[i;j;k],cy))
+            wpz = (WInside(CHF_IX[i;j;k],cxz   ) - Zs * WInside(CHF_IX[i;j;k],cz))
+            wmy = rat * wpy
+          endif
+
+          sxx = (wmx + wpx) / (2.0d0)
+          SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * mu)
+          Wgdnv(CHF_IX[i;j;k],cx    ) = (wmx - wpx) / (2.0d0 * Zp)
+          Wgdnv(CHF_IX[i;j;k],cy    ) = (wmy - wpy) / (2.0d0 * Zs)
+          Wgdnv(CHF_IX[i;j;k],cz    ) = (wmz - wpz) / (2.0d0 * Zs)
+          Wgdnv(CHF_IX[i;j;k],cx + 3) = sxx
+          Wgdnv(CHF_IX[i;j;k],cy + 3) = WInside(CHF_IX[i;j;k],cy + 3) + SHF
+          Wgdnv(CHF_IX[i;j;k],cz + 3) = WInside(CHF_IX[i;j;k],cz + 3) + SHF
+          Wgdnv(CHF_IX[i;j;k],cxy   ) = (wmy + wpy) / (2.0d0)
+          Wgdnv(CHF_IX[i;j;k],cxz   ) = (wmz + wpz) / (2.0d0)
+          Wgdnv(CHF_IX[i;j;k],cyz   ) = WInside(CHF_IX[i;j;k],cyz  )
+
         CHF_ENDDO
 
         

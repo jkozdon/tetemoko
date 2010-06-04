@@ -1,29 +1,34 @@
-# Physical parameters: S- and P- wave speed, shear modulus
-physics.cs = 1
-physics.cp = 3
-physics.mu = 1
+# Set the problem type
+physics.problem = lockSlide
 
-physics.r0   =  0.5
-#                vx   vy   vz  sxx  syy  szz  sxy  szy  sxz
-physics.mag  =    0    0   10    0    0    0    0    0    0
-# physics.mag  =   10   10    0    0    0    0    0    0    0
-physics.sig  = 0.001
+# Physical parameters: S- and P- wave speed, shear modulus
+physics.cs = 3
+# physics.cp = 3 by default we set cp = sqrt(3)*cs
+physics.mu = 30
+
+# Set the background values
+physics.background = 0 0 0 -126 -126 -126 15 15 15
+# physics.background = 10 10 10 10 10 10 10 10 10
+# physics.background = 0 0 10 0 0 0 0 0 0
+
+physics.center_scale = 0.5
+physics.edge_scale   = -10
 
 # Turn on some output
 # comp.verbosity = 10
 comp.verbosity = 1
 
 # Number of steps, final time, and time step
-comp.max_step = 200
-comp.max_time = 10.0
+comp.max_step = 800
+comp.max_time = 400.0
 # comp.fixed_dt = 0.002
 
 # Size of the domain's longest dimension
-comp.domain_length = 1.0
+comp.domain_length = 1000.0
 
 # Coarsest grid
 # comp.num_cells = 32 8 4
-comp.num_cells = 64 64 32
+comp.num_cells = 128 128 32
 comp.is_periodic = 0 0 0
 
 # If not period what boundary type
@@ -37,15 +42,14 @@ comp.z_boundary  = 0 1
 # Grid refinement
 comp.max_level = 2
 # For 2D
-comp.ref_ratio = 4 4 2 2 2
-# comp.ref_ratio = 4 4 4 4 4
+comp.ref_ratio = 4 4 4 4 4
 # For 3D
-# comp.ref_ratio = 2 2 2 2 2
+comp.ref_ratio = 2 2 2 2 2
 
 # Regridding parameters
 comp.regrid_interval = 2 2 2 2 2 2
 comp.tag_buffer_size = 2
-comp.refine_thresh = 0.01
+comp.refine_thresh = 0.1
 
 # Grid generation parameters
 comp.block_factor = 4
@@ -56,7 +60,7 @@ comp.fill_ratio = 0.75
 # CTU : Corner Transport Upwind
 # PPM : Piecewise Parabolic Method
 # PLM : Piecewise Linear Method (I think, not positive though)
-comp.normal_predictor = CTU
+comp.normal_predictor = PPM
 
 # Slope computation parameters
 comp.use_fourth_order_slopes = 1
@@ -71,7 +75,7 @@ comp.artificial_viscosity = 0.1
 # Plot file information
 comp.plot_interval = 5
 # comp.plot_interval = 1
-comp.plot_prefix  = test.
+comp.plot_prefix  = lockSlide.
 
 # Checkpoint file information
 comp.checkpoint_interval = -1

@@ -1,5 +1,5 @@
-#ifndef _SIMPLEIBC_H_
-#define _SIMPLEIBC_H_
+#ifndef _LOCKSLIDEIBC_H_
+#define _LOCKSLIDEIBC_H_
 
 #include "FArrayBox.H"
 #include "REAL.H"
@@ -9,29 +9,28 @@
 
 #include "UsingNamespace.H"
 
-class SimpleIBC: public PhysIBC
+class LockSlideIBC: public PhysIBC
 {
 public:
     /// Null Constructor
     /**
     */
-    SimpleIBC();
+    LockSlideIBC();
 
     /// Constructor which defines parameters used by Fortran routines
     /**
     */
-    SimpleIBC(const Real& cs,
+    LockSlideIBC(const Real& cs,
         const Real& cp,
         const Real& mu,
         const Real& r0,
-        const vector<Real> mag,
-        const Real& sig,
-        const Vector<int>& boundaryType);
+        const Real& edge,
+        const vector<Real> background);
 
     /// Destructor
     /**
     */
-    virtual ~SimpleIBC();
+    virtual ~LockSlideIBC();
 
     /// Define ?
 
@@ -85,7 +84,7 @@ public:
 
 protected:
     bool m_isFortranCommonSet;
-    Vector<int> m_boundaryType;
+    // Vector<int> m_boundaryType;
 };
 
 #endif

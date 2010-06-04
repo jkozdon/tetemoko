@@ -23,7 +23,7 @@
 #include "LevelFluxRegister.H"
 #include "ProblemDomain.H"
 #include "BoxIterator.H"
-#include "computeSum.H"
+#include "computeNorm.H"
 #include "CH_HDF5.H"
 #include "AMRIO.H"
 #include "AMRLevel.H"
@@ -369,7 +369,8 @@ void AMRLevelLinElast::postTimeStep()
         for (int comp = 0; comp < m_numStates; comp++)
         {
             Interval curComp(comp,comp);
-            Real integral = computeSum(m_UNew,NULL,nRefFine,m_dx,curComp);
+            // Real integral = computeSum(m_UNew,NULL,nRefFine,m_dx,curComp);
+            Real integral = computeNorm(m_UNew,NULL,nRefFine,m_dx,curComp);
 
             pout() << "    " << setw(23)
                 << setprecision(16)
@@ -475,13 +476,12 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
             const Box bHi     = b & adjCellHi(bCenter,dir);
             const int hasHi = ! bHi.isEmpty();
 
-            // Chombo sample code all uses Relative Gradients, but this doesn't
-            // seem to work for me
+            //JK Chombo sample code all uses Relative Gradients, but this doesn't
+            //JK seem to work for me
 
-            // FORT_GETRELGRADF(
-            FORT_GETGRADF(
+            FORT_GETFULLGRADF(
                 CHF_FRA1(gradFab,dir),
-                CHF_CONST_FRA1(UFab,0), // Only do on 0 component
+                CHF_CONST_FRA(UFab),
                 CHF_CONST_INT(dir),
                 CHF_BOX(bLo),
                 CHF_CONST_INT(hasLo),
@@ -491,7 +491,7 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
         }
 
         FArrayBox gradMagFab(b,1);
-        FORT_MAGNITUDEF(CHF_FRA1(gradMagFab,0),
+        FORT_MAXF(CHF_FRA1(gradMagFab,0),
             CHF_CONST_FRA(gradFab),
             CHF_BOX(b));
 

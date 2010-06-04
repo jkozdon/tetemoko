@@ -46,6 +46,34 @@ c
         end
 
 
+C
+C       Compute the magnitude of the fields
+C       THIS IS CHOMBO CODE
+C
+        subroutine MAXF(
+     &    CHF_FRA1[magdata],
+     &    CHF_CONST_FRA[data],
+     &    CHF_BOX[box])
+
+        integer CHF_DDECL[i;j;k]
+        integer iv
+        real_t cur
+
+        CHF_MULTIDO[box;i;j;k]
+          cur = zero
+
+c
+c         Compute sum over all directions (x,y,z)
+c
+          do iv = 0,CHF_NCOMP[data]-1
+            cur = max(cur,data(CHF_IX[i;j;k],iv))
+          enddo
+
+          magdata(CHF_IX[i;j;k]) = cur
+        CHF_ENDDO
+
+        return
+        end
 
 C
 C       Compute the relative gradient
@@ -108,6 +136,71 @@ c       current direction, if required.
         return
         end
 
+C
+C       Compute the relative gradient
+C       difference / average in each direction
+C       THIS IS CHOMBO CODE
+C
+        subroutine GETFULLGRADF(
+     &    CHF_FRA1[du],
+     &    CHF_CONST_FRA[u],
+     &    CHF_CONST_INT[idir],
+     &    CHF_BOX[loBox],
+     &    CHF_CONST_INT[hasLo],
+     &    CHF_BOX[hiBox],
+     &    CHF_CONST_INT[hasHi],
+     &    CHF_BOX[centerBox])
+
+        integer CHF_DDECL[i   ;j   ;k   ]
+        integer CHF_DDECL[ioff;joff;koff]
+        integer iv
+        real_t diff
+
+        CHF_DTERM[
+        ioff = CHF_ID(0,idir);
+        joff = CHF_ID(1,idir);
+        koff = CHF_ID(2,idir)]
+
+c       Perform first difference calculation in the interior.
+c       Centered difference / Average
+
+        CHF_MULTIDO[centerBox;i;j;k]
+          diff = zero
+          do iv = 0,8
+            diff = max(diff,abs(u(CHF_IX[i+ioff;j+joff;k+koff],iv)
+     &                         -u(CHF_IX[i-ioff;j-joff;k-koff],iv)))
+          enddo
+          du(CHF_IX[i;j;k]) = half*diff
+        CHF_ENDDO
+
+c       Perform calculation on the cells adjacent to the domain boundary in
+c       current direction, if required.
+
+        if (hasLo .eq. 1) then
+          CHF_MULTIDO[loBox;i;j;k]
+            diff = zero
+            do iv = 0,8
+              diff = max(diff,abs(u(CHF_IX[i+ioff;j+joff;k+koff],iv)
+     &                           -u(CHF_IX[i     ;j     ;k     ],iv)))
+            enddo
+            du(CHF_IX[i;j;k]) = diff
+          CHF_ENDDO
+        endif
+
+        if (hasHi .eq. 1) then
+          CHF_MULTIDO[hiBox;i;j;k]
+            diff = zero
+            do iv = 0,8
+              diff = max(diff,abs(u(CHF_IX[i     ;j     ;k     ],iv)
+     &                           -u(CHF_IX[i-ioff;j-joff;k-koff],iv)))
+            enddo
+            du(CHF_IX[i;j;k]) = diff
+          CHF_ENDDO
+        endif
+
+        return
+        end
+
 
 C
 C       Compute the flux from the physical variables
@@ -124,11 +217,25 @@ C
         integer CHF_DDECL[i     ;j     ;k    ]
         real_t  vx, vy, vz, sxx, syy, szz, sxy, sxz, syz
 
-        integer cx,cy,cz
+        integer cx,cy,cz,cxy,cxz,cyz
 
         cx = idir
         cy = mod(idir+1,3)
         cz = mod(idir+2,3)
+
+        if (idir .eq. 0) then
+          cxy = 6
+          cxz = 7
+          cyz = 8
+        else if (idir .eq. 1) then
+          cxy = 8
+          cxz = 6
+          cyz = 7
+        else
+          cxy = 7
+          cxz = 8
+          cyz = 6
+        endif
 
         CHF_MULTIDO[box;i;j;k]
           vx  = Wgdnv(CHF_IX[i;j;k],cx    )
@@ -137,19 +244,19 @@ C
           sxx = Wgdnv(CHF_IX[i;j;k],cx + 3)
           syy = Wgdnv(CHF_IX[i;j;k],cy + 3)
           szz = Wgdnv(CHF_IX[i;j;k],cz + 3)
-          sxy = Wgdnv(CHF_IX[i;j;k],cx + 6)
-          sxz = Wgdnv(CHF_IX[i;j;k],cy + 6)
-          syz = Wgdnv(CHF_IX[i;j;k],cz + 6)
+          sxy = Wgdnv(CHF_IX[i;j;k],cxy   )
+          sxz = Wgdnv(CHF_IX[i;j;k],cxz   )
+          syz = Wgdnv(CHF_IX[i;j;k],cyz   )
 
-          F(CHF_IX[i;j;k],cx    ) = sxx / rho
-          F(CHF_IX[i;j;k],cy    ) = sxy / rho
-          F(CHF_IX[i;j;k],cz    ) = sxz / rho
-          F(CHF_IX[i;j;k],cx + 3) = vx * (lam + 2.0d0 * mu)
-          F(CHF_IX[i;j;k],cy + 3) = vx * lam
-          F(CHF_IX[i;j;k],cz + 3) = vx * lam
-          F(CHF_IX[i;j;k],cx + 6) = vy * mu
-          F(CHF_IX[i;j;k],cy + 6) = vz * mu
-          F(CHF_IX[i;j;k],cz + 6) = 0
+          F(CHF_IX[i;j;k],cx    ) = -sxx / rho
+          F(CHF_IX[i;j;k],cy    ) = -sxy / rho
+          F(CHF_IX[i;j;k],cz    ) = -sxz / rho
+          F(CHF_IX[i;j;k],cx + 3) = -vx * (lam + 2.0d0 * mu)
+          F(CHF_IX[i;j;k],cy + 3) = -vx * lam
+          F(CHF_IX[i;j;k],cz + 3) = -vx * lam
+          F(CHF_IX[i;j;k],cxy   ) = -vy * mu
+          F(CHF_IX[i;j;k],cxz   ) = -vz * mu
+          F(CHF_IX[i;j;k],cyz   ) =  0
 
 CLIN      F(CHF_IX[i;j;k],0) = cp * Wgdnv(CHF_IX[i;j;k],0)
 CLIN      F(CHF_IX[i;j;k],1) = cp * Wgdnv(CHF_IX[i;j;k],1)
@@ -160,28 +267,6 @@ CLIN      F(CHF_IX[i;j;k],5) = cp * Wgdnv(CHF_IX[i;j;k],5)
 CLIN      F(CHF_IX[i;j;k],6) = cp * Wgdnv(CHF_IX[i;j;k],6)
 CLIN      F(CHF_IX[i;j;k],7) = cp * Wgdnv(CHF_IX[i;j;k],7)
 CLIN      F(CHF_IX[i;j;k],8) = cp * Wgdnv(CHF_IX[i;j;k],8)
-
-C          print *," -- STATE -- "
-C          print *,vx 
-C          print *,vy 
-C          print *,vz 
-C          print *,sxx
-C          print *,syy
-C          print *,szz
-C          print *,sxy
-C          print *,sxz
-C          print *,syz
-C
-C          print *," -- FLUX -- "
-C          print *,F(CHF_IX[i;j;k],cx    )
-C          print *,F(CHF_IX[i;j;k],cy    )
-C          print *,F(CHF_IX[i;j;k],cz    )
-C          print *,F(CHF_IX[i;j;k],cx + 3)
-C          print *,F(CHF_IX[i;j;k],cy + 3)
-C          print *,F(CHF_IX[i;j;k],cz + 3)
-C          print *,F(CHF_IX[i;j;k],cx + 6)
-C          print *,F(CHF_IX[i;j;k],cy + 6)
-C          print *,F(CHF_IX[i;j;k],cz + 6)
         CHF_ENDDO
 
         return
@@ -202,22 +287,36 @@ C
         real_t  vx, vy, vz, sxx, syy, szz, sxy, sxz, syz
 
         integer CHF_DDECL[i;j;k]
-        integer cx,cy,cz
+        integer cx,cy,cz,cxy,cxz,cyz
 
         cx = idir
         cy = mod(idir+1,3)
         cz = mod(idir+2,3)
 
+        if (idir .eq. 0) then
+          cxy = 6
+          cxz = 7
+          cyz = 8
+        else if (idir .eq. 1) then
+          cxy = 8
+          cxz = 6
+          cyz = 7
+        else
+          cxy = 7
+          cxz = 8
+          cyz = 6
+        endif
+
         CHF_MULTIDO[box;i;j;k]
-          vx  = W(CHF_IX[i;j;k],cx    )
-          vy  = W(CHF_IX[i;j;k],cy    )
-          vz  = W(CHF_IX[i;j;k],cz    )
-          sxx = W(CHF_IX[i;j;k],cx + 3)
-          syy = W(CHF_IX[i;j;k],cy + 3)
-          szz = W(CHF_IX[i;j;k],cz + 3)
-          sxy = W(CHF_IX[i;j;k],cx + 6)
-          sxz = W(CHF_IX[i;j;k],cy + 6)
-          syz = W(CHF_IX[i;j;k],cz + 6)
+          vx  = dW(CHF_IX[i;j;k],cx    )
+          vy  = dW(CHF_IX[i;j;k],cy    )
+          vz  = dW(CHF_IX[i;j;k],cz    )
+          sxx = dW(CHF_IX[i;j;k],cx + 3)
+          syy = dW(CHF_IX[i;j;k],cy + 3)
+          szz = dW(CHF_IX[i;j;k],cz + 3)
+          sxy = dW(CHF_IX[i;j;k],cxy   )
+          sxz = dW(CHF_IX[i;j;k],cxz   )
+          syz = dW(CHF_IX[i;j;k],cyz   )
 
           dW(CHF_IX[i;j;k],0) = sxx + vx  * Zp
           dW(CHF_IX[i;j;k],1) = sxy + vy  * Zs
@@ -228,6 +327,27 @@ C
           dW(CHF_IX[i;j;k],6) = sxz - vz * Zs
           dW(CHF_IX[i;j;k],7) = sxy - vy * Zs
           dW(CHF_IX[i;j;k],8) = sxx - vx * Zp
+C           if(idir .eq. 0) then
+C               print *,"======"
+C               print *,vx 
+C               print *,vy 
+C               print *,vz 
+C               print *,sxx
+C               print *,syy
+C               print *,szz
+C               print *,sxy
+C               print *,sxz
+C               print *,syz
+C               print *,dW(CHF_IX[i;j;k],0)
+C               print *,dW(CHF_IX[i;j;k],1)
+C               print *,dW(CHF_IX[i;j;k],2)
+C               print *,dW(CHF_IX[i;j;k],3)
+C               print *,dW(CHF_IX[i;j;k],4)
+C               print *,dW(CHF_IX[i;j;k],5)
+C               print *,dW(CHF_IX[i;j;k],6)
+C               print *,dW(CHF_IX[i;j;k],7)
+C               print *,dW(CHF_IX[i;j;k],8)
+C           endif
 
 CLIN      dW(CHF_IX[i;j;k],0) = W(CHF_IX[i;j;k],0)
 CLIN      dW(CHF_IX[i;j;k],1) = W(CHF_IX[i;j;k],1)
@@ -259,22 +379,36 @@ C
         real_t  wxxp, wxxm, wxyp, wxym, wxzp, wxzm, wyy, wzz, wyz, sxx
 
         integer CHF_DDECL[i;j;k]
-        integer cx,cy,cz
+        integer cx,cy,cz,cxy,cxz,cyz
 
         cx = idir
         cy = mod(idir+1,3)
         cz = mod(idir+2,3)
 
+        if (idir .eq. 0) then
+          cxy = 6
+          cxz = 7
+          cyz = 8
+        else if (idir .eq. 1) then
+          cxy = 8
+          cxz = 6
+          cyz = 7
+        else
+          cxy = 7
+          cxz = 8
+          cyz = 6
+        endif
+
         CHF_MULTIDO[box;i;j;k]
-          wxxm = W(CHF_IX[i;j;k],0)
-          wxym = W(CHF_IX[i;j;k],1)
-          wxzm = W(CHF_IX[i;j;k],2)
-          wyy  = W(CHF_IX[i;j;k],3)
-          wzz  = W(CHF_IX[i;j;k],4)
-          wyz  = W(CHF_IX[i;j;k],5)
-          wxzp = W(CHF_IX[i;j;k],6)
-          wxyp = W(CHF_IX[i;j;k],7)
-          wxxp = W(CHF_IX[i;j;k],8)
+          wxxm = dW(CHF_IX[i;j;k],0)
+          wxym = dW(CHF_IX[i;j;k],1)
+          wxzm = dW(CHF_IX[i;j;k],2)
+          wyy  = dW(CHF_IX[i;j;k],3)
+          wzz  = dW(CHF_IX[i;j;k],4)
+          wyz  = dW(CHF_IX[i;j;k],5)
+          wxzp = dW(CHF_IX[i;j;k],6)
+          wxyp = dW(CHF_IX[i;j;k],7)
+          wxxp = dW(CHF_IX[i;j;k],8)
 
           sxx = (wxxm + wxxp) / 2.0d0
 
@@ -284,9 +418,31 @@ C
           dW(CHF_IX[i;j;k],cx + 3) =  sxx
           dW(CHF_IX[i;j;k],cy + 3) =  wyy  + sxx * lam / (2.0d0 * mu + lam)
           dW(CHF_IX[i;j;k],cz + 3) =  wzz  + sxx * lam / (2.0d0 * mu + lam)
-          dW(CHF_IX[i;j;k],cx + 6) = (wxym + wxyp) / 2.0d0
-          dW(CHF_IX[i;j;k],cy + 6) = (wxzm + wxzp) / 2.0d0
-          dW(CHF_IX[i;j;k],cz + 6) =  wyz
+          dW(CHF_IX[i;j;k],cxy   ) = (wxym + wxyp) / 2.0d0
+          dW(CHF_IX[i;j;k],cxz   ) = (wxzm + wxzp) / 2.0d0
+          dW(CHF_IX[i;j;k],cyz   ) =  wyz
+C            if(idir .eq. 1)then
+C                print *,"vvvvvvvvvvvv"
+C                print *,wxxm
+C                print *,wxym
+C                print *,wxzm
+C                print *,wyy 
+C                print *,wzz 
+C                print *,wyz 
+C                print *,wxzp
+C                print *,wxyp
+C                print *,wxxp
+C  
+C                print *,dW(CHF_IX[i;j;k],0)
+C                print *,dW(CHF_IX[i;j;k],1)
+C                print *,dW(CHF_IX[i;j;k],2)
+C                print *,dW(CHF_IX[i;j;k],3)
+C                print *,dW(CHF_IX[i;j;k],4)
+C                print *,dW(CHF_IX[i;j;k],5)
+C                print *,dW(CHF_IX[i;j;k],6)
+C                print *,dW(CHF_IX[i;j;k],7)
+C                print *,dW(CHF_IX[i;j;k],8)
+C            endif
 
 CLIN      dW(CHF_IX[i;j;k],0) = W(CHF_IX[i;j;k],0)
 CLIN      dW(CHF_IX[i;j;k],1) = W(CHF_IX[i;j;k],1)
@@ -305,7 +461,7 @@ CLIN      dW(CHF_IX[i;j;k],8) = W(CHF_IX[i;j;k],8)
 
 
 C
-C       Return the eigenvalues, which for us are easy, in order high to low
+C       Return the eigenvalues, which for us are easy, in order low to high
 C
         subroutine CHARVALUESF(
      &    CHF_FRA[lambda],
@@ -359,23 +515,32 @@ C       These are the average quantities
         real_t Rvx,Rvy,Rvz,Rsxx,Rsyy,Rszz,Rsxy,Rsxz,Rsyz
         real_t Lvx,Lvy,Lvz,Lsxx,Lsyy,Lszz,Lsxy,Lsxz,Lsyz
 
-C       These are the average quantities
-        real_t Qvx,Qvy,Qvz,Qsxx,Qsyy,Qszz,Qsxy,Qsxz,Qsyz
-
-C       These are the differenced quantities
-        real_t Dvx,Dvy,Dvz,Dsxx,Dsxy,Dsxz
-
+C       These are the characteristic quanties
+        real_t wxxp, wxxm, wxyp, wxym, wxzp, wxzm, wyy, wzz, wyz
+        real_t sxx
 
 C       These coefficient and index
         real_t B
-        integer cx,cy,cz
-
-        B = Zp * (lam + 2.0d0 * mu) / lam
+        integer cx,cy,cz,cxy,cxz,cyz
 
 C       These permute the variables so we only need one loop
         cx = idir
         cy = mod(idir+1,3)
         cz = mod(idir+2,3)
+
+        if (idir .eq. 0) then
+          cxy = 6
+          cxz = 7
+          cyz = 8
+        else if (idir .eq. 1) then
+          cxy = 8
+          cxz = 6
+          cyz = 7
+        else
+          cxy = 7
+          cxz = 8
+          cyz = 6
+        endif
 
         CHF_MULTIDO[box;i;j;k]
 
@@ -386,9 +551,9 @@ C         Set the right state variables
           Rsxx = WRight(CHF_IX[i;j;k],cx + 3)
           Rsyy = WRight(CHF_IX[i;j;k],cy + 3)
           Rszz = WRight(CHF_IX[i;j;k],cz + 3)
-          Rsxy = WRight(CHF_IX[i;j;k],cx + 6)
-          Rsxz = WRight(CHF_IX[i;j;k],cy + 6)
-          Rsyz = WRight(CHF_IX[i;j;k],cz + 6)
+          Rsxy = WRight(CHF_IX[i;j;k],cxy   )
+          Rsxz = WRight(CHF_IX[i;j;k],cxz   )
+          Rsyz = WRight(CHF_IX[i;j;k],cyz   )
 
 C         Set the left state variables
           Lvx  = WLeft(CHF_IX[i;j;k],cx    )
@@ -397,38 +562,37 @@ C         Set the left state variables
           Lsxx = WLeft(CHF_IX[i;j;k],cx + 3)
           Lsyy = WLeft(CHF_IX[i;j;k],cy + 3)
           Lszz = WLeft(CHF_IX[i;j;k],cz + 3)
-          Lsxy = WLeft(CHF_IX[i;j;k],cx + 6)
-          Lsxz = WLeft(CHF_IX[i;j;k],cy + 6)
-          Lsyz = WLeft(CHF_IX[i;j;k],cz + 6)
+          Lsxy = WLeft(CHF_IX[i;j;k],cxy   )
+          Lsxz = WLeft(CHF_IX[i;j;k],cxz   )
+          Lsyz = WLeft(CHF_IX[i;j;k],cyz   )
 
-C         Set the state averages
-          Qvx  = (Lvx  + Rvx ) / 2.0d0
-          Qvy  = (Lvy  + Rvy ) / 2.0d0
-          Qvz  = (Lvz  + Rvz ) / 2.0d0
-          Qsxx = (Lsxx + Rsxx) / 2.0d0
-          Qsyy = (Lsyy + Rsyy) / 2.0d0
-          Qszz = (Lszz + Rszz) / 2.0d0
-          Qsxy = (Lsxy + Rsxy) / 2.0d0
-          Qsxz = (Lsxz + Rsxz) / 2.0d0
-          Qsyz = (Lsyz + Rsyz) / 2.0d0
+          wxxp = Lsxx - Zp * Lvx
+          wxyp = Lsxy - Zs * Lvy
+          wxzp = Lsxz - Zs * Lvz
 
-C         Set the state differences
-          Dvx  = (Lvx  - Rvx ) / 2.0d0
-          Dvy  = (Lvy  - Rvy ) / 2.0d0
-          Dvz  = (Lvz  - Rvz ) / 2.0d0
-          Dsxx = (Lsxx - Rsxx) / 2.0d0
-          Dsxy = (Lsxy - Rsxy) / 2.0d0
-          Dsxz = (Lsxz - Rsxz) / 2.0d0
 
-          Wgdnv(CHF_IX[i;j;k],cx    ) =      Qvx + Dsxx / Zp
-          Wgdnv(CHF_IX[i;j;k],cy    ) =      Qvy + Dsxy / Zs
-          Wgdnv(CHF_IX[i;j;k],cz    ) =      Qvz + Dsxz / Zs
-          Wgdnv(CHF_IX[i;j;k],cx + 3) = Zp * Dvx + Qsxx
-          Wgdnv(CHF_IX[i;j;k],cy + 3) =  B * Dvx + Qsyy
-          Wgdnv(CHF_IX[i;j;k],cz + 3) =  B * Dvx + Qszz
-          Wgdnv(CHF_IX[i;j;k],cx + 6) = Zs * Dvy + Qsxy
-          Wgdnv(CHF_IX[i;j;k],cy + 6) = Zs * Dvz + Qsxz
-          Wgdnv(CHF_IX[i;j;k],cz + 6) =            Qsyz
+          wxxm = Rsxx + Zp * Rvx
+          wxym = Rsxy + Zs * Rvy
+          wxzm = Rsxz + Zs * Rvz
+
+          wyy  = Rsyy - Rsxx * lam / (2.0d0 * mu + lam)
+          wzz  = Rszz - Rsxx * lam / (2.0d0 * mu + lam)
+          wyz  = Rsyz
+
+          wyy  = (wyy + Lsyy - Lsxx * lam / (2.0d0 * mu + lam)) / 2.0d0
+          wzz  = (wzz + Lszz - Lsxx * lam / (2.0d0 * mu + lam)) / 2.0d0
+          wyz  = (wyz + Lsyz) / 2.0d0
+
+          sxx = (wxxm + wxxp) / 2.0d0
+          Wgdnv(CHF_IX[i;j;k],cx    ) = (wxxm - wxxp) / 2.0d0 / Zp
+          Wgdnv(CHF_IX[i;j;k],cy    ) = (wxym - wxyp) / 2.0d0 / Zs
+          Wgdnv(CHF_IX[i;j;k],cz    ) = (wxzm - wxzp) / 2.0d0 / Zs
+          Wgdnv(CHF_IX[i;j;k],cx + 3) = (wxxm + wxxp) / 2.0d0
+          Wgdnv(CHF_IX[i;j;k],cy + 3) =  wyy + sxx * lam / (2.0d0 * mu + lam)
+          Wgdnv(CHF_IX[i;j;k],cz + 3) =  wzz + sxx * lam / (2.0d0 * mu + lam)
+          Wgdnv(CHF_IX[i;j;k],cxy   ) = (wxym + wxyp) / 2.0d0
+          Wgdnv(CHF_IX[i;j;k],cxz   ) = (wxzm + wxzp) / 2.0d0
+          Wgdnv(CHF_IX[i;j;k],cyz   ) = wyz
 
 CLIN      Wgdnv(CHF_IX[i;j;k],0) = WLeft(CHF_IX[i;j;k],0)
 CLIN      Wgdnv(CHF_IX[i;j;k],1) = WLeft(CHF_IX[i;j;k],1)
@@ -482,11 +646,25 @@ C
         integer CHF_DDECL[ioff;joff;koff]
         integer n
         real_t  vx, vy, vz, sxx, syy, szz, sxy, sxz, syz
-        integer cx,cy,cz
+        integer cx,cy,cz,cxy,cxz,cyz
 
         cx = idir
         cy = mod(idir+1,3)
         cz = mod(idir+2,3)
+
+        if (idir .eq. 0) then
+          cxy = 6
+          cxz = 7
+          cyz = 8
+        else if (idir .eq. 1) then
+          cxy = 8
+          cxz = 6
+          cyz = 7
+        else
+          cxy = 7
+          cxz = 8
+          cyz = 6
+        endif
 
         CHF_DTERM[
         ioff = CHF_ID(0,idir);
@@ -506,22 +684,22 @@ C
      &        - WHalf(CHF_IX[i     ;j     ;k     ],cy + 3)
           szz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cz + 3)
      &        - WHalf(CHF_IX[i     ;j     ;k     ],cz + 3)
-          sxy = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cx + 6)
-     &        - WHalf(CHF_IX[i     ;j     ;k     ],cx + 6)
-          sxz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cy + 6)
-     &        - WHalf(CHF_IX[i     ;j     ;k     ],cy + 6)
-          syz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cz + 6)
-     &        - WHalf(CHF_IX[i     ;j     ;k     ],cz + 6)
+          sxy = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cxy   )
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],cxy   )
+          sxz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cxz   )
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],cxz   )
+          syz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],cyz   )
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],cyz   )
 
-          AdWdx(CHF_IX[i;j;k],cx    ) = scale * sxx / rho
-          AdWdx(CHF_IX[i;j;k],cy    ) = scale * sxy / rho
-          AdWdx(CHF_IX[i;j;k],cz    ) = scale * sxz / rho
-          AdWdx(CHF_IX[i;j;k],cx + 3) = scale * vx  * (lam + 2.0d0 * mu)
-          AdWdx(CHF_IX[i;j;k],cy + 3) = scale * vx  * lam
-          AdWdx(CHF_IX[i;j;k],cz + 3) = scale * vx  * lam
-          AdWdx(CHF_IX[i;j;k],cx + 6) = scale * vy  * mu
-          AdWdx(CHF_IX[i;j;k],cy + 6) = scale * vz  * mu
-          AdWdx(CHF_IX[i;j;k],cz + 6) = scale * 0
+          AdWdx(CHF_IX[i;j;k],cx    ) = -scale * sxx / rho
+          AdWdx(CHF_IX[i;j;k],cy    ) = -scale * sxy / rho
+          AdWdx(CHF_IX[i;j;k],cz    ) = -scale * sxz / rho
+          AdWdx(CHF_IX[i;j;k],cx + 3) = -scale * vx  * (lam + 2.0d0 * mu)
+          AdWdx(CHF_IX[i;j;k],cy + 3) = -scale * vx  * lam
+          AdWdx(CHF_IX[i;j;k],cz + 3) = -scale * vx  * lam
+          AdWdx(CHF_IX[i;j;k],cxy   ) = -scale * vy  * mu
+          AdWdx(CHF_IX[i;j;k],cxz   ) = -scale * vz  * mu
+          AdWdx(CHF_IX[i;j;k],cyz   ) = -scale * 0
         CHF_ENDDO
 
 CLIN    do n=0, CHF_NCOMP[AdWdx]-1
