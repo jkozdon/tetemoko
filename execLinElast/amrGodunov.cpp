@@ -221,6 +221,10 @@ void amrGodunov()
     // Create and define IBC (initial and boundary condition) object
     PhysIBC* ibc;
 
+    // Background Values
+    vector<Real> backgroundVals(9,0);
+    ppphysics.queryarr("background",backgroundVals,0,9);
+
     if (ppphysics.contains("problem"))
     {
         ppphysics.query("problem",problemString);
@@ -277,7 +281,7 @@ void amrGodunov()
             }
 
 
-            SimpleIBC* simpleibc = new SimpleIBC(cs,cp,mu,r0,mag,sig,boundaryType);
+            SimpleIBC* simpleibc = new SimpleIBC(cs,cp,mu,backgroundVals,r0,mag,sig,boundaryType);
             ibc = simpleibc;
             if(verbosity >= 1)
             {
@@ -298,9 +302,6 @@ void amrGodunov()
         }
         else if (problemString == "lockSlide")
         {
-            // Background Values
-            vector<Real> backgroundVals(9,0);
-            ppphysics.queryarr("background",backgroundVals,0,9);
 
             // where is the center of the slip region
             Real center = 0.5;
@@ -337,8 +338,8 @@ void amrGodunov()
             }
 
 
-            LockSlideIBC* lockSlideibc = new LockSlideIBC(cs,cp,mu,
-                center,edge,backgroundVals);
+            LockSlideIBC* lockSlideibc = 
+                new LockSlideIBC(cs,cp,mu,backgroundVals,center,edge);
             ibc = lockSlideibc;
             if(verbosity >= 1)
             {
@@ -357,9 +358,6 @@ void amrGodunov()
         }
         else if (problemString == "velslideasinh1s")
         {
-            // Background Values
-            vector<Real> backgroundVals(9,0);
-            ppphysics.queryarr("background",backgroundVals,0,9);
 
             // where is the center of the slip region
             Real center = 0.5;
@@ -391,8 +389,8 @@ void amrGodunov()
             }
 
 
-            VelSlideAsinh1sIBC* velSlideibc = new VelSlideAsinh1sIBC(cs,cp,mu,
-                center,sigma,ntime,backgroundVals);
+            VelSlideAsinh1sIBC* velSlideibc =
+                new VelSlideAsinh1sIBC(cs,cp,mu,backgroundVals,center,sigma,ntime);
             ibc = velSlideibc;
             if(verbosity >= 1)
             {

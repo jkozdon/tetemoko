@@ -3,6 +3,7 @@
 
 #include "SimpleIBC.H"
 #include "SimpleIBCF_F.H"
+#include "LinElastPhysicsF_F.H"
 
 /// Null Constructor
 SimpleIBC::SimpleIBC()
@@ -13,12 +14,14 @@ SimpleIBC::SimpleIBC()
 SimpleIBC::SimpleIBC(const Real& a_cs,
     const Real& a_cp,
     const Real& a_mu,
+    const vector<Real> a_back,
     const Real& a_r0,
     const vector<Real> a_mag,
     const Real& a_sig,
     const Vector<int>& a_boundaryType)
 {
-    FORT_SIMPLESETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_REAL(a_r0),CHF_CONST_VR(a_mag),CHF_CONST_REAL(a_sig));
+    FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
+    FORT_SIMPLESETF(CHF_CONST_REAL(a_r0),CHF_CONST_VR(a_mag),CHF_CONST_REAL(a_sig));
     m_boundaryType = a_boundaryType;
     m_isFortranCommonSet = true;
 }
@@ -76,6 +79,7 @@ void SimpleIBC::initialize(LevelData<FArrayBox>& a_U)
 }
 
 /// Set boundary primitive values.
+//  This is called once for each high & lo side (from LinElastPhysics::riemann)
 void SimpleIBC::primBC(FArrayBox&            a_WGdnv,
     const FArrayBox&      a_WShiftInside,
     const FArrayBox&      a_W,
@@ -117,7 +121,7 @@ void SimpleIBC::primBC(FArrayBox&            a_WGdnv,
 
             if(m_boundaryType[a_dir*2 + (lohisign+1)/2] == 0)
             {
-                FORT_SIMPLEOUTBCF(CHF_FRA(a_WGdnv),
+                FORT_LINELASTOUTBCF(CHF_FRA(a_WGdnv),
                     CHF_CONST_FRA(a_WShiftInside),
                     CHF_CONST_FRA(a_W),
                     CHF_CONST_INT(lohisign),
@@ -127,7 +131,7 @@ void SimpleIBC::primBC(FArrayBox&            a_WGdnv,
             }
             else if(m_boundaryType[a_dir*2 + (lohisign+1)/2] == 1)
             {
-                FORT_SIMPLEFREEBCF(CHF_FRA(a_WGdnv),
+                FORT_LINELASTFREEBCF(CHF_FRA(a_WGdnv),
                     CHF_CONST_FRA(a_WShiftInside),
                     CHF_CONST_FRA(a_W),
                     CHF_CONST_INT(lohisign),

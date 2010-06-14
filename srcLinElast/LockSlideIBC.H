@@ -23,9 +23,9 @@ public:
     LockSlideIBC(const Real& cs,
         const Real& cp,
         const Real& mu,
+        const vector<Real> background,
         const Real& r0,
-        const Real& edge,
-        const vector<Real> background);
+        const Real& edge);
 
     /// Destructor
     /**

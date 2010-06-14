@@ -3,6 +3,7 @@
 
 #include "VelSlideAsinh1sIBC.H"
 #include "VelSlideAsinh1sIBCF_F.H"
+#include "LinElastPhysicsF_F.H"
 
 /// Null Constructor
 VelSlideAsinh1sIBC::VelSlideAsinh1sIBC()
@@ -13,12 +14,13 @@ VelSlideAsinh1sIBC::VelSlideAsinh1sIBC()
 VelSlideAsinh1sIBC::VelSlideAsinh1sIBC(const Real& a_cs,
     const Real& a_cp,
     const Real& a_mu,
+    const vector<Real> a_back,
     const Real& a_r0,
     const Real& a_sigma,
-    const Real& a_ntime,
-    const vector<Real> a_back)
+    const Real& a_ntime)
 {
-    FORT_VELSLIDASINH1SSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_REAL(a_r0),CHF_CONST_REAL(a_sigma),CHF_CONST_REAL(a_ntime),CHF_CONST_VR(a_back));
+    FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
+    FORT_VELSLIDEASINH1SSETF(CHF_CONST_REAL(a_r0),CHF_CONST_REAL(a_sigma),CHF_CONST_REAL(a_ntime));
     m_isFortranCommonSet = true;
 }
 
@@ -67,7 +69,7 @@ void VelSlideAsinh1sIBC::initialize(LevelData<FArrayBox>& a_U)
         uBox &= m_domain;
 
         // Set up initial condition in this grid
-        FORT_VELSLIDASINH1SINITF(CHF_FRA(U),
+        FORT_VELSLIDEASINH1SINITF(CHF_FRA(U),
             CHF_CONST_REAL(m_dx),
             CHF_BOX(uBox));
     }
@@ -115,7 +117,7 @@ void VelSlideAsinh1sIBC::primBC(FArrayBox&            a_WGdnv,
 
             if(lohisign == -1 && a_dir == 1)
             {
-                FORT_VELSLIDASINH1SFAULTBCF(CHF_FRA(a_WGdnv),
+                FORT_VELSLIDEASINH1SFAULTBCF(CHF_FRA(a_WGdnv),
                     CHF_CONST_FRA(a_WShiftInside),
                     CHF_CONST_FRA(a_W),
                     CHF_CONST_INT(lohisign),
@@ -126,7 +128,7 @@ void VelSlideAsinh1sIBC::primBC(FArrayBox&            a_WGdnv,
             }
             else
             {
-                FORT_VELSLIDASINH1SOUTBCF(CHF_FRA(a_WGdnv),
+                FORT_LINELASTOUTBCF(CHF_FRA(a_WGdnv),
                     CHF_CONST_FRA(a_WShiftInside),
                     CHF_CONST_FRA(a_W),
                     CHF_CONST_INT(lohisign),

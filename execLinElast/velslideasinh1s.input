@@ -7,7 +7,9 @@ physics.cs = 3
 physics.mu = 30
 
 # Set the background values
-physics.background = 0 0 0 -126 -126 -126 15 15 15
+#                      vx   vy   vz  sxx  syy  szz  sxy  sxz  syz
+physics.background =    0    0 1E-2    0 -126    0    0    0   111.05
+#physics.background =    0    0    0    0 -126    0    0    0  126
 # physics.background = 10 10 10 10 10 10 10 10 10
 # physics.background = 0 0 10 0 0 0 0 0 0
 
@@ -17,10 +19,10 @@ physics.nucleation_time  = 1
 
 # Turn on some output
 # comp.verbosity = 10
-comp.verbosity = 1
+comp.verbosity = 5
 
 # Number of steps, final time, and time step
-comp.max_step = 800
+comp.max_step = 10
 comp.max_time = 400.0
 # comp.fixed_dt = 0.002
 
@@ -29,23 +31,23 @@ comp.domain_length = 1000.0
 
 # Coarsest grid
 # comp.num_cells = 32 8 4
-comp.num_cells = 128 128 32
-comp.is_periodic = 0 0 0
-
-# If not period what boundary type
-# 0 : Outflow
-# 1 : Free surface
-comp.x_boundary  = 0 1
-comp.y_boundary  = 0 1
-comp.z_boundary  = 0 1
+comp.num_cells = 64 32 32
+# comp.is_periodic = 0 0 0
+# 
+# # If not period what boundary type
+# # 0 : Outflow
+# # 1 : Free surface
+# comp.x_boundary  = 0 1
+# comp.y_boundary  = 0 1
+# comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 2
+comp.max_level = 3
 # For 2D
 comp.ref_ratio = 4 4 4 4 4
 # For 3D
-comp.ref_ratio = 2 2 2 2 2
+# comp.ref_ratio = 2 2 2 2 2
 
 # Regridding parameters
 comp.regrid_interval = 2 2 2 2 2 2
@@ -55,7 +57,7 @@ comp.refine_thresh = 0.1
 # Grid generation parameters
 comp.block_factor = 4
 comp.max_grid_size = 32
-comp.fill_ratio = 0.75
+comp.fill_ratio = 1
 
 # Normal predictor method
 # CTU : Corner Transport Upwind
@@ -74,9 +76,9 @@ comp.use_artificial_viscosity = 1
 comp.artificial_viscosity = 0.1
 
 # Plot file information
-comp.plot_interval = 5
+comp.plot_interval = 1
 # comp.plot_interval = 1
-comp.plot_prefix  = lockSlide.
+comp.plot_prefix  = velslideasinh1s.
 
 # Checkpoint file information
 comp.checkpoint_interval = -1

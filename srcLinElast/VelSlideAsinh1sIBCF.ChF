@@ -3,32 +3,12 @@ C Set the constant parameters
 C
 #include "CONSTANTS.H"
 
-        subroutine VELSLIDASINH1SSETF(
-     &    CHF_CONST_REAL[aucs],
-     &    CHF_CONST_REAL[aucp],
-     &    CHF_CONST_REAL[aumu],
+        subroutine VELSLIDEASINH1SSETF(
      &    CHF_CONST_REAL[ar0],
      &    CHF_CONST_REAL[asigma],
-     &    CHF_CONST_REAL[antime],
-     &    CHF_CONST_VR[aback])
+     &    CHF_CONST_REAL[antime])
 
-#include "IBCCommon.fh"
 #include "VelSlideAsinh1sCommon.fh"
-
-c
-c       physical parameters
-c
-        cs  = aucs
-        cp  = aucp
-        mu  = aumu
-
-c
-c       other physical (dependent) parameters
-c
-        rho = mu / cs / cs
-        lam = cp * cp * rho - 2.0d0 * mu
-        Zs  = rho * cs
-        Zp  = rho * cp
 
 c
 c       simulation parameters
@@ -37,15 +17,6 @@ c
         r0 = ar0
         sigma = asigma
         nucTime = antime
-        background(0) = aback(0)
-        background(1) = aback(1)
-        background(2) = aback(2)
-        background(3) = aback(3)
-        background(4) = aback(4)
-        background(5) = aback(5)
-        background(6) = aback(6)
-        background(7) = aback(7)
-        background(8) = aback(8)
 
         return
         end
@@ -55,7 +26,7 @@ c
 C
 C This is a very very very simple gaussian pulse initial condition
 C
-        subroutine VELSLIDASINH1SINITF(
+        subroutine VELSLIDEASINH1SINITF(
      &    CHF_FRA[U],
      &    CHF_CONST_REAL[dx],
      &    CHF_BOX[box])
@@ -82,186 +53,12 @@ C
         return
         end
 
-C
-C Set the the boundary flux for a free surface
-C
-        subroutine VELSLIDASINH1SFREEBCF(
-     &    CHF_FRA[Wgdnv],
-     &    CHF_CONST_FRA[WInside],
-     &    CHF_CONST_FRA[W],
-     &    CHF_CONST_INT[lohisign],
-     &    CHF_CONST_REAL[dx],
-     &    CHF_CONST_INT[idir],
-     &    CHF_BOX[box])
-
-#include "IBCCommon.fh"
-
-        integer CHF_DDECL[i;j;k]
-
-        integer cx,cy,cz,cxy,cxz,cyz
-        real_t wpx, wpy, wpz
-        real_t wmx, wmy, wmz
-        real_t sxx, SHF
-
-        cx = idir
-        cy = mod(idir+1,3)
-        cz = mod(idir+2,3)
-
-        if (idir .eq. 0) then
-          cxy = 6
-          cxz = 7
-          cyz = 8
-        else if (idir .eq. 1) then
-          cxy = 8
-          cxz = 6
-          cyz = 7
-        else
-          cxy = 7
-          cxz = 8
-          cyz = 6
-        endif
-
-        CHF_MULTIDO[box;i;j;k]
-C         This is a left boundary
-C         so we set w+ = -w-
-          if (lohisign .eq. -1) then
-            wmx = (WInside(CHF_IX[i;j;k],cx + 3) + Zp * WInside(CHF_IX[i;j;k],cx))
-            wmy = (WInside(CHF_IX[i;j;k],cxy   ) + Zs * WInside(CHF_IX[i;j;k],cy))
-            wmz = (WInside(CHF_IX[i;j;k],cxz   ) + Zs * WInside(CHF_IX[i;j;k],cz))
-            wpx = -wmx
-            wpy = -wmy
-            wpz = -wmz
-C         This is a right boundary
-C         so we set w- = -w+
-          else
-            wpx = (WInside(CHF_IX[i;j;k],cx + 3) - Zp * WInside(CHF_IX[i;j;k],cx))
-            wpy = (WInside(CHF_IX[i;j;k],cxy   ) - Zs * WInside(CHF_IX[i;j;k],cy))
-            wpz = (WInside(CHF_IX[i;j;k],cxz   ) - Zs * WInside(CHF_IX[i;j;k],cz))
-            wmx = -wpx
-            wmy = -wpy
-            wmz = -wpz
-          endif
-          sxx = (wmx + wpx) / (2.0d0)
-          SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * mu)
-          Wgdnv(CHF_IX[i;j;k],cx    ) = (wmx - wpx) / (2.0d0 * Zp)
-          Wgdnv(CHF_IX[i;j;k],cy    ) = (wmy - wpy) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],cz    ) = (wmz - wpz) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],cx + 3) = sxx
-          Wgdnv(CHF_IX[i;j;k],cy + 3) = WInside(CHF_IX[i;j;k],cy + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],cz + 3) = WInside(CHF_IX[i;j;k],cz + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],cxy   ) = (wmy + wpy) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],cxz   ) = (wmz + wpz) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],cyz   ) = WInside(CHF_IX[i;j;k],cyz  )
-
-C          Wgdnv(CHF_IX[i;j;k],cx    ) = WInside(CHF_IX[i;j;k],cx    )
-C          Wgdnv(CHF_IX[i;j;k],cy    ) = WInside(CHF_IX[i;j;k],cy    )
-C          Wgdnv(CHF_IX[i;j;k],cz    ) = WInside(CHF_IX[i;j;k],cz    )
-C          Wgdnv(CHF_IX[i;j;k],cx + 3) = WInside(CHF_IX[i;j;k],cx + 3)
-C          Wgdnv(CHF_IX[i;j;k],cy + 3) = WInside(CHF_IX[i;j;k],cy + 3)
-C          Wgdnv(CHF_IX[i;j;k],cz + 3) = WInside(CHF_IX[i;j;k],cz + 3)
-C          Wgdnv(CHF_IX[i;j;k],cx + 6) = WInside(CHF_IX[i;j;k],cx + 6)
-C          Wgdnv(CHF_IX[i;j;k],cy + 6) = WInside(CHF_IX[i;j;k],cy + 6)
-C          Wgdnv(CHF_IX[i;j;k],cz + 6) = WInside(CHF_IX[i;j;k],cz + 6)
-        CHF_ENDDO
-
-        
-
-        return
-        end
 
 C
-C Set the the boundary flux for a outflow surface
+C Set the the boundary flux for a simple fault which is governed by an
+C arcsinh friction law with a time-space dependent normal stress.
 C
-        subroutine VELSLIDASINH1SOUTBCF(
-     &    CHF_FRA[Wgdnv],
-     &    CHF_CONST_FRA[WInside],
-     &    CHF_CONST_FRA[W],
-     &    CHF_CONST_INT[lohisign],
-     &    CHF_CONST_REAL[dx],
-     &    CHF_CONST_INT[idir],
-     &    CHF_BOX[box])
-
-#include "IBCCommon.fh"
-
-        integer CHF_DDECL[i;j;k]
-
-        integer cx,cy,cz,cxy,cxz,cyz
-        real_t wpx, wpy, wpz
-        real_t wmx, wmy, wmz
-        real_t sxx, SHF
-
-        cx = idir
-        cy = mod(idir+1,3)
-        cz = mod(idir+2,3)
-
-        if (idir .eq. 0) then
-          cxy = 6
-          cxz = 7
-          cyz = 8
-        else if (idir .eq. 1) then
-          cxy = 8
-          cxz = 6
-          cyz = 7
-        else
-          cxy = 7
-          cxz = 8
-          cyz = 6
-        endif
-
-        wpx = background(cx + 3) - Zp * background(cx)
-        wpy = background(cxy   ) - Zs * background(cy)
-        wpz = background(cxz   ) - Zs * background(cz)
-
-        wmx = background(cx + 3) + Zp * background(cx)
-        wmy = background(cxy   ) + Zs * background(cy)
-        wmz = background(cxz   ) + Zs * background(cz)
-
-        CHF_MULTIDO[box;i;j;k]
-C         This is a left boundary
-          if (lohisign .eq. -1) then
-            wmx = (WInside(CHF_IX[i;j;k],cx + 3) + Zp * WInside(CHF_IX[i;j;k],cx))
-            wmy = (WInside(CHF_IX[i;j;k],cxy   ) + Zs * WInside(CHF_IX[i;j;k],cy))
-            wmz = (WInside(CHF_IX[i;j;k],cxz   ) + Zs * WInside(CHF_IX[i;j;k],cz))
-C         This is a right boundary
-          else
-            wpx = (WInside(CHF_IX[i;j;k],cx + 3) - Zp * WInside(CHF_IX[i;j;k],cx))
-            wpy = (WInside(CHF_IX[i;j;k],cxy   ) - Zs * WInside(CHF_IX[i;j;k],cy))
-            wpz = (WInside(CHF_IX[i;j;k],cxz   ) - Zs * WInside(CHF_IX[i;j;k],cz))
-          endif
-
-          sxx = (wmx + wpx) / (2.0d0)
-          SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * mu)
-          Wgdnv(CHF_IX[i;j;k],cx    ) = (wmx - wpx) / (2.0d0 * Zp)
-          Wgdnv(CHF_IX[i;j;k],cy    ) = (wmy - wpy) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],cz    ) = (wmz - wpz) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],cx + 3) = sxx
-          Wgdnv(CHF_IX[i;j;k],cy + 3) = WInside(CHF_IX[i;j;k],cy + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],cz + 3) = WInside(CHF_IX[i;j;k],cz + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],cxy   ) = (wmy + wpy) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],cxz   ) = (wmz + wpz) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],cyz   ) = WInside(CHF_IX[i;j;k],cyz  )
-
-C           if(idir .eq. 1 .or. lohisign .eq. 1) then
-C               Wgdnv(CHF_IX[i;j;k],cx    ) = WInside(CHF_IX[i;j;k],cx    )
-C               Wgdnv(CHF_IX[i;j;k],cy    ) = WInside(CHF_IX[i;j;k],cy    )
-C               Wgdnv(CHF_IX[i;j;k],cz    ) = WInside(CHF_IX[i;j;k],cz    )
-C               Wgdnv(CHF_IX[i;j;k],cx + 3) = WInside(CHF_IX[i;j;k],cx + 3)
-C               Wgdnv(CHF_IX[i;j;k],cy + 3) = WInside(CHF_IX[i;j;k],cy + 3)
-C               Wgdnv(CHF_IX[i;j;k],cz + 3) = WInside(CHF_IX[i;j;k],cz + 3)
-C               Wgdnv(CHF_IX[i;j;k],cx + 6) = WInside(CHF_IX[i;j;k],cx + 6)
-C               Wgdnv(CHF_IX[i;j;k],cy + 6) = WInside(CHF_IX[i;j;k],cy + 6)
-C               Wgdnv(CHF_IX[i;j;k],cz + 6) = WInside(CHF_IX[i;j;k],cz + 6)
-C           endif
-        CHF_ENDDO
-
-        return
-        end
-
-
-C
-C Set the the boundary flux for a outflow surface
-C
-        subroutine VELSLIDASINH1SFAULTBCF(
+        subroutine VELSLIDEASINH1SFAULTBCF(
      &    CHF_FRA[Wgdnv],
      &    CHF_CONST_FRA[WInside],
      &    CHF_CONST_FRA[W],
@@ -277,84 +74,158 @@ C
         integer CHF_DDECL[i;j;k]
         real_t CHF_DDECL[x;y;z]
 
-        integer cx,cy,cz,cxy,cxz,cyz
         integer mx,my,mz
-        real_t wpx, wpy, wpz
-        real_t wmx, wmy, wmz
-        real_t sxx, SHF
+        real_t wpxy,wpyy,wpyz
+        real_t wmxy,wmyy,wmyz
+        real_t SHF
         real_t R, rat
+        real_t vx,vy,vz,sxx,syy,szz,sxy,sxz,syz
 
-        cx = idir
-        cy = mod(idir+1,3)
-        cz = mod(idir+2,3)
+        wpxy = background(6) - Zs * background(0)
+        wpyy = background(4) - Zp * background(1)
+        wpyz = background(8) - Zs * background(2)
 
-        if (idir .eq. 0) then
-          cxy = 6
-          cxz = 7
-          cyz = 8
-          mx = 0
-          my = 1
-          mz = 1
-        else if (idir .eq. 1) then
-          cxy = 8
-          cxz = 6
-          cyz = 7
-          mx = 1
-          my = 0
-          mz = 1
-        else
-          cxy = 7
-          cxz = 8
-          cyz = 6
-          mx = 1
-          my = 1
-          mz = 0
-        endif
-
-        wpx = background(cx + 3) - Zp * background(cx)
-        wmx = background(cx + 3) + Zp * background(cx)
-        wpy = background(cxy   ) - Zs * background(cy)
-        wmy = background(cxy   ) + Zs * background(cy)
-        wpz = background(cxz   ) - Zs * background(cz)
-        wmz = background(cxz   ) + Zs * background(cz)
+        wmxy = background(6) + Zs * background(0)
+        wmyy = background(4) + Zp * background(1)
+        wmyz = background(8) + Zs * background(2)
 
         CHF_MULTIDO[box;i;j;k]
-          CHF_DTERM[x = mx*((i + half) * dx-r0);
-          y = my*((j + half) * dx-r0);
-          z = mz*((k + half) * dx-r0)]
+          CHF_DTERM[x = (abs((i + half) * dx-r0)-t*cs);
+          y = 0;
+          z = (abs((k + half) * dx-r0)-t*cs)]
           R = (sqrt(CHF_DTERM[x*x;+y*y;+z*z]))/sigma
 
-          rat = 1.0d0 - 2.0d0*exp(-R*R)
+C          rat = 1.0d0
+          rat = 1 - exp( -R * R)
+C          rat = 1 - exp( -R * R) * exp(-2.0d0 * (t - 2.0d0) * (t - 2.0d0))
 
-C         This is a left boundary
-          if (lohisign .eq. -1) then
-            wmx = (WInside(CHF_IX[i;j;k],cx + 3) + Zp * WInside(CHF_IX[i;j;k],cx))
-            wmy = (WInside(CHF_IX[i;j;k],cxy   ) + Zs * WInside(CHF_IX[i;j;k],cy))
-            wmz = (WInside(CHF_IX[i;j;k],cxz   ) + Zs * WInside(CHF_IX[i;j;k],cz))
-            wpy = rat * wmy
-C         This is a right boundary
-          else
-            wpx = (WInside(CHF_IX[i;j;k],cx + 3) - Zp * WInside(CHF_IX[i;j;k],cx))
-            wpy = (WInside(CHF_IX[i;j;k],cxy   ) - Zs * WInside(CHF_IX[i;j;k],cy))
-            wpz = (WInside(CHF_IX[i;j;k],cxz   ) - Zs * WInside(CHF_IX[i;j;k],cz))
-            wmy = rat * wpy
-          endif
 
-          sxx = (wmx + wpx) / (2.0d0)
-          SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * mu)
-          Wgdnv(CHF_IX[i;j;k],cx    ) = (wmx - wpx) / (2.0d0 * Zp)
-          Wgdnv(CHF_IX[i;j;k],cy    ) = (wmy - wpy) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],cz    ) = (wmz - wpz) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],cx + 3) = sxx
-          Wgdnv(CHF_IX[i;j;k],cy + 3) = WInside(CHF_IX[i;j;k],cy + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],cz + 3) = WInside(CHF_IX[i;j;k],cz + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],cxy   ) = (wmy + wpy) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],cxz   ) = (wmz + wpz) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],cyz   ) = WInside(CHF_IX[i;j;k],cyz  )
+          vx  = WInside(CHF_IX[i;j;k],0)
+          vy  = WInside(CHF_IX[i;j;k],1)
+          vz  = WInside(CHF_IX[i;j;k],2)
+          sxx = WInside(CHF_IX[i;j;k],3)
+          syy = WInside(CHF_IX[i;j;k],4)
+          szz = WInside(CHF_IX[i;j;k],5)
+          sxy = WInside(CHF_IX[i;j;k],6)
+          sxz = WInside(CHF_IX[i;j;k],7)
+          syz = WInside(CHF_IX[i;j;k],8)
+
+          CALL VELSLIDENEWTON(vx,vy,vz,sxy,rat*syy,syz)
+
+C         We assume that the boundary is on the bottom
+
+          wmxy = sxy + Zs * vx
+          wmyy = syy + Zp * vy
+          wmyz = syz + Zs * vz
+
+          wpxy = sxy - Zs * vx
+          wpyy = syy - Zp * vy
+          wpyz = syz - Zs * vz
+
+          syy = (wmyy + wpyy) / (2.0d0)
+          vy  = (wmyy - wpyy) / (2.0d0 * Zp)
+          SHF = -(vy - syy) * lam / (lam + 2.0d0 * mu)
+          Wgdnv(CHF_IX[i;j;k],0) = (wmxy - wpxy) / (2.0d0 * Zs)
+          Wgdnv(CHF_IX[i;j;k],1) = vy
+          Wgdnv(CHF_IX[i;j;k],2) = (wmyz - wpyz) / (2.0d0 * Zs)
+          Wgdnv(CHF_IX[i;j;k],3) = syy + SHF
+          Wgdnv(CHF_IX[i;j;k],4) = syy
+          Wgdnv(CHF_IX[i;j;k],5) = szz + SHF
+          Wgdnv(CHF_IX[i;j;k],6) = (wmxy + wpxy) / (2.0d0)
+          Wgdnv(CHF_IX[i;j;k],7) = sxz
+          Wgdnv(CHF_IX[i;j;k],8) = (wmyz + wpyz) / (2.0d0)
+C          Wgdnv(CHF_IX[i;j;k],0) = background(0)
+C          Wgdnv(CHF_IX[i;j;k],1) = background(1)
+C          Wgdnv(CHF_IX[i;j;k],2) = background(2)
+C          Wgdnv(CHF_IX[i;j;k],3) = background(3)
+C          Wgdnv(CHF_IX[i;j;k],4) = background(4)
+C          Wgdnv(CHF_IX[i;j;k],5) = background(5)
+C          Wgdnv(CHF_IX[i;j;k],6) = background(6)
+C          Wgdnv(CHF_IX[i;j;k],7) = background(7)
+C          Wgdnv(CHF_IX[i;j;k],8) = background(8)
 
         CHF_ENDDO
 
         
+
+        return
+        end
+
+C
+C Set the the boundary flux for a simple fault which is governed by an
+C arcsinh friction law with a time-space dependent normal stress.
+C
+C We need to solve \vec{tau} = \vec{phi}- Zs \vec{V}, where \vec{phi} = (wmxy,wmyz)^T}
+C Since V, phi, tau are parallel we solve tau = phi - Zs V (all
+C magnitude not vec) then set \vec{tau} = tau \vec{phi}/phi and
+C similarly for \vec{V} = V \vec{V}/V
+C
+C Bracket is formed by (0,phi/Zs)
+C
+        subroutine VELSLIDENEWTON(
+     &    CHF_REAL[vx],
+     &    CHF_CONST_REAL[vy],
+     &    CHF_REAL[vz],
+     &    CHF_REAL[sxy],
+     &    CHF_CONST_REAL[syy],
+     &    CHF_REAL[syz])
+
+#include "IBCCommon.fh"
+
+        real_t alpha, beta
+        real_t phix, phiz, phi
+        real_t V,Vmin,Vmax,sn,dV,tau
+        real_t dg,g
+        real_t atol
+        integer i,IMAX
+
+        IMAX = 100
+        atol = 1E-6
+
+        phix = sxy + Zs*vx
+        phiz = syz + Zs*vz
+        phi  = sqrt(phix*phix + phiz*phiz)
+
+        Vmin = 0
+        Vmax = phi/Zs
+        V    = Vmax / 2.0d0
+        sn   = -syy
+
+        alpha = 1
+        beta  = 100
+
+        g  = sn * alpha * asinh(beta * V) + Zs * V - phi
+
+        do i = 1,IMAX
+            if ( g .lt. 0) then
+                Vmin = V
+            else
+                Vmax = V
+            endif
+
+C           evaluate the functions
+            dg = sn * alpha * beta / sqrt(beta*beta * V*V + 1) + Zs
+
+C           Guess the change
+            dV = -g / dg
+            V  = V + dV
+
+C           Verify that we satisfy the bracket
+            if ( V .lt. Vmin .or. V .gt. Vmax) then
+                V = (Vmin + Vmax) / 2.0d0
+            endif
+
+            g  = sn * alpha * asinh(beta * V) + Zs * V - phi
+            if ( abs(g) .lt. atol .or. abs(dV) .lt. atol) then
+                exit
+            endif
+        enddo
+
+        tau = sn * alpha * asinh(beta * V)
+        sxy = tau * phix / phi
+        syz = tau * phiz / phi
+        vx  =   V * phix / phi
+        vz  =   V * phiz / phi
 
         return
         end

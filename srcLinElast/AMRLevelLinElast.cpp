@@ -477,17 +477,27 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
             const int hasHi = ! bHi.isEmpty();
 
             //JK Chombo sample code all uses Relative Gradients, but this doesn't
-            //JK seem to work for me
+            //JK work since we have near zero values
 
-            FORT_GETFULLGRADF(
+            FORT_GETGRADF(
                 CHF_FRA1(gradFab,dir),
-                CHF_CONST_FRA(UFab),
+                CHF_CONST_FRA1(UFab,8),
                 CHF_CONST_INT(dir),
                 CHF_BOX(bLo),
                 CHF_CONST_INT(hasLo),
                 CHF_BOX(bHi),
                 CHF_CONST_INT(hasHi),
                 CHF_BOX(bCenter));
+
+            //JK FORT_GETFULLGRADF(
+            //JK     CHF_FRA1(gradFab,dir),
+            //JK     CHF_CONST_FRA(UFab),
+            //JK     CHF_CONST_INT(dir),
+            //JK     CHF_BOX(bLo),
+            //JK     CHF_CONST_INT(hasLo),
+            //JK     CHF_BOX(bHi),
+            //JK     CHF_CONST_INT(hasHi),
+            //JK     CHF_BOX(bCenter));
         }
 
         FArrayBox gradMagFab(b,1);

@@ -3,6 +3,7 @@
 
 #include "LockSlideIBC.H"
 #include "LockSlideIBCF_F.H"
+#include "LinElastPhysicsF_F.H"
 
 /// Null Constructor
 LockSlideIBC::LockSlideIBC()
@@ -13,11 +14,12 @@ LockSlideIBC::LockSlideIBC()
 LockSlideIBC::LockSlideIBC(const Real& a_cs,
     const Real& a_cp,
     const Real& a_mu,
+    const vector<Real> a_back,
     const Real& a_r0,
-    const Real& a_edge,
-    const vector<Real> a_back)
+    const Real& a_edge)
 {
-    FORT_LOCKSLIDESETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_REAL(a_r0),CHF_CONST_REAL(a_edge),CHF_CONST_VR(a_back));
+    FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
+    FORT_LOCKSLIDESETF(CHF_CONST_REAL(a_r0),CHF_CONST_REAL(a_edge));
     m_isFortranCommonSet = true;
 }
 
@@ -125,7 +127,7 @@ void LockSlideIBC::primBC(FArrayBox&            a_WGdnv,
             }
             else
             {
-                FORT_LOCKSLIDEOUTBCF(CHF_FRA(a_WGdnv),
+                FORT_LINELASTOUTBCF(CHF_FRA(a_WGdnv),
                     CHF_CONST_FRA(a_WShiftInside),
                     CHF_CONST_FRA(a_W),
                     CHF_CONST_INT(lohisign),

@@ -7,8 +7,10 @@ physics.cp = 3
 physics.mu = 1
 physics.r0   =  0.5
 
+physics.background = 10 10 10 0 0 0 0 0 0
+
 #                vx   vy   vz  sxx  syy  szz  sxy  szy  sxz
-physics.mag  =    0    0   10    0    0    0    0    0    0
+physics.mag  =   10   10   10   10   10   10   10   10   10
 # physics.mag  =   10   10    0    0    0    0    0    0    0
 physics.sig  = 0.001
 
@@ -38,7 +40,7 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 2
+comp.max_level = 1
 # For 2D
 comp.ref_ratio = 4 4 4 4 4
 # For 3D

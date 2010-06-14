@@ -23,6 +23,7 @@ public:
     SimpleIBC(const Real& cs,
         const Real& cp,
         const Real& mu,
+        const vector<Real> back,
         const Real& r0,
         const vector<Real> mag,
         const Real& sig,

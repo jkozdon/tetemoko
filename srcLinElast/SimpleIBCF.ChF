@@ -4,30 +4,11 @@ C
 #include "CONSTANTS.H"
 
         subroutine SIMPLESETF(
-     &    CHF_CONST_REAL[aucs],
-     &    CHF_CONST_REAL[aucp],
-     &    CHF_CONST_REAL[aumu],
      &    CHF_CONST_REAL[ar0],
      &    CHF_CONST_VR[amag],
      &    CHF_CONST_REAL[asig])
 
-#include "IBCCommon.fh"
 #include "SimpleCommon.fh"
-
-c
-c       physical parameters
-c
-        cs  = aucs
-        cp  = aucp
-        mu  = aumu
-
-c
-c       other physical (dependent) parameters
-c
-        rho = mu / cs / cs
-        lam = cp * cp * rho - 2.0d0 * mu
-        Zs  = rho * cs
-        Zp  = rho * cp
 
 c
 c       simulation parameters
@@ -76,197 +57,17 @@ C
 C         rrs = rrs*rrs*rrs*rrs*rrs*rrs*rrs
 C         rrs = (x*x) / sig
 
-          U(CHF_IX[i;j;k],0) = mag(0) * exp(-rrs)
-          U(CHF_IX[i;j;k],1) = mag(1) * exp(-rrs)
-          U(CHF_IX[i;j;k],2) = mag(2) * exp(-rrs)
-          U(CHF_IX[i;j;k],3) = mag(3) * exp(-rrs)
-          U(CHF_IX[i;j;k],4) = mag(4) * exp(-rrs)
-          U(CHF_IX[i;j;k],5) = mag(5) * exp(-rrs)
-          U(CHF_IX[i;j;k],6) = mag(6) * exp(-rrs)
-          U(CHF_IX[i;j;k],7) = mag(7) * exp(-rrs)
-          U(CHF_IX[i;j;k],8) = mag(8) * exp(-rrs)
+          U(CHF_IX[i;j;k],0) = background(0) + mag(0) * exp(-rrs)
+          U(CHF_IX[i;j;k],1) = background(1) + mag(1) * exp(-rrs)
+          U(CHF_IX[i;j;k],2) = background(2) + mag(2) * exp(-rrs)
+          U(CHF_IX[i;j;k],3) = background(3) + mag(3) * exp(-rrs)
+          U(CHF_IX[i;j;k],4) = background(4) + mag(4) * exp(-rrs)
+          U(CHF_IX[i;j;k],5) = background(5) + mag(5) * exp(-rrs)
+          U(CHF_IX[i;j;k],6) = background(6) + mag(6) * exp(-rrs)
+          U(CHF_IX[i;j;k],7) = background(7) + mag(7) * exp(-rrs)
+          U(CHF_IX[i;j;k],8) = background(8) + mag(8) * exp(-rrs)
 
         CHF_ENDDO
-
-        return
-        end
-
-C
-C Set the the boundary flux for a free surface
-C
-        subroutine SIMPLEFREEBCF(
-     &    CHF_FRA[Wgdnv],
-     &    CHF_CONST_FRA[WInside],
-     &    CHF_CONST_FRA[W],
-     &    CHF_CONST_INT[lohisign],
-     &    CHF_CONST_REAL[dx],
-     &    CHF_CONST_INT[idir],
-     &    CHF_BOX[box])
-
-#include "IBCCommon.fh"
-
-        integer CHF_DDECL[i;j;k]
-
-        integer cx,cy,cz,cxy,cxz,cyz
-        real_t wpx, wpy, wpz
-        real_t wmx, wmy, wmz
-        real_t sxx, SHF
-        wpx = 0
-        wpy = 0
-        wpz = 0
-        wmx = 0
-        wmy = 0
-        wmz = 0
-
-        cx = idir
-        cy = mod(idir+1,3)
-        cz = mod(idir+2,3)
-
-        if (idir .eq. 0) then
-          cxy = 6
-          cxz = 7
-          cyz = 8
-        else if (idir .eq. 1) then
-          cxy = 8
-          cxz = 6
-          cyz = 7
-        else
-          cxy = 7
-          cxz = 8
-          cyz = 6
-        endif
-
-        CHF_MULTIDO[box;i;j;k]
-C         This is a left boundary
-C         so we set w+ = -w-
-          if (lohisign .eq. -1) then
-            wmx = (WInside(CHF_IX[i;j;k],cx + 3) + Zp * WInside(CHF_IX[i;j;k],cx))
-            wmy = (WInside(CHF_IX[i;j;k],cxy   ) + Zs * WInside(CHF_IX[i;j;k],cy))
-            wmz = (WInside(CHF_IX[i;j;k],cxz   ) + Zs * WInside(CHF_IX[i;j;k],cz))
-            wpx = -wmx
-            wpy = -wmy
-            wpz = -wmz
-C         This is a right boundary
-C         so we set w- = -w+
-          else
-            wpx = (WInside(CHF_IX[i;j;k],cx + 3) - Zp * WInside(CHF_IX[i;j;k],cx))
-            wpy = (WInside(CHF_IX[i;j;k],cxy   ) - Zs * WInside(CHF_IX[i;j;k],cy))
-            wpz = (WInside(CHF_IX[i;j;k],cxz   ) - Zs * WInside(CHF_IX[i;j;k],cz))
-            wmx = -wpx
-            wmy = -wpy
-            wmz = -wpz
-          endif
-          sxx = (wmx + wpx) / (2.0d0)
-          SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * mu)
-          Wgdnv(CHF_IX[i;j;k],cx    ) = (wmx - wpx) / (2.0d0 * Zp)
-          Wgdnv(CHF_IX[i;j;k],cy    ) = (wmy - wpy) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],cz    ) = (wmz - wpz) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],cx + 3) = sxx
-          Wgdnv(CHF_IX[i;j;k],cy + 3) = WInside(CHF_IX[i;j;k],cy + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],cz + 3) = WInside(CHF_IX[i;j;k],cz + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],cxy   ) = (wmy + wpy) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],cxz   ) = (wmz + wpz) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],cyz   ) = WInside(CHF_IX[i;j;k],cyz  )
-
-C          Wgdnv(CHF_IX[i;j;k],cx    ) = WInside(CHF_IX[i;j;k],cx    )
-C          Wgdnv(CHF_IX[i;j;k],cy    ) = WInside(CHF_IX[i;j;k],cy    )
-C          Wgdnv(CHF_IX[i;j;k],cz    ) = WInside(CHF_IX[i;j;k],cz    )
-C          Wgdnv(CHF_IX[i;j;k],cx + 3) = WInside(CHF_IX[i;j;k],cx + 3)
-C          Wgdnv(CHF_IX[i;j;k],cy + 3) = WInside(CHF_IX[i;j;k],cy + 3)
-C          Wgdnv(CHF_IX[i;j;k],cz + 3) = WInside(CHF_IX[i;j;k],cz + 3)
-C          Wgdnv(CHF_IX[i;j;k],cx + 6) = WInside(CHF_IX[i;j;k],cx + 6)
-C          Wgdnv(CHF_IX[i;j;k],cy + 6) = WInside(CHF_IX[i;j;k],cy + 6)
-C          Wgdnv(CHF_IX[i;j;k],cz + 6) = WInside(CHF_IX[i;j;k],cz + 6)
-        CHF_ENDDO
-
-        
-
-        return
-        end
-
-C
-C Set the the boundary flux for a free surface
-C
-        subroutine SIMPLEOUTBCF(
-     &    CHF_FRA[Wgdnv],
-     &    CHF_CONST_FRA[WInside],
-     &    CHF_CONST_FRA[W],
-     &    CHF_CONST_INT[lohisign],
-     &    CHF_CONST_REAL[dx],
-     &    CHF_CONST_INT[idir],
-     &    CHF_BOX[box])
-
-#include "IBCCommon.fh"
-
-        integer CHF_DDECL[i;j;k]
-
-        integer cx,cy,cz,cxy,cxz,cyz
-        real_t wpx, wpy, wpz
-        real_t wmx, wmy, wmz
-        real_t sxx, SHF
-        wpx = 0
-        wpy = 0
-        wpz = 0
-        wmx = 0
-        wmy = 0
-        wmz = 0
-
-        cx = idir
-        cy = mod(idir+1,3)
-        cz = mod(idir+2,3)
-
-        if (idir .eq. 0) then
-          cxy = 6
-          cxz = 7
-          cyz = 8
-        else if (idir .eq. 1) then
-          cxy = 8
-          cxz = 6
-          cyz = 7
-        else
-          cxy = 7
-          cxz = 8
-          cyz = 6
-        endif
-
-        CHF_MULTIDO[box;i;j;k]
-C         This is a left boundary
-C         so we set w+ = -w-
-          if (lohisign .eq. -1) then
-            wmx = (WInside(CHF_IX[i;j;k],cx + 3) + Zp * WInside(CHF_IX[i;j;k],cx))
-            wmy = (WInside(CHF_IX[i;j;k],cxy   ) + Zs * WInside(CHF_IX[i;j;k],cy))
-            wmz = (WInside(CHF_IX[i;j;k],cxz   ) + Zs * WInside(CHF_IX[i;j;k],cz))
-C         This is a right boundary
-C         so we set w- = -w+
-          else
-            wpx = (WInside(CHF_IX[i;j;k],cx + 3) - Zp * WInside(CHF_IX[i;j;k],cx))
-            wpy = (WInside(CHF_IX[i;j;k],cxy   ) - Zs * WInside(CHF_IX[i;j;k],cy))
-            wpz = (WInside(CHF_IX[i;j;k],cxz   ) - Zs * WInside(CHF_IX[i;j;k],cz))
-          endif
-          sxx = (wmx + wpx) / (2.0d0)
-          SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * mu)
-          Wgdnv(CHF_IX[i;j;k],cx    ) = (wmx - wpx) / (2.0d0 * Zp)
-          Wgdnv(CHF_IX[i;j;k],cy    ) = (wmy - wpy) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],cz    ) = (wmz - wpz) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],cx + 3) = sxx
-          Wgdnv(CHF_IX[i;j;k],cy + 3) = WInside(CHF_IX[i;j;k],cy + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],cz + 3) = WInside(CHF_IX[i;j;k],cz + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],cxy   ) = (wmy + wpy) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],cxz   ) = (wmz + wpz) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],cyz   ) = WInside(CHF_IX[i;j;k],cyz  )
-
-C          Wgdnv(CHF_IX[i;j;k],cx    ) = WInside(CHF_IX[i;j;k],cx    )
-C          Wgdnv(CHF_IX[i;j;k],cy    ) = WInside(CHF_IX[i;j;k],cy    )
-C          Wgdnv(CHF_IX[i;j;k],cz    ) = WInside(CHF_IX[i;j;k],cz    )
-C          Wgdnv(CHF_IX[i;j;k],cx + 3) = WInside(CHF_IX[i;j;k],cx + 3)
-C          Wgdnv(CHF_IX[i;j;k],cy + 3) = WInside(CHF_IX[i;j;k],cy + 3)
-C          Wgdnv(CHF_IX[i;j;k],cz + 3) = WInside(CHF_IX[i;j;k],cz + 3)
-C          Wgdnv(CHF_IX[i;j;k],cx + 6) = WInside(CHF_IX[i;j;k],cx + 6)
-C          Wgdnv(CHF_IX[i;j;k],cy + 6) = WInside(CHF_IX[i;j;k],cy + 6)
-C          Wgdnv(CHF_IX[i;j;k],cz + 6) = WInside(CHF_IX[i;j;k],cz + 6)
-        CHF_ENDDO
-
-        
 
         return
         end
