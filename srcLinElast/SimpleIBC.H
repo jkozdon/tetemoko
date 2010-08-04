@@ -6,10 +6,11 @@
 #include "LevelData.H"
 #include "ProblemDomain.H"
 #include "PhysIBC.H"
+#include "LEPhysIBC.H"
 
 #include "UsingNamespace.H"
 
-class SimpleIBC: public PhysIBC
+class SimpleIBC: public LEPhysIBC
 {
 public:
     /// Null Constructor

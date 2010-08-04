@@ -34,6 +34,7 @@
 #include "GodunovUtilitiesF_F.H"
 
 // Constructor
+//JK: NO BOUNDARY FIX
 AMRLevelLinElast::AMRLevelLinElast()
 {
     if (s_verbosity >= 3)
@@ -46,6 +47,7 @@ AMRLevelLinElast::AMRLevelLinElast()
 }
 
 // Destructor
+//JK: NO BOUNDARY FIX
 AMRLevelLinElast::~AMRLevelLinElast()
 {
     if (s_verbosity >= 3)
@@ -102,7 +104,9 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
         m_gdnvPhysics = NULL;
     }
 
-    m_gdnvPhysics = a_godunovPhysics->new_godunovPhysics();
+    m_gdnvPhysics = (LinElastPhysics*) a_godunovPhysics->new_godunovPhysics();
+
+    m_bdryUseData = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->hasBndryData();
 
     m_normalPredOrder = a_normalPredOrder;
 
@@ -130,6 +134,7 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
 }
 
 // This instance should never get called - historical
+//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::define(AMRLevel*  a_coarserLevelPtr,
     const Box& a_problemDomain,
     int        a_level,
@@ -141,6 +146,7 @@ void AMRLevelLinElast::define(AMRLevel*  a_coarserLevelPtr,
 }
 
 // Define new AMR level
+//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     const ProblemDomain& a_problemDomain,
     int                  a_level,
@@ -189,9 +195,13 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     // Number and names of conserved states
     m_numStates  = m_gdnvPhysics->numConserved();
     m_stateNames = m_gdnvPhysics->stateNames();
+
+    // Setup the boundary Face box
+    m_bdryFaceBox = bdryLo(a_problemDomain.domainBox(),1,1);
 }
 
 // Advance by one timestep
+//JK: NO BOUNDARY FIX
 Real AMRLevelLinElast::advance()
 {
     CH_assert(allDefined());
@@ -209,7 +219,7 @@ Real AMRLevelLinElast::advance()
 
     Real newDt = 0.0;
 
-    // Set up arguments to LevelGodunov::step based on whether there are
+    // Set up arguments to LELevelGodunov::step based on whether there are
     // coarser and finer levels
 
     // Undefined flux register in case we need it
@@ -278,7 +288,8 @@ Real AMRLevelLinElast::advance()
     LevelData<FArrayBox> flux[SpaceDim];
 
     // Advance the solve one timestep
-    newDt = m_levelGodunov.step(m_UNew,
+    newDt = m_LElevelGodunov.step(m_UNew,
+        m_bdryPsiNew,
         flux,
         *finerFR,
         *coarserFR,
@@ -416,6 +427,7 @@ void AMRLevelLinElast::postTimeStep()
 }
 
 // Create tags for regridding
+//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
 {
     CH_assert(allDefined());
@@ -423,13 +435,6 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
     if (s_verbosity >= 3)
     {
         pout() << "AMRLevelLinElast::tagCells " << m_level << endl;
-    }
-
-    // Since tags are calculated using only current time step data, use
-    // the same tagging function for initialization and for regridding.
-    if (s_verbosity >= 3)
-    {
-        pout() << "AMRLevelLinElast::tagCellsInit " << m_level << endl;
     }
 
     // Create tags based on undivided gradient of density
@@ -479,25 +484,25 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
             //JK Chombo sample code all uses Relative Gradients, but this doesn't
             //JK work since we have near zero values
 
-            FORT_GETGRADF(
-                CHF_FRA1(gradFab,dir),
-                CHF_CONST_FRA1(UFab,8),
-                CHF_CONST_INT(dir),
-                CHF_BOX(bLo),
-                CHF_CONST_INT(hasLo),
-                CHF_BOX(bHi),
-                CHF_CONST_INT(hasHi),
-                CHF_BOX(bCenter));
-
-            //JK FORT_GETFULLGRADF(
+            //JK FORT_GETGRADF(
             //JK     CHF_FRA1(gradFab,dir),
-            //JK     CHF_CONST_FRA(UFab),
+            //JK     CHF_CONST_FRA1(UFab,8),
             //JK     CHF_CONST_INT(dir),
             //JK     CHF_BOX(bLo),
             //JK     CHF_CONST_INT(hasLo),
             //JK     CHF_BOX(bHi),
             //JK     CHF_CONST_INT(hasHi),
             //JK     CHF_BOX(bCenter));
+
+            FORT_GETFULLGRADF(
+                CHF_FRA1(gradFab,dir),
+                CHF_CONST_FRA(UFab),
+                CHF_CONST_INT(dir),
+                CHF_BOX(bLo),
+                CHF_CONST_INT(hasLo),
+                CHF_BOX(bHi),
+                CHF_CONST_INT(hasHi),
+                CHF_BOX(bCenter));
         }
 
         FArrayBox gradMagFab(b,1);
@@ -531,14 +536,71 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
 }
 
 // Create tags at initialization
+//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::tagCellsInit(IntVectSet& a_tags)
 {
     CH_assert(allDefined());
+    if (s_verbosity >= 3)
+    {
+        pout() << "AMRLevelLinElast::tagCellsInit " << m_level << endl;
+    }
 
-    tagCells(a_tags);
+    // Since tags are calculated using only current time step data, use
+    // the same tagging function for initialization and for regridding.
+
+    // tagCells(a_tags);
+
+
+    //JK This is a silly way to do things, but it works...
+    CH_assert(allDefined());
+
+    // Create tags based on undivided gradient of density
+    const DisjointBoxLayout& levelDomain = m_UNew.disjointBoxLayout();
+    IntVectSet localTags;
+
+    // Compute relative gradient
+    DataIterator dit = levelDomain.dataIterator();
+    // Real refLocation = m_domainLength / 2.0;
+    Real refLocation = 60;
+
+    for (dit.begin(); dit.ok(); ++dit)
+    {
+        const Box& b = levelDomain[dit()];
+        FArrayBox markFAB(b,1);
+        FORT_BOUNDREFINE(
+            CHF_FRA1(markFAB,0),
+            CHF_CONST_REAL(refLocation),
+            CHF_CONST_REAL(m_dx),
+            CHF_BOX(b));
+
+        // Tag where gradient exceeds threshold
+        BoxIterator bit(b);
+        for (bit.begin(); bit.ok(); ++bit)
+        {
+            const IntVect& iv = bit();
+
+            if (markFAB(iv) >= 0)
+            {
+                //pout() << iv << endl;
+                localTags |= iv;
+                //pout() << gradFab(iv,0) << "     " << gradFab(iv,1) << "     " << gradMagFab(iv) << "    " << m_refineThresh << endl;
+            }
+        }
+    }
+
+    localTags.grow(m_tagBufferSize);
+
+    // Need to do this in two steps unless a IntVectSet::operator &=
+    // (ProblemDomain) operator is defined
+    Box localTagsBox = localTags.minBox();
+    localTagsBox &= m_problem_domain;
+    localTags &= localTagsBox;
+
+    a_tags = localTags;
 }
 
 // Set up data on this level after regridding
+//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
 {
     CH_assert(allDefined());
@@ -552,23 +614,50 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
     m_level_grids = a_newGrids;
     m_grids = loadBalance(a_newGrids);
 
-    if (s_verbosity >= 4)
     {
         // Indicate/guarantee that the indexing below is only for reading
         // otherwise an error/assertion failure occurs
         const DisjointBoxLayout& constGrids = m_grids;
+        DisjointBoxLayout tmpBndGrids;
+        tmpBndGrids.deepCopy(constGrids);
 
-        pout() << "new grids: " << endl;
-
+        if (s_verbosity >= 4)
+        {
+            pout() << "new grids: " << endl;
+        }
         for (LayoutIterator lit = constGrids.layoutIterator(); lit.ok(); ++lit)
         {
-            pout() << constGrids[lit()] << endl;
+            if (s_verbosity >= 4)
+            {
+                pout() << "grid:          " << constGrids[lit()] << endl;
+            }
+
+            // We set the boundary box for this level to the intersection of the
+            // box edge with the boundary. I believe that this should let the
+            // boundary grid have the same layout structure as the underlying
+            // grid
+
+            // WARNING: This line requires modifying BaseFab.cpp
+            const Box tmpBndBox = (m_bdryFaceBox & bdryLo(constGrids[lit()],1,1));
+
+            // So this is silly, I am making a box on every data inner box
+            // regardless of whether its on the boundary. But if I have any
+            // empty boxes I have problems with BaseFAB later...
+            // const Box tmpBndBox = bdryLo(constGrids[lit()],1,1);
+            tmpBndGrids.ref(lit()) = tmpBndBox;
+            if (s_verbosity >= 4 && !tmpBndBox.isEmpty())
+            {
+                pout() << "boundary grid: " << tmpBndBox << endl;
+            }
         }
+
+        // Mark the boundary grid as closed and copy to storage
+        tmpBndGrids.close();
+        m_bdryGrids = tmpBndGrids;
     }
 
     // Save data for later
-    DataIterator dit = m_UNew.dataIterator();
-    for (; dit.ok(); ++dit)
+    for(DataIterator dit = m_UNew.dataIterator(); dit.ok(); ++dit)
     {
         m_UOld[dit()].copy(m_UNew[dit()]);
     }
@@ -576,6 +665,15 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
     // Reshape state with new grids
     IntVect ivGhost = m_numGhost * IntVect::Unit;
     m_UNew.define(m_grids,m_numStates,ivGhost);
+
+    // Reshape the boundary grid
+    m_bdryPsiNew.define(m_bdryGrids,1,IntVect::Zero);
+    LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
+    lephysIBCPtr->initialize(m_UNew);
+    if(m_bdryUseData)
+    {
+        lephysIBCPtr->initializeBndry(m_bdryPsiNew);
+    }
 
     // Set up data structures
     levelSetup();
@@ -609,23 +707,56 @@ void AMRLevelLinElast::initialGrid(const Vector<Box>& a_newGrids)
     m_level_grids = a_newGrids;
     m_grids = loadBalance(a_newGrids);
 
-    if (s_verbosity >= 4)
     {
         // Indicate/guarantee that the indexing below is only for reading
         // otherwise an error/assertion failure occurs
         const DisjointBoxLayout& constGrids = m_grids;
+        DisjointBoxLayout tmpBndGrids;
+        tmpBndGrids.deepCopy(constGrids);
 
-        pout() << "new grids: " << endl;
+        if (s_verbosity >= 4)
+        {
+            pout() << "new grids: " << endl;
+        }
         for (LayoutIterator lit = constGrids.layoutIterator(); lit.ok(); ++lit)
         {
-            pout() << constGrids[lit()] << endl;
+            if (s_verbosity >= 4)
+            {
+                pout() << "grid:          " << constGrids[lit()] << endl;
+            }
+
+            // We set the boundary box for this level to the intersection of the
+            // box edge with the boundary. I believe that this should let the
+            // boundary grid have the same layout structure as the underlying
+            // grid
+
+            // WARNING: This line requires modifying BaseFab.cpp
+            const Box tmpBndBox = (m_bdryFaceBox & bdryLo(constGrids[lit()],1,1));
+
+            // So this is silly, I am making a box on every data inner box
+            // regardless of whether its on the boundary. But if I have any
+            // empty boxes I have problems with BaseFAB later...
+            // const Box tmpBndBox = bdryLo(constGrids[lit()],1,1);
+            tmpBndGrids.ref(lit()) = tmpBndBox;
+            if (s_verbosity >= 4 && !tmpBndBox.isEmpty())
+            {
+                pout() << "boundary grid: " << tmpBndBox << endl;
+            }
         }
+
+        // Mark the boundary grid as closed and copy to storage
+        tmpBndGrids.close();
+        m_bdryGrids = tmpBndGrids;
     }
 
     // Define old and new state data structures
     IntVect ivGhost = m_numGhost*IntVect::Unit;
     m_UNew.define(m_grids,m_numStates,ivGhost);
     m_UOld.define(m_grids,m_numStates,ivGhost);
+
+    // Define the old and new boundary data structures
+    m_bdryPsiNew.define(m_bdryGrids,1,IntVect::Zero);
+    m_bdryPsiOld.define(m_bdryGrids,1,IntVect::Zero);
 
     // Set up data structures
     levelSetup();
@@ -641,11 +772,16 @@ void AMRLevelLinElast::initialData()
         pout() << "AMRLevelLinElast::initialData " << m_level << endl;
     }
 
-    PhysIBC* physIBCPtr = m_gdnvPhysics->getPhysIBC();
-    physIBCPtr->initialize(m_UNew);
+    LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
+    lephysIBCPtr->initialize(m_UNew);
+    if(m_bdryUseData)
+    {
+        lephysIBCPtr->initializeBndry(m_bdryPsiNew);
+    }
 }
 
 // Things to do after initialization
+//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::postInitialize()
 {
     CH_assert(allDefined());
@@ -668,6 +804,7 @@ void AMRLevelLinElast::postInitialize()
 #ifdef CH_USE_HDF5
 
 // Write checkpoint header
+//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::writeCheckpointHeader(HDF5Handle& a_handle) const
 {
     CH_assert(allDefined());
@@ -699,6 +836,7 @@ void AMRLevelLinElast::writeCheckpointHeader(HDF5Handle& a_handle) const
 }
 
 // Write checkpoint data for this level
+//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::writeCheckpointLevel(HDF5Handle& a_handle) const
 {
     CH_assert(allDefined());
@@ -767,6 +905,7 @@ void AMRLevelLinElast::writeCheckpointLevel(HDF5Handle& a_handle) const
 }
 
 // Read checkpoint header
+//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::readCheckpointHeader(HDF5Handle& a_handle)
 {
     if (s_verbosity >= 3)
@@ -816,6 +955,7 @@ void AMRLevelLinElast::readCheckpointHeader(HDF5Handle& a_handle)
 }
 
 // Read checkpoint data for this level
+//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::readCheckpointLevel(HDF5Handle& a_handle)
 {
     if (s_verbosity >= 3)
@@ -993,6 +1133,7 @@ void AMRLevelLinElast::readCheckpointLevel(HDF5Handle& a_handle)
 }
 
 // Write plotfile header
+//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::writePlotHeader(HDF5Handle& a_handle) const
 {
     CH_assert(allDefined());
@@ -1013,12 +1154,14 @@ void AMRLevelLinElast::writePlotHeader(HDF5Handle& a_handle) const
         sprintf(compStr,"component_%d",comp);
         header.m_string[compStr] = m_stateNames[comp];
     }
+    // sprintf(compStr,"boundary",comp);
+    // header.m_string[compStr] = compStr;
 
     // Write the header
     header.writeToFile(a_handle);
     a_handle.setGroup("/Expressions");
     HDF5HeaderData expressions;
-    m_levelGodunov.getGodunovPhysicsPtrConst()->expressions(expressions);
+    m_LElevelGodunov.getGodunovPhysicsPtrConst()->expressions(expressions);
     expressions.writeToFile(a_handle);
 
     if (s_verbosity >= 3)
@@ -1028,6 +1171,7 @@ void AMRLevelLinElast::writePlotHeader(HDF5Handle& a_handle) const
 }
 
 // Write plotfile data for this level
+//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::writePlotLevel(HDF5Handle& a_handle) const
 {
     CH_assert(allDefined());
@@ -1069,6 +1213,7 @@ void AMRLevelLinElast::writePlotLevel(HDF5Handle& a_handle) const
 #endif
 
 // Returns the dt computed earlier for this level
+//JK: NO BOUNDARY FIX
 Real AMRLevelLinElast::computeDt()
 {
     CH_assert(allDefined());
@@ -1085,6 +1230,7 @@ Real AMRLevelLinElast::computeDt()
 }
 
 // Compute dt using initial data
+//JK: NO BOUNDARY FIX
 Real AMRLevelLinElast::computeInitialDt()
 {
     CH_assert(allDefined());
@@ -1094,11 +1240,12 @@ Real AMRLevelLinElast::computeInitialDt()
         pout() << "AMRLevelLinElast::computeInitialDt " << m_level << endl;
     }
 
-    Real newDT = m_initial_dt_multiplier * m_dx / m_levelGodunov.getMaxWaveSpeed(m_UNew);
+    Real newDT = m_initial_dt_multiplier * m_dx / m_LElevelGodunov.getMaxWaveSpeed(m_UNew);
 
     return newDT;
 }
 
+//JK: NO BOUNDARY FIX
 const LevelData<FArrayBox>& AMRLevelLinElast::getStateNew() const
 {
     CH_assert(allDefined());
@@ -1106,6 +1253,7 @@ const LevelData<FArrayBox>& AMRLevelLinElast::getStateNew() const
     return m_UNew;
 }
 
+//JK: NO BOUNDARY FIX
 const LevelData<FArrayBox>& AMRLevelLinElast::getStateOld() const
 {
     CH_assert(allDefined());
@@ -1113,6 +1261,7 @@ const LevelData<FArrayBox>& AMRLevelLinElast::getStateOld() const
     return m_UOld;
 }
 
+//JK: NO BOUNDARY FIX
 bool AMRLevelLinElast::allDefined() const
 {
     return isDefined()     &&
@@ -1120,6 +1269,7 @@ bool AMRLevelLinElast::allDefined() const
 }
 
 // Create a load-balanced DisjointBoxLayout from a collection of Boxes
+//JK: NO BOUNDARY FIX
 DisjointBoxLayout AMRLevelLinElast::loadBalance(const Vector<Box>& a_grids)
 {
     CH_assert(allDefined());
@@ -1180,7 +1330,8 @@ void AMRLevelLinElast::levelSetup()
         const DisjointBoxLayout& coarserLevelDomain = amrGodCoarserPtr->m_grids;
 
         // Maintain levelGodunov
-        m_levelGodunov.define(m_grids,
+        m_LElevelGodunov.define(m_grids,
+            m_bdryGrids,
             coarserLevelDomain,
             m_problem_domain,
             nRefCrse,
@@ -1195,7 +1346,7 @@ void AMRLevelLinElast::levelSetup()
             m_artificialViscosity,
             m_hasCoarser,
             m_hasFiner);
-        m_levelGodunov.highOrderLimiter(m_highOrderLimiter);
+        m_LElevelGodunov.highOrderLimiter(m_highOrderLimiter);
 
         // This may look twisted but you have to do this this way because the
         // coarser levels get setup before the finer levels so, since a flux
@@ -1213,7 +1364,8 @@ void AMRLevelLinElast::levelSetup()
     }
     else
     {
-        m_levelGodunov.define(m_grids,
+        m_LElevelGodunov.define(m_grids,
+            m_bdryGrids,
             DisjointBoxLayout(),
             m_problem_domain,
             m_ref_ratio,
@@ -1228,11 +1380,12 @@ void AMRLevelLinElast::levelSetup()
             m_artificialViscosity,
             m_hasCoarser,
             m_hasFiner);
-        m_levelGodunov.highOrderLimiter(m_highOrderLimiter);
+        m_LElevelGodunov.highOrderLimiter(m_highOrderLimiter);
     }
 }
 
 // Get the next coarser level
+//JK: NO BOUNDARY FIX
 AMRLevelLinElast* AMRLevelLinElast::getCoarserLevel() const
 {
     CH_assert(allDefined());
@@ -1253,6 +1406,7 @@ AMRLevelLinElast* AMRLevelLinElast::getCoarserLevel() const
 }
 
 // Get the next finer level
+//JK: NO BOUNDARY FIX
 AMRLevelLinElast* AMRLevelLinElast::getFinerLevel() const
 {
     CH_assert(allDefined());

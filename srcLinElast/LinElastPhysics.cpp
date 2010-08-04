@@ -14,6 +14,8 @@
 
 #include "LinElastPhysicsF_F.H"
 
+#include "LEPhysIBC.H"
+
 
 /// Constructor
 LinElastPhysics::LinElastPhysics(const int junk)
@@ -282,6 +284,76 @@ void LinElastPhysics::riemann(/// face-centered solution to Riemann problem
     shiftWLeft .shiftHalf(a_dir,-1);
     shiftWRight.shiftHalf(a_dir, 1);
 }
+
+/// Compute the solution to the Riemann problem with boundary data.
+/**
+  Given input left and right states in a direction, a_dir, compute a
+  Riemann problem and generate fluxes at the faces within a_box.
+  */
+void LinElastPhysics::riemannBND(/// face-centered solution to Riemann problem
+    FArrayBox&       a_WStar,
+    /// left state, on cells to left of each face
+    const FArrayBox& a_WLeft,
+    /// right state, on cells to right of each face
+    const FArrayBox& a_WRight,
+    /// state on cells, used to set boundary conditions
+    const FArrayBox& a_W,
+    /// state of the boundary data
+    const FArrayBox& a_Psi,
+    /// current time
+    const Real&      a_time,
+    /// direction of faces
+    const int&       a_dir,
+    /// face-centered box on which to set a_WStar
+    const Box&       a_box,
+    /// face-centered boundary box
+    const Box&       a_bdryBox)
+{
+    //JK pout() << "LinElastPhysics::riemannBND" << endl;
+    CH_assert(isDefined());
+
+    CH_assert(a_WStar.box().contains(a_box));
+
+    // Get the numbers of relevant variables
+    int numPrim = numPrimitives();
+
+    CH_assert(a_WStar .nComp() == numPrim);
+    CH_assert(a_WLeft .nComp() == numPrim);
+    CH_assert(a_WRight.nComp() == numPrim);
+
+    // Cast away "const" inputs so their boxes can be shifted left or right
+    // 1/2 cell and then back again (no net change is made!)
+    FArrayBox& shiftWLeft  = (FArrayBox&)a_WLeft;
+    FArrayBox& shiftWRight = (FArrayBox&)a_WRight;
+
+    // Solution to the Riemann problem
+
+    // Shift the left and right primitive variable boxes 1/2 cell so they are
+    // face centered
+    shiftWLeft .shiftHalf(a_dir, 1);
+    shiftWRight.shiftHalf(a_dir,-1);
+
+    CH_assert(shiftWLeft .box().contains(a_box));
+    CH_assert(shiftWRight.box().contains(a_box));
+
+    // Riemann solver computes Wgdnv all edges that are not on the physical
+    // boundary.
+    FORT_RIEMANNF(CHF_FRA(a_WStar),
+        CHF_CONST_FRA(shiftWLeft),
+        CHF_CONST_FRA(shiftWRight),
+        CHF_CONST_INT(a_dir),
+        CHF_BOX(a_box));
+
+    // Call boundary Riemann solver with boundary data (we know that m_bc is really LEPhysIBC)
+    ((LEPhysIBC*)m_bc)->primBC(a_WStar,shiftWLeft ,a_W,a_Psi,a_dir,Side::Hi,a_time);
+    ((LEPhysIBC*)m_bc)->primBC(a_WStar,shiftWRight,a_W,a_Psi,a_dir,Side::Lo,a_time);
+
+    // Shift the left and right primitive variable boxes back to their original
+    // position.
+    shiftWLeft .shiftHalf(a_dir,-1);
+    shiftWRight.shiftHalf(a_dir, 1);
+}
+
 
 /// Post-normal predictor calculation.
 /**

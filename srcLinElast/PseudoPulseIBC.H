@@ -1,5 +1,5 @@
-#ifndef _VELSLIDEASINH1SIBC_H_
-#define _VELSLIDEASINH1SIBC_H_
+#ifndef _PSEUDOPULSEIBC_H_
+#define _PSEUDOPULSEIBC_H_
 
 #include "FArrayBox.H"
 #include "REAL.H"
@@ -10,29 +10,33 @@
 
 #include "UsingNamespace.H"
 
-class VelSlideAsinh1sIBC: public LEPhysIBC
+class PseudoPulseIBC: public LEPhysIBC
 {
 public:
     /// Null Constructor
     /**
     */
-    VelSlideAsinh1sIBC();
+    PseudoPulseIBC();
 
     /// Constructor which defines parameters used by Fortran routines
     /**
     */
-    VelSlideAsinh1sIBC(const Real& cs,
+    PseudoPulseIBC(const Real& cs,
         const Real& cp,
         const Real& mu,
         const vector<Real> background,
         const Real& r0,
-        const Real& sigma,
-        const Real& ntime);
+        const Real& slope,
+        const Real& dTau,
+        const Real& Vh,
+        const Real& Vr,
+        const Real& jumpTime,
+        const Real& stopTime);
 
     /// Destructor
     /**
     */
-    virtual ~VelSlideAsinh1sIBC();
+    virtual ~PseudoPulseIBC();
 
     /// Define ?
 
@@ -50,6 +54,11 @@ public:
     /**
     */
     virtual void initialize(LevelData<FArrayBox>& a_U);
+
+    /// Set up initial boundary data
+    /**
+    */
+    virtual bool hasBndryData();
 
     /// Set boundary primitive values.
     /**
@@ -87,6 +96,8 @@ public:
 protected:
     bool m_isFortranCommonSet;
     // Vector<int> m_boundaryType;
+
+private:
 };
 
 #endif

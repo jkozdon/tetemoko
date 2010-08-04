@@ -1,5 +1,5 @@
-#ifndef _VELSLIDEASINH1SIBC_H_
-#define _VELSLIDEASINH1SIBC_H_
+#ifndef _RSIBC_H_
+#define _RSIBC_H_
 
 #include "FArrayBox.H"
 #include "REAL.H"
@@ -10,29 +10,37 @@
 
 #include "UsingNamespace.H"
 
-class VelSlideAsinh1sIBC: public LEPhysIBC
+class RSIBC: public LEPhysIBC
 {
 public:
     /// Null Constructor
     /**
     */
-    VelSlideAsinh1sIBC();
+    RSIBC();
 
     /// Constructor which defines parameters used by Fortran routines
     /**
     */
-    VelSlideAsinh1sIBC(const Real& cs,
+    RSIBC(const Real& cs,
         const Real& cp,
         const Real& mu,
         const vector<Real> background,
         const Real& r0,
         const Real& sigma,
-        const Real& ntime);
+        const Real& ntime,
+        const Real& psi,
+        const Real& a,
+        const Real& b,
+        const Real& V0,
+        const Real& f0,
+        const Real& L,
+        const Real& fw,
+        const Real& Vw);
 
     /// Destructor
     /**
     */
-    virtual ~VelSlideAsinh1sIBC();
+    virtual ~RSIBC();
 
     /// Define ?
 
@@ -51,12 +59,33 @@ public:
     */
     virtual void initialize(LevelData<FArrayBox>& a_U);
 
+    /// Set up initial boundary data
+    /**
+    */
+    virtual void initializeBndry(LevelData<FArrayBox>& a_U);
+
+    /// Set up initial boundary data
+    /**
+    */
+    virtual bool hasBndryData();
+
     /// Set boundary primitive values.
     /**
     */
     virtual void primBC(FArrayBox& a_WGdnv,
         const FArrayBox&      a_WshiftInside,
         const FArrayBox&      a_W,
+        const int&            a_dir,
+        const Side::LoHiSide& a_side,
+        const Real&           a_time);
+
+    /// Set boundary primitive values.
+    /**
+    */
+    virtual void primBC(FArrayBox& a_WGdnv,
+        const FArrayBox&      a_WshiftInside,
+        const FArrayBox&      a_W,
+        const FArrayBox&      a_Psi,
         const int&            a_dir,
         const Side::LoHiSide& a_side,
         const Real&           a_time);
@@ -86,7 +115,10 @@ public:
 
 protected:
     bool m_isFortranCommonSet;
+    Real m_psi;
     // Vector<int> m_boundaryType;
+
+private:
 };
 
 #endif

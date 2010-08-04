@@ -6,10 +6,11 @@
 #include "LevelData.H"
 #include "ProblemDomain.H"
 #include "PhysIBC.H"
+#include "LEPhysIBC.H"
 
 #include "UsingNamespace.H"
 
-class LockSlideIBC: public PhysIBC
+class LockSlideIBC: public LEPhysIBC
 {
 public:
     /// Null Constructor

@@ -41,6 +41,8 @@ using std::ios;
 #include "SimpleIBC.H"
 #include "LockSlideIBC.H"
 #include "VelSlideAsinh1sIBC.H"
+#include "RSIBC.H"
+#include "PseudoPulseIBC.H"
 
 #include "UsingNamespace.H"
 
@@ -217,6 +219,10 @@ void amrGodunov()
     // Set the physical size of the longest dimension of the domain
     Real domainLength = 1.0;
     ppcomp.get("domain_length",domainLength);
+
+    // Stop when the simulation time get here
+    Real maxTime = 0.0;
+    ppcomp.get("max_time",maxTime);
 
     // Create and define IBC (initial and boundary condition) object
     PhysIBC* ibc;
@@ -407,6 +413,153 @@ void amrGodunov()
                     endl << endl;
             }
         }
+        else if (problemString == "ratestate")
+        {
+
+            // where is the center of the slip region
+            Real center = 0.5;
+            ppphysics.query("center_scale",center);
+            // CH_assert(center >= 0);
+            if(center < 0)
+            {
+                center = -center;
+            }
+            else
+            {
+                center = center * domainLength;
+            }
+
+            // how big is the slip region
+            Real sigma = 10;
+            ppphysics.query("sigma",sigma);
+            CH_assert(sigma >= 0);
+
+            // how big is the slip region
+            Real ntime = 1;
+            ppphysics.query("nucleation_time",ntime);
+            CH_assert(ntime >= 0);
+
+            // no dimensions are periodic with this problem
+            for (int dim = 0; dim < SpaceDim; dim++)
+            {
+                isPeriodic[dim] = false;
+            }
+
+            // rate and state parameters
+            Real psi_0 = -0.004581501914676;
+            ppphysics.query("psi",psi_0);
+
+            Real a = 0.016;
+            ppphysics.query("a",a);
+
+            Real b = 0.02;
+            ppphysics.query("b",b);
+
+            Real V0 = 1e-6;
+            ppphysics.query("V0",V0);
+
+            Real f0 = 0.6;
+            ppphysics.query("f0",f0);
+
+            Real L = 0.4;
+            ppphysics.query("L",L);
+
+            Real fw = 0.13;
+            ppphysics.query("fw",fw);
+
+            Real Vw = 0.17;
+            ppphysics.query("Vw",Vw);
+
+
+            RSIBC* rsibc =
+                new RSIBC(cs,cp,mu,backgroundVals,center,sigma,ntime,psi_0,a,b,V0,f0,L,fw,Vw);
+            ibc = rsibc;
+            if(verbosity >= 1)
+            {
+                pout() << "psi = " << psi_0 << endl;
+                pout() << "Background Values = " << 
+                    backgroundVals[0] << " " <<
+                    backgroundVals[1] << " " <<
+                    backgroundVals[2] << " " <<
+                    backgroundVals[3] << " " <<
+                    backgroundVals[4] << " " <<
+                    backgroundVals[5] << " " <<
+                    backgroundVals[6] << " " <<
+                    backgroundVals[7] << " " <<
+                    backgroundVals[8] << " " <<
+                    endl << endl;
+            }
+        }
+        else if (problemString == "pseudopulse")
+        {
+
+            // where is the center of the slip region
+            Real center = 0.5;
+            ppphysics.query("center_scale",center);
+            // CH_assert(center >= 0);
+            if(center < 0)
+            {
+                center = -center;
+            }
+            else
+            {
+                center = center * domainLength;
+            }
+
+            // how big is the slip region
+            Real slope = 10;
+            ppphysics.query("slope",slope);
+            CH_assert(slope >= 0);
+
+            Real dTau = 1;
+            ppphysics.query("dTau",dTau);
+            CH_assert(dTau >= 0);
+
+            Real Vh = 1.2;
+            ppphysics.query("Vh",Vh);
+            CH_assert(Vh >= 0);
+
+            Real Vr = 1.6;
+            ppphysics.query("Vr",Vr);
+            CH_assert(Vr >= 0);
+
+            Real jumpTime = maxTime / 2.0;
+            ppphysics.query("jump_time",jumpTime);
+            CH_assert(jumpTime >= 0);
+
+            Real stopTime = maxTime;
+            ppphysics.query("stop_time",stopTime);
+            CH_assert(stopTime >= 0);
+
+
+            // no dimensions are periodic with this problem
+            for (int dim = 0; dim < SpaceDim; dim++)
+            {
+                isPeriodic[dim] = false;
+            }
+
+            PseudoPulseIBC* pseudopulseibc =
+                new PseudoPulseIBC(cs,cp,mu,backgroundVals,center,slope,dTau,Vh,Vr,stopTime,jumpTime);
+            ibc = pseudopulseibc;
+            if(verbosity >= 1)
+            {
+                pout() << "slope   = " << slope << endl;
+                pout() << "dTau    = " << dTau << endl;
+                pout() << "Vr / cs = " << Vr << endl;
+                pout() << "Vh / cs = " << Vh << endl;
+                pout() << "Background Values = " << 
+                    backgroundVals[0] << " " <<
+                    backgroundVals[1] << " " <<
+                    backgroundVals[2] << " " <<
+                    backgroundVals[3] << " " <<
+                    backgroundVals[4] << " " <<
+                    backgroundVals[5] << " " <<
+                    backgroundVals[6] << " " <<
+                    backgroundVals[7] << " " <<
+                    backgroundVals[8] << " " <<
+                    endl << endl;
+            }
+        }
         else
         {
             // The sample problem name given isn't valid
@@ -424,10 +577,6 @@ void amrGodunov()
     // Stop after this number of steps
     int nstop = 0;
     ppcomp.get("max_step",nstop);
-
-    // Stop when the simulation time get here
-    Real stopTime = 0.0;
-    ppcomp.get("max_time",stopTime);
 
     // Set the resolution of the coarsest level
     vector<int> numCells(SpaceDim);
@@ -610,7 +759,7 @@ void amrGodunov()
         pout() << "verbosity            = " << verbosity << endl;
 
         pout() << "maximum_step         = " << nstop << endl;
-        pout() << "maximum_time         = " << stopTime << endl;
+        pout() << "maximum_time         = " << maxTime << endl;
         if (fixedDt > 0)
         {
             pout() << "fixed_dt             = " << fixedDt << endl;
@@ -836,7 +985,7 @@ void amrGodunov()
 
     // Run and time the computation
     TimeRun.start();
-    amr.run(stopTime,nstop);
+    amr.run(maxTime,nstop);
     TimeRun.stop();
 
 #ifndef CN_NTIMER

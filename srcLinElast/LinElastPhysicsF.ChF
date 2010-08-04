@@ -135,10 +135,36 @@ c       current direction, if required.
 
         return
         end
+C
+C       Mark cells on boundary for refinement
+C
+        subroutine BOUNDREFINE(
+     &    CHF_FRA1[markCells],
+     &    CHF_CONST_REAL[refLocation],
+     &    CHF_CONST_REAL[dx],
+     &    CHF_BOX[box])
+
+        integer CHF_DDECL[i   ;j   ;k   ]
+
+        CHF_MULTIDO[box;i;j;k]
+          if(j .eq. 0
+     &       .and. ((i + 1) * dx) .ge. refLocation 
+     &       .and. ((i    ) * dx) .le. refLocation) then
+
+              markCells(CHF_IX[i;j;k]) = 1
+
+          else
+
+              markCells(CHF_IX[i;j;k]) = -1
+
+          endif
+        CHF_ENDDO
+
+        end
+
 
 C
-C       Compute the relative gradient
-C       difference / average in each direction
+C       Compute the absolution gradient and several components
 C       THIS IS CHOMBO CODE
 C
         subroutine GETFULLGRADF(
@@ -167,7 +193,7 @@ c       Perform first difference calculation in the interior.
 
         CHF_MULTIDO[centerBox;i;j;k]
           diff = 0.0d0
-          do iv = 0,8
+          do iv = 0,2
             diff = max(diff,half*abs(u(CHF_IX[i+ioff;j+joff;k+koff],iv)
      &                              -u(CHF_IX[i-ioff;j-joff;k-koff],iv)))
 

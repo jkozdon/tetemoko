@@ -19,11 +19,14 @@
 #include "LevelFluxRegister.H"
 #include "Box.H"
 #include "IntVectSet.H"
+#include "IVSFAB.H"
 #include "Vector.H"
 #include "DisjointBoxLayout.H"
 
-#include "LevelGodunov.H"
+#include "LELevelGodunov.H"
 #include "PhysIBC.H"
+#include "LEPhysIBC.H"
+#include "LinElastPhysics.H"
 
 #include "UsingNamespace.H"
 
@@ -216,13 +219,13 @@ protected:
   Real m_domainLength;
 
   // Level integrator
-  LevelGodunov m_levelGodunov;
+  LELevelGodunov m_LElevelGodunov;
 
   // Flux register
   LevelFluxRegister m_fluxRegister;
 
   // Pointer to the class defining the physics of the problem
-  GodunovPhysics* m_gdnvPhysics;
+  LinElastPhysics* m_gdnvPhysics;
 
   // Order of the normal predictor (1 -> PLM, 2-> PPM)
   int m_normalPredOrder;
@@ -264,6 +267,17 @@ protected:
   // True if all the parameters for this object are defined
   bool m_paramsDefined;
 
+  // boolean to keep track of boundary data usage
+  bool m_bdryUseData;
+
+  // Boundary Box, face centered
+  Box m_bdryFaceBox;
+
+  // Boundary Grid Layout for this level
+  DisjointBoxLayout m_bdryGrids;
+
+  // State Variable at the fault
+  LevelData<FArrayBox> m_bdryPsiOld,m_bdryPsiNew;
 
 private:
   // Disallowed for all the usual reasons

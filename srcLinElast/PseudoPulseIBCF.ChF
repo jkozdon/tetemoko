@@ -1,0 +1,231 @@
+C
+C Set the constant parameters
+C
+#include "CONSTANTS.H"
+
+        subroutine PSEUDOPULSESETF(
+     &    CHF_CONST_REAL[ar0],
+     &    CHF_CONST_REAL[aslope],
+     &    CHF_CONST_REAL[adTau],
+     &    CHF_CONST_REAL[aVh],
+     &    CHF_CONST_REAL[aVr],
+     &    CHF_CONST_REAL[aJumpTime],
+     &    CHF_CONST_REAL[aStopTime])
+
+#include "PseudoPulseCommon.fh"
+
+c
+c       simulation parameters
+c
+
+        integer i
+        r0       = ar0
+        slope    = aslope
+        dTau     = adTau
+        Vh       = aVh
+        Vr       = aVr
+        stopTime = aStopTime
+        jumpTime = aJumpTime
+        len_a    = 10
+        do i=1,len_a
+           CALL RANDOM_NUMBER(a(i))
+           CALL RANDOM_NUMBER(b(i))
+           a(i) = a(i) / len_a
+           b(i) = 10.0d0 * b(i)
+        enddo
+C         len_a = 1
+C         a(1) = 1 / 4.0d0
+C         b(1) = 100
+
+        return
+        end
+
+
+
+C
+C This is a constant initial data
+C
+        subroutine PSEUDOPULSEINITF(
+     &    CHF_FRA[U],
+     &    CHF_CONST_REAL[dx],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+
+        integer CHF_DDECL[i;j;k]
+        real_t CHF_DDECL[x;y;z]
+
+        CHF_MULTIDO[box;i;j;k]
+
+          U(CHF_IX[i;j;k],0) = background(0)
+          U(CHF_IX[i;j;k],1) = background(1)
+          U(CHF_IX[i;j;k],2) = background(2)
+          U(CHF_IX[i;j;k],3) = background(3)
+          U(CHF_IX[i;j;k],4) = background(4)
+          U(CHF_IX[i;j;k],5) = background(5)
+          U(CHF_IX[i;j;k],6) = background(6)
+          U(CHF_IX[i;j;k],7) = background(7)
+          U(CHF_IX[i;j;k],8) = background(8)
+
+        CHF_ENDDO
+        
+        return
+        end
+
+C
+C This is a constant initial data
+C
+        subroutine PSEUDOPULSESETFAB(
+     &    CHF_FRA1[U],
+     &    CHF_BOX[box],
+     &    CHF_CONST_REAL[val])
+
+        integer CHF_DDECL[i;j;k]
+        real_t CHF_DDECL[x;y;z]
+
+        CHF_MULTIDO[box;i;j;k]
+
+          U(CHF_IX[i;j;k]) = val
+
+        CHF_ENDDO
+        
+        return
+        end
+
+
+C
+C Set the the boundary flux for a simple fault which is governed by an
+C arcsinh friction law with a time-space dependent normal stress.
+C
+        subroutine PSEUDOPULSEFAULTBCF(
+     &    CHF_FRA[Wgdnv],
+     &    CHF_CONST_FRA[WInside],
+     &    CHF_CONST_FRA[W],
+     &    CHF_CONST_INT[lohisign],
+     &    CHF_CONST_REAL[dx],
+     &    CHF_CONST_REAL[t],
+     &    CHF_CONST_INT[idir],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+#include "PseudoPulseCommon.fh"
+
+        integer CHF_DDECL[i;j;k]
+        real_t CHF_DDECL[x;y;z]
+
+        integer mx,my,mz
+        real_t wpxy,wpyy,wpyz
+        real_t wmxy,wmyy,wmyz
+        real_t SHF
+        real_t R, rat
+        real_t vx,vy,vz,sxx,syy,szz,sxy,sxz,syz
+        real_t healEdge, pulseEdge
+        real_t tauREF,tau_0,tau,beta
+
+        CALL PSPPULSEEDGE(pulseEdge,min(stopTime,t))
+        healEdge  = t * Vh * cs
+
+        tauREF = sqrt(background(6)*background(6)
+     &             + background(8)*background(8)) - dTau
+
+
+
+C        print *,"==========="
+C        print *,Vh
+C        print *,Vr
+C        print *,healEdge
+C        print *,pulseEdge
+        CHF_MULTIDO[box;i;j;k]
+          CHF_DTERM[x = (i + half) * dx-r0;
+          y = 0;
+          z = (k + half) * dx-r0]
+          R = sqrt(CHF_DTERM[x*x;+y*y;+z*z])
+          R = x
+
+          vx  = WInside(CHF_IX[i;j;k],0)
+          vy  = WInside(CHF_IX[i;j;k],1)
+          vz  = WInside(CHF_IX[i;j;k],2)
+          sxx = WInside(CHF_IX[i;j;k],3)
+          syy = WInside(CHF_IX[i;j;k],4)
+          szz = WInside(CHF_IX[i;j;k],5)
+          sxy = WInside(CHF_IX[i;j;k],6)
+          sxz = WInside(CHF_IX[i;j;k],7)
+          syz = WInside(CHF_IX[i;j;k],8)
+
+
+C         We assume that the boundary is on the bottom
+
+          wmxy = sxy + Zs * vx
+          wmyy = syy + Zp * vy
+          wmyz = syz + Zs * vz
+
+C         Really we should be indigating tau over the region we are
+C         shooting for. i.e. tau_0 = LOCKED + PULSE_T)_HEAL + RAMP
+          if ( R .lt. healEdge) then
+              wpxy = wmxy
+              wpyz = wmyz
+          else
+              tau = sqrt(wmyz*wmyz + wmxy*wmxy)
+              tau_0 = tauREF + slope * max(0.0d0,R - pulseEdge)
+              if(tau .gt. tau_0) then
+                  beta = 2 * tau_0 / tau - 1
+                  wpxy = wmxy * beta
+                  wpyz = wmyz * beta
+              else
+                  wpxy = wmxy
+                  wpyz = wmyz
+              endif
+          endif
+          wpyy = wmyy
+
+          syy = (wmyy + wpyy) / (2.0d0)
+          vy  = (wmyy - wpyy) / (2.0d0 * Zp)
+          SHF = -(vy - syy) * lam / (lam + 2.0d0 * mu)
+          Wgdnv(CHF_IX[i;j;k],0) = (wmxy - wpxy) / (2.0d0 * Zs)
+          Wgdnv(CHF_IX[i;j;k],1) = vy
+          Wgdnv(CHF_IX[i;j;k],2) = (wmyz - wpyz) / (2.0d0 * Zs)
+          Wgdnv(CHF_IX[i;j;k],3) = syy + SHF
+          Wgdnv(CHF_IX[i;j;k],4) = syy
+          Wgdnv(CHF_IX[i;j;k],5) = szz + SHF
+          Wgdnv(CHF_IX[i;j;k],6) = (wmxy + wpxy) / (2.0d0)
+          Wgdnv(CHF_IX[i;j;k],7) = sxz
+          Wgdnv(CHF_IX[i;j;k],8) = (wmyz + wpyz) / (2.0d0)
+        CHF_ENDDO
+
+        
+
+        return
+        end
+
+        subroutine PSPPULSEEDGE(
+     &    CHF_REAL[pulseEdge],
+     &    CHF_CONST_REAL[t])
+
+#include "IBCCommon.fh"
+#include "PseudoPulseCommon.fh"
+        integer i
+        real_t t0,t1,t2
+        real_t c1,c2
+
+        c1 = 1.0d0 / 2.0d0
+        c2 = (SQRT(3.0d0) - SQRT(2.0d0)) / 2.0d0
+
+        t0 = min(jumpTime,t)
+        t1 = jumpTime
+        t2 = max(jumpTime,t)
+
+C       pulseEdge = t0 * (1.0d0 / 3.0d0 + c1) + (t2-t1) * (SQRT(2.0d0) + c2)
+        pulseEdge = t0 * half + (t2-t1) * (SQRT(2.0d0) + c2)
+        do i = 1,len_a
+           pulseEdge = pulseEdge + (a(i) / b(i)) * (
+     &                 c1 * (1 - COS(b(i) * t0))
+     &               + c2 * (COS(b(i) * t1) - COS(b(i) * t2)))
+        enddo
+
+        pulseEdge = cs * pulseEdge
+
+C        print *,-t
+C        print *,pulseEdge
+
+        return
+        end

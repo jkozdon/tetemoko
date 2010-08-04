@@ -156,6 +156,30 @@ public:
                        /// face-centered box on which to set a_WStar
                        const Box&       a_box);
 
+  /// Compute the solution to the Riemann problem with boundary data.
+  /**
+     Given input left and right states in a direction, a_dir, compute a
+     Riemann problem and generate fluxes at the faces within a_box.
+  */
+  void riemannBND(/// face-centered solution to Riemann problem
+                       FArrayBox&       a_WStar,
+                       /// left state, on cells to left of each face
+                       const FArrayBox& a_WLeft,
+                       /// right state, on cells to right of each face
+                       const FArrayBox& a_WRight,
+                       /// state on cells, used to set boundary conditions
+                       const FArrayBox& a_W,
+                       /// state of the boundary data
+                       const FArrayBox& a_Psi,
+                       /// current time
+                       const Real&      a_time,
+                       /// direction of faces
+                       const int&       a_dir,
+                       /// face-centered box on which to set a_WStar
+                       const Box&       a_box,
+                       /// face-centered boundary box
+                       const Box&       a_bdryBox);
+
   /// Post-normal predictor calculation.
   /**
      Add increment to normal predictor, e.g. to account for source terms due to
