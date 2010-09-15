@@ -62,12 +62,12 @@ public:
     /// Set up initial boundary data
     /**
     */
-    virtual void initializeBndry(LevelData<FArrayBox>& a_U);
+    virtual void initializeBdry(LevelData<FArrayBox>& a_U);
 
     /// Set up initial boundary data
     /**
     */
-    virtual bool hasBndryData();
+    virtual bool hasBdryData();
 
     /// Set boundary primitive values.
     /**

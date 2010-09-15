@@ -106,7 +106,7 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
 
     m_gdnvPhysics = (LinElastPhysics*) a_godunovPhysics->new_godunovPhysics();
 
-    m_bdryUseData = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->hasBndryData();
+    m_bdryUseData = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->hasBdryData();
 
     m_normalPredOrder = a_normalPredOrder;
 
@@ -672,7 +672,7 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
     lephysIBCPtr->initialize(m_UNew);
     if(m_bdryUseData)
     {
-        lephysIBCPtr->initializeBndry(m_bdryPsiNew);
+        lephysIBCPtr->initializeBdry(m_bdryPsiNew);
     }
 
     // Set up data structures
@@ -776,7 +776,7 @@ void AMRLevelLinElast::initialData()
     lephysIBCPtr->initialize(m_UNew);
     if(m_bdryUseData)
     {
-        lephysIBCPtr->initializeBndry(m_bdryPsiNew);
+        lephysIBCPtr->initializeBdry(m_bdryPsiNew);
     }
 }
 
@@ -1154,8 +1154,9 @@ void AMRLevelLinElast::writePlotHeader(HDF5Handle& a_handle) const
         sprintf(compStr,"component_%d",comp);
         header.m_string[compStr] = m_stateNames[comp];
     }
-    // sprintf(compStr,"boundary",comp);
-    // header.m_string[compStr] = compStr;
+
+    header.m_int["num_boundary"] = 1;
+    header.m_string["boundary"] = "psi";
 
     // Write the header
     header.writeToFile(a_handle);
@@ -1208,6 +1209,9 @@ void AMRLevelLinElast::writePlotLevel(HDF5Handle& a_handle) const
     // Write the data for this level
     write(a_handle,m_UNew.boxLayout());
     write(a_handle,m_UNew,"data", IntVect::Unit);
+
+//    write(a_handle,m_bdryPsiNew.boxLayout());
+//    write(a_handle,m_bdryPsiNew,"psi", IntVect::Unit);
 }
 
 #endif

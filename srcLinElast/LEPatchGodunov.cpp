@@ -46,7 +46,7 @@ void LEPatchGodunov::define(const ProblemDomain&           a_domain,
         a_artificialViscosity);
 }
 
-void LEPatchGodunov::updateStateBND(FArrayBox&       a_U,
+void LEPatchGodunov::updateStateBdry(FArrayBox&       a_U,
     FArrayBox&       a_Psi,
     FluxBox&         a_F,
     Real&            a_maxWaveSpeed,
@@ -55,7 +55,7 @@ void LEPatchGodunov::updateStateBND(FArrayBox&       a_U,
     const Box&       a_box,
     const Box&       a_bdryBox)
 {
-    //JK pout() << "updateStateBND" << endl;
+    //JK pout() << "updateStateBdry" << endl;
     CH_assert(isDefined());
     CH_assert(a_box == m_currentBox);
 
@@ -68,7 +68,7 @@ void LEPatchGodunov::updateStateBND(FArrayBox&       a_U,
     a_F.resize(a_box,numFlux);
     a_F.setVal(0.0);
 
-    computeWHalfBND(whalf, a_U, a_Psi, a_S, a_dt, a_box, a_bdryBox);
+    computeWHalfBdry(whalf, a_U, a_Psi, a_S, a_dt, a_box, a_bdryBox);
 
     FArrayBox dU(a_U.box(),a_U.nComp());
     computeUpdate(dU, a_F, a_U, whalf, a_dt, a_box);
@@ -81,7 +81,7 @@ void LEPatchGodunov::updateStateBND(FArrayBox&       a_U,
 
 // Compute the time-centered values of the primitive variable on the
 // interior cell faces of the cell-centered box a_box.
-void LEPatchGodunov::computeWHalfBND(FluxBox&         a_WHalf,
+void LEPatchGodunov::computeWHalfBdry(FluxBox&         a_WHalf,
     const FArrayBox& a_U,
     const FArrayBox& a_Psi,
     const FArrayBox& a_S,
@@ -89,7 +89,7 @@ void LEPatchGodunov::computeWHalfBND(FluxBox&         a_WHalf,
     const Box&       a_box,
     const Box&       a_bdryBox)
 {
-    //JK pout() << "computeWHalfBND" << endl;
+    //JK pout() << "computeWHalfBdry" << endl;
     CH_assert(isDefined());
     CH_assert(a_box == m_currentBox);
 
@@ -223,7 +223,7 @@ void LEPatchGodunov::computeWHalfBND(FluxBox&         a_WHalf,
         }
         else
         {
-            MayDay::Error("PatchGodunov::computeWHalfBND: Normal predictor order must be 1 (PLM) or 2 (PPM)");
+            MayDay::Error("PatchGodunov::computeWHalfBdry: Normal predictor order must be 1 (PLM) or 2 (PPM)");
         }
 
         // If the source term is valid add it to the primitive quantities
@@ -236,11 +236,11 @@ void LEPatchGodunov::computeWHalfBND(FluxBox&         a_WHalf,
         // Solve the Riemann problem
         WHalf1[dir1].resize(fluxBox[dir1],numPrim); // face-centered
 
-        // If the box contains the boundary with the fault call riemannBND
+        // If the box contains the boundary with the fault call riemannBdry
         if(a_bdryBox.sameType(faceBox[dir1]))
         {
             // we know from the define that it is really of this type
-            ((LinElastPhysics*)m_gdnvPhysics)->riemannBND(WHalf1[dir1],WPlus[dir1],
+            ((LinElastPhysics*)m_gdnvPhysics)->riemannBdry(WHalf1[dir1],WPlus[dir1],
                 WMinus[dir1],W,a_Psi,m_currentTime,dir1,faceBox[dir1],a_bdryBox);
         }
         else
@@ -297,11 +297,11 @@ void LEPatchGodunov::computeWHalfBND(FluxBox&         a_WHalf,
                 WHalf2[dir1][dir2].resize(fluxBox[dir1],numPrim);
                 // we know from the define that it is really of this type
 
-                // If the box contains the boundary with the fault call riemannBND
+                // If the box contains the boundary with the fault call riemannBdry
                 if(a_bdryBox.sameType(faceBox[dir1]))
                 {
                     // we know from the define that it is really of this type
-                    ((LinElastPhysics*)m_gdnvPhysics)->riemannBND(WHalf2[dir1][dir2],WTempPlus,WTempMinus,W,
+                    ((LinElastPhysics*)m_gdnvPhysics)->riemannBdry(WHalf2[dir1][dir2],WTempPlus,WTempMinus,W,
                         a_Psi,m_currentTime,dir1,faceBox[dir1],a_bdryBox);
                 }
                 else
@@ -367,7 +367,7 @@ void LEPatchGodunov::computeWHalfBND(FluxBox&         a_WHalf,
                 WPlus [dir1].plus(AdWdx,0,0,numPrim);
 #else
                 // Only 2D and 3D should be possible
-                MayDay::Error("PatchGodunov::computeWHalfBND: CH_SPACEDIM not 2 or 3!");
+                MayDay::Error("PatchGodunov::computeWHalfBdry: CH_SPACEDIM not 2 or 3!");
 #endif
             }
         }
@@ -377,11 +377,11 @@ void LEPatchGodunov::computeWHalfBND(FluxBox&         a_WHalf,
         FArrayBox& WHalf = a_WHalf[dir1];
         // we know from the define that it is really of this type
 
-        // If the box contains the boundary with the fault call riemannBND
+        // If the box contains the boundary with the fault call riemannBdry
         if(a_bdryBox.sameType(faceBox[dir1]))
         {
             // we know from the define that it is really of this type
-            ((LinElastPhysics*)m_gdnvPhysics)->riemannBND(WHalf,WPlus[dir1],WMinus[dir1],
+            ((LinElastPhysics*)m_gdnvPhysics)->riemannBdry(WHalf,WPlus[dir1],WMinus[dir1],
                 W,a_Psi,m_currentTime,dir1,faceBox[dir1],a_bdryBox);
         }
         else

@@ -301,7 +301,7 @@ Real LELevelGodunov::step(LevelData<FArrayBox>&       a_U,
         }
         else
         {
-            m_LEpatchGodunov.updateStateBND(curU,
+            m_LEpatchGodunov.updateStateBdry(curU,
                 curPsi,
                 flux,
                 maxWaveSpeedGrid,

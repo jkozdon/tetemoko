@@ -290,7 +290,7 @@ void LinElastPhysics::riemann(/// face-centered solution to Riemann problem
   Given input left and right states in a direction, a_dir, compute a
   Riemann problem and generate fluxes at the faces within a_box.
   */
-void LinElastPhysics::riemannBND(/// face-centered solution to Riemann problem
+void LinElastPhysics::riemannBdry(/// face-centered solution to Riemann problem
     FArrayBox&       a_WStar,
     /// left state, on cells to left of each face
     const FArrayBox& a_WLeft,
@@ -309,7 +309,6 @@ void LinElastPhysics::riemannBND(/// face-centered solution to Riemann problem
     /// face-centered boundary box
     const Box&       a_bdryBox)
 {
-    //JK pout() << "LinElastPhysics::riemannBND" << endl;
     CH_assert(isDefined());
 
     CH_assert(a_WStar.box().contains(a_box));
@@ -345,8 +344,16 @@ void LinElastPhysics::riemannBND(/// face-centered solution to Riemann problem
         CHF_BOX(a_box));
 
     // Call boundary Riemann solver with boundary data (we know that m_bc is really LEPhysIBC)
-    ((LEPhysIBC*)m_bc)->primBC(a_WStar,shiftWLeft ,a_W,a_Psi,a_dir,Side::Hi,a_time);
-    ((LEPhysIBC*)m_bc)->primBC(a_WStar,shiftWRight,a_W,a_Psi,a_dir,Side::Lo,a_time);
+    if(((LEPhysIBC*)m_bc)->hasBdryData())
+    {
+        ((LEPhysIBC*)m_bc)->primBC(a_WStar,shiftWLeft ,a_W,a_Psi,a_dir,Side::Hi,a_time);
+        ((LEPhysIBC*)m_bc)->primBC(a_WStar,shiftWRight,a_W,a_Psi,a_dir,Side::Lo,a_time);
+    }
+    else
+    {
+        m_bc->primBC(a_WStar,shiftWLeft ,a_W,a_dir,Side::Hi,a_time);
+        m_bc->primBC(a_WStar,shiftWRight,a_W,a_dir,Side::Lo,a_time);
+    }
 
     // Shift the left and right primitive variable boxes back to their original
     // position.

@@ -88,13 +88,13 @@ void RSIBC::initialize(LevelData<FArrayBox>& a_U)
     }
 }
 
-bool RSIBC::hasBndryData()
+bool RSIBC::hasBdryData()
 {
     return true;
 }
 
 /// Set up initial conditions
-void RSIBC::initializeBndry(LevelData<FArrayBox>& a_Psi)
+void RSIBC::initializeBdry(LevelData<FArrayBox>& a_Psi)
 {
     CH_assert(m_isFortranCommonSet == true);
     CH_assert(m_isDefined == true);

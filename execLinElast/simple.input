@@ -7,10 +7,11 @@ physics.cp = 3
 physics.mu = 1
 physics.r0   =  0.5
 
-physics.background = 10 10 10 0 0 0 0 0 0
+physics.background = 10 20 30 40 50 60 70 80 90
 
 #                vx   vy   vz  sxx  syy  szz  sxy  szy  sxz
-physics.mag  =   10   10   10   10   10   10   10   10   10
+# physics.mag  =   10   10   10   10   10   10   10   10   10
+physics.mag  =   0   0   0   0   0   0   0   0   0
 # physics.mag  =   10   10    0    0    0    0    0    0    0
 physics.sig  = 0.001
 
@@ -20,7 +21,7 @@ comp.verbosity = 1
 
 # Number of steps, final time, and time step
 comp.max_step = 200
-comp.max_time = 10.0
+comp.max_time = 0.1
 # comp.fixed_dt = 0.002
 
 # Size of the domain's longest dimension
@@ -34,9 +35,9 @@ comp.is_periodic = 0 0 0
 # If not period what boundary type
 # 0 : Outflow
 # 1 : Free surface
-comp.x_boundary  = 0 1
-comp.y_boundary  = 0 1
-comp.z_boundary  = 0 1
+comp.x_boundary  = 0 0
+comp.y_boundary  = 1 1
+comp.z_boundary  = 0 0
 
 
 # Grid refinement
@@ -60,7 +61,7 @@ comp.fill_ratio = 0.75
 # CTU : Corner Transport Upwind
 # PPM : Piecewise Parabolic Method
 # PLM : Piecewise Linear Method (I think, not positive though)
-comp.normal_predictor = PPM
+comp.normal_predictor = CTU
 
 # Slope computation parameters
 comp.use_fourth_order_slopes = 0
@@ -73,7 +74,7 @@ comp.use_artificial_viscosity = 1
 comp.artificial_viscosity = 0.1
 
 # Plot file information
-comp.plot_interval = 5
+comp.plot_interval = 1
 # comp.plot_interval = 1
 comp.plot_prefix  = test.
 

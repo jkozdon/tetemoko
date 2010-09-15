@@ -79,7 +79,7 @@ void PseudoPulseIBC::initialize(LevelData<FArrayBox>& a_U)
     }
 }
 
-bool PseudoPulseIBC::hasBndryData()
+bool PseudoPulseIBC::hasBdryData()
 {
     return false;
 }

@@ -58,7 +58,7 @@ public:
     /// Set up initial boundary data
     /**
     */
-    virtual bool hasBndryData();
+    virtual bool hasBdryData();
 
     /// Set boundary primitive values.
     /**
