@@ -140,7 +140,7 @@ C        print *,pulseEdge
           y = 0;
           z = (k + half) * dx-r0]
           R = sqrt(CHF_DTERM[x*x;+y*y;+z*z])
-          R = x
+C         R = x
 
           vx  = WInside(CHF_IX[i;j;k],0)
           vy  = WInside(CHF_IX[i;j;k],1)
@@ -176,10 +176,9 @@ C         shooting for. i.e. tau_0 = LOCKED + PULSE_T)_HEAL + RAMP
                   wpyz = wmyz
               endif
           endif
-          wpyy = wmyy
 
-          syy = (wmyy + wpyy) / (2.0d0)
-          vy  = (wmyy - wpyy) / (2.0d0 * Zp)
+          syy = background(4)
+          vy  = (wmyy - syy) / Zp
           SHF = -(vy - syy) * lam / (lam + 2.0d0 * mu)
           Wgdnv(CHF_IX[i;j;k],0) = (wmxy - wpxy) / (2.0d0 * Zs)
           Wgdnv(CHF_IX[i;j;k],1) = vy

@@ -560,8 +560,8 @@ void AMRLevelLinElast::tagCellsInit(IntVectSet& a_tags)
 
     // Compute relative gradient
     DataIterator dit = levelDomain.dataIterator();
-    // Real refLocation = m_domainLength / 2.0;
-    Real refLocation = 60;
+    Real refLocation = m_domainLength / 2.0;
+    //Real refLocation = 60;
 
     for (dit.begin(); dit.ok(); ++dit)
     {
