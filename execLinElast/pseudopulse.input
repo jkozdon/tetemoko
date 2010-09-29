@@ -48,14 +48,14 @@ comp.num_cells = 1024 512 32
 
 
 # Grid refinement
-comp.max_level = 4
+comp.max_level = 5
 # For 2D
-comp.ref_ratio = 2 2 2 2 2
+comp.ref_ratio = 4 4 4 4 4 4 4 4 4
 # For 3D
 # comp.ref_ratio = 2 2 2 2 2
 
 # Regridding parameters
-comp.regrid_interval = 2 2 2 2 2 2
+comp.regrid_interval = 2 2 2 2 2 2 2 2 
 comp.tag_buffer_size = 2
 comp.refine_thresh = 0.1
 

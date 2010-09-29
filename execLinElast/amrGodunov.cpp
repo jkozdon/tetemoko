@@ -41,7 +41,7 @@ using std::ios;
 #include "SimpleIBC.H"
 #include "LockSlideIBC.H"
 #include "VelSlideAsinh1sIBC.H"
-#include "RSIBC.H"
+// #include "RSIBC.H"
 #include "PseudoPulseIBC.H"
 
 #include "UsingNamespace.H"
@@ -413,83 +413,83 @@ void amrGodunov()
                     endl << endl;
             }
         }
-        else if (problemString == "ratestate")
-        {
+        // else if (problemString == "ratestate")
+        // {
 
-            // where is the center of the slip region
-            Real center = 0.5;
-            ppphysics.query("center_scale",center);
-            // CH_assert(center >= 0);
-            if(center < 0)
-            {
-                center = -center;
-            }
-            else
-            {
-                center = center * domainLength;
-            }
+        //     // where is the center of the slip region
+        //     Real center = 0.5;
+        //     ppphysics.query("center_scale",center);
+        //     // CH_assert(center >= 0);
+        //     if(center < 0)
+        //     {
+        //         center = -center;
+        //     }
+        //     else
+        //     {
+        //         center = center * domainLength;
+        //     }
 
-            // how big is the slip region
-            Real sigma = 10;
-            ppphysics.query("sigma",sigma);
-            CH_assert(sigma >= 0);
+        //     // how big is the slip region
+        //     Real sigma = 10;
+        //     ppphysics.query("sigma",sigma);
+        //     CH_assert(sigma >= 0);
 
-            // how big is the slip region
-            Real ntime = 1;
-            ppphysics.query("nucleation_time",ntime);
-            CH_assert(ntime >= 0);
+        //     // how big is the slip region
+        //     Real ntime = 1;
+        //     ppphysics.query("nucleation_time",ntime);
+        //     CH_assert(ntime >= 0);
 
-            // no dimensions are periodic with this problem
-            for (int dim = 0; dim < SpaceDim; dim++)
-            {
-                isPeriodic[dim] = false;
-            }
+        //     // no dimensions are periodic with this problem
+        //     for (int dim = 0; dim < SpaceDim; dim++)
+        //     {
+        //         isPeriodic[dim] = false;
+        //     }
 
-            // rate and state parameters
-            Real psi_0 = -0.004581501914676;
-            ppphysics.query("psi",psi_0);
+        //     // rate and state parameters
+        //     Real psi_0 = -0.004581501914676;
+        //     ppphysics.query("psi",psi_0);
 
-            Real a = 0.016;
-            ppphysics.query("a",a);
+        //     Real a = 0.016;
+        //     ppphysics.query("a",a);
 
-            Real b = 0.02;
-            ppphysics.query("b",b);
+        //     Real b = 0.02;
+        //     ppphysics.query("b",b);
 
-            Real V0 = 1e-6;
-            ppphysics.query("V0",V0);
+        //     Real V0 = 1e-6;
+        //     ppphysics.query("V0",V0);
 
-            Real f0 = 0.6;
-            ppphysics.query("f0",f0);
+        //     Real f0 = 0.6;
+        //     ppphysics.query("f0",f0);
 
-            Real L = 0.4;
-            ppphysics.query("L",L);
+        //     Real L = 0.4;
+        //     ppphysics.query("L",L);
 
-            Real fw = 0.13;
-            ppphysics.query("fw",fw);
+        //     Real fw = 0.13;
+        //     ppphysics.query("fw",fw);
 
-            Real Vw = 0.17;
-            ppphysics.query("Vw",Vw);
+        //     Real Vw = 0.17;
+        //     ppphysics.query("Vw",Vw);
 
 
-            RSIBC* rsibc =
-                new RSIBC(cs,cp,mu,backgroundVals,center,sigma,ntime,psi_0,a,b,V0,f0,L,fw,Vw);
-            ibc = rsibc;
-            if(verbosity >= 1)
-            {
-                pout() << "psi = " << psi_0 << endl;
-                pout() << "Background Values = " << 
-                    backgroundVals[0] << " " <<
-                    backgroundVals[1] << " " <<
-                    backgroundVals[2] << " " <<
-                    backgroundVals[3] << " " <<
-                    backgroundVals[4] << " " <<
-                    backgroundVals[5] << " " <<
-                    backgroundVals[6] << " " <<
-                    backgroundVals[7] << " " <<
-                    backgroundVals[8] << " " <<
-                    endl << endl;
-            }
-        }
+        //     RSIBC* rsibc =
+        //         new RSIBC(cs,cp,mu,backgroundVals,center,sigma,ntime,psi_0,a,b,V0,f0,L,fw,Vw);
+        //     ibc = rsibc;
+        //     if(verbosity >= 1)
+        //     {
+        //         pout() << "psi = " << psi_0 << endl;
+        //         pout() << "Background Values = " << 
+        //             backgroundVals[0] << " " <<
+        //             backgroundVals[1] << " " <<
+        //             backgroundVals[2] << " " <<
+        //             backgroundVals[3] << " " <<
+        //             backgroundVals[4] << " " <<
+        //             backgroundVals[5] << " " <<
+        //             backgroundVals[6] << " " <<
+        //             backgroundVals[7] << " " <<
+        //             backgroundVals[8] << " " <<
+        //             endl << endl;
+        //     }
+        // }
         else if (problemString == "pseudopulse")
         {
 

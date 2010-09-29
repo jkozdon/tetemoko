@@ -20,7 +20,8 @@
 #include "ProblemDomain.H"
 #include "Copier.H"
 
-#include "LEPatchGodunov.H"
+#include "PatchGodunov.H"
+#include "LinElastPhysics.H"
 #include "NamespaceHeader.H"
 
 /// Level Godunov - really a hyperbolic level integrator
@@ -53,7 +54,7 @@ public:
       This has is just the inherited version plues the boundary data.
       */
     void define(const DisjointBoxLayout&    a_thisDisjointBoxLayout,
-        const DisjointBoxLayout&    a_bdryDisjointBoxLayout,
+        //BD const DisjointBoxLayout&    a_bdryDisjointBoxLayout,
         const DisjointBoxLayout&    a_coarserDisjointBoxLayout,
         const ProblemDomain&        a_domain,
         const int&                  a_refineCoarse,
@@ -87,7 +88,7 @@ public:
       This has is just the inherited version plues the boundary data.
       */
     Real step(LevelData<FArrayBox>&       a_U,
-        LevelData<FArrayBox>&       a_bdryPsi,
+        //BD LevelData<FArrayBox>&       a_bdryPsi,
         LevelData<FArrayBox>        a_flux[CH_SPACEDIM],
         LevelFluxRegister&          a_finerFluxRegister,
         LevelFluxRegister&          a_coarserFluxRegister,
@@ -145,7 +146,7 @@ protected:
     DisjointBoxLayout m_grids;
 
     // Patch integrator
-    LEPatchGodunov    m_LEpatchGodunov;
+    PatchGodunov    m_LEpatchGodunov;
 
     // Number of ghost cells need locally for this level
     int m_numGhost;
@@ -199,13 +200,13 @@ protected:
     bool m_isDefined;
 
     // Box layout for this level
-    DisjointBoxLayout m_bdryGrids;
+    //BD DisjointBoxLayout m_bdryGrids;
 
     // Temporary storage space for boundary data variables
-    LevelData<FArrayBox> m_bdryPsi;
+    //BD LevelData<FArrayBox> m_bdryPsi;
 
     // Exchange copier
-    Copier m_bdryExchangeCopier;
+    //BD Copier m_bdryExchangeCopier;
 
 
 private:

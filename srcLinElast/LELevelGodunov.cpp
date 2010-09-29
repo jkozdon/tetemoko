@@ -41,7 +41,7 @@ LELevelGodunov::~LELevelGodunov()
 
 // Define the object so that time stepping can begin
 void LELevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxLayout,
-    const DisjointBoxLayout&    a_bdryDisjointBoxLayout,
+    //BD const DisjointBoxLayout&    a_bdryDisjointBoxLayout,
     const DisjointBoxLayout&    a_coarserDisjointBoxLayout,
     const ProblemDomain&        a_domain,
     const int&                  a_refineCoarse,
@@ -67,7 +67,7 @@ void LELevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxLayout,
     m_grids  = a_thisDisjointBoxLayout;
 
     // Make a copy of the current boundary grids
-    m_bdryGrids  = a_bdryDisjointBoxLayout;
+    //BD m_bdryGrids  = a_bdryDisjointBoxLayout;
 
     // Order of the normal predictor (1 -> PLM, 2-> PPM)
     m_normalPredOrder = a_normalPredOrder;
@@ -125,7 +125,7 @@ void LELevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxLayout,
     m_exchangeCopier.exchangeDefine(a_thisDisjointBoxLayout,
         m_numGhost*IntVect::Unit);
 
-    m_bdryExchangeCopier.exchangeDefine(a_bdryDisjointBoxLayout,IntVect::Zero);
+    //BD m_bdryExchangeCopier.exchangeDefine(a_bdryDisjointBoxLayout,IntVect::Zero);
 
     // Setup an interval corresponding to the conserved variables
     Interval UInterval(0,m_numCons-1);
@@ -134,7 +134,7 @@ void LELevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxLayout,
     {
         CH_TIME("setup::Udefine");
         m_U.define(m_grids,m_numCons,m_numGhost*IntVect::Unit);
-        m_bdryPsi.define(m_bdryGrids,1,IntVect::Zero);
+        //BD m_bdryPsi.define(m_bdryGrids,1,IntVect::Zero);
     }
 
     // Set up the interpolator if there is a coarser level
@@ -158,7 +158,7 @@ void LELevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxLayout,
 // If source terms do not exist, "a_S" should be null constructed and not
 // defined (i.e. its define() should not be called).
 Real LELevelGodunov::step(LevelData<FArrayBox>&       a_U,
-    LevelData<FArrayBox>&       a_bdryPsi,
+    //BD LevelData<FArrayBox>&       a_bdryPsi,
     LevelData<FArrayBox>        a_flux[CH_SPACEDIM],
     LevelFluxRegister&          a_finerFluxRegister,
     LevelFluxRegister&          a_coarserFluxRegister,
@@ -196,7 +196,7 @@ Real LELevelGodunov::step(LevelData<FArrayBox>&       a_U,
         for (DataIterator dit = m_U.dataIterator(); dit.ok(); ++dit)
         {
             m_U[dit()].copy(a_U[dit()]);
-            m_bdryPsi[dit()].copy(a_bdryPsi[dit()]);
+            //BD m_bdryPsi[dit()].copy(a_bdryPsi[dit()]);
         }
 
         m_U.exchange(m_exchangeCopier);
@@ -264,13 +264,13 @@ Real LELevelGodunov::step(LevelData<FArrayBox>&       a_U,
         Box curBox = m_grids.get(dit());
 
         // The current box
-        Box curBdryBox = m_bdryGrids.get(dit());
+        //BD Box curBdryBox = m_bdryGrids.get(dit());
 
         // The current grid of conserved variables
         FArrayBox& curU = m_U[dit()];
 
         // The current grid of conserved variables
-        FArrayBox& curPsi = m_bdryPsi[dit()];
+        //BD FArrayBox& curPsi = m_bdryPsi[dit()];
 
         // The current source terms if they exist
         const FArrayBox* source = &zeroSource;
@@ -290,26 +290,26 @@ Real LELevelGodunov::step(LevelData<FArrayBox>&       a_U,
 
         // Update the current grid's conserved variables, return the final
         // fluxes used for this, and the maximum wave speed for this grid
-        if(curBdryBox.isEmpty())
-        {
+        //BD if(curBdryBox.isEmpty())
+        //BD {
             m_LEpatchGodunov.updateState(curU,
                 flux,
                 maxWaveSpeedGrid,
                 *source,
                 a_dt,
                 curBox);
-        }
-        else
-        {
-            m_LEpatchGodunov.updateStateBdry(curU,
-                curPsi,
-                flux,
-                maxWaveSpeedGrid,
-                *source,
-                a_dt,
-                curBox,
-                curBdryBox);
-        }
+        //BD }
+        //BD else
+        //BD {
+        //BD     m_LEpatchGodunov.updateStateBdry(curU,
+        //BD         curPsi,
+        //BD         flux,
+        //BD         maxWaveSpeedGrid,
+        //BD         *source,
+        //BD         a_dt,
+        //BD         curBox,
+        //BD         curBdryBox);
+        //BD }
 
         // Clamp away from zero
         maxWaveSpeed = Max(maxWaveSpeed,maxWaveSpeedGrid);
