@@ -707,47 +707,47 @@ void AMRLevelLinElast::initialGrid(const Vector<Box>& a_newGrids)
     m_level_grids = a_newGrids;
     m_grids = loadBalance(a_newGrids);
 
-    {
-        // Indicate/guarantee that the indexing below is only for reading
-        // otherwise an error/assertion failure occurs
-        const DisjointBoxLayout& constGrids = m_grids;
-        DisjointBoxLayout tmpBndGrids;
-        tmpBndGrids.deepCopy(constGrids);
+    //JK {
+    //JK     // Indicate/guarantee that the indexing below is only for reading
+    //JK     // otherwise an error/assertion failure occurs
+    //JK     const DisjointBoxLayout& constGrids = m_grids;
+    //JK     DisjointBoxLayout tmpBndGrids;
+    //JK     tmpBndGrids.deepCopy(constGrids);
 
-        if (s_verbosity >= 4)
-        {
-            pout() << "new grids: " << endl;
-        }
-        for (LayoutIterator lit = constGrids.layoutIterator(); lit.ok(); ++lit)
-        {
-            if (s_verbosity >= 4)
-            {
-                pout() << "grid:          " << constGrids[lit()] << endl;
-            }
+    //JK     if (s_verbosity >= 4)
+    //JK     {
+    //JK         pout() << "new grids: " << endl;
+    //JK     }
+    //JK     for (LayoutIterator lit = constGrids.layoutIterator(); lit.ok(); ++lit)
+    //JK     {
+    //JK         if (s_verbosity >= 4)
+    //JK         {
+    //JK             pout() << "grid:          " << constGrids[lit()] << endl;
+    //JK         }
 
-            // We set the boundary box for this level to the intersection of the
-            // box edge with the boundary. I believe that this should let the
-            // boundary grid have the same layout structure as the underlying
-            // grid
+    //JK         // We set the boundary box for this level to the intersection of the
+    //JK         // box edge with the boundary. I believe that this should let the
+    //JK         // boundary grid have the same layout structure as the underlying
+    //JK         // grid
 
-            // WARNING: This line requires modifying BaseFab.cpp
-            const Box tmpBndBox = (m_bdryFaceBox & bdryLo(constGrids[lit()],1,1));
+    //JK         // WARNING: This line requires modifying BaseFab.cpp
+    //JK         const Box tmpBndBox = (m_bdryFaceBox & bdryLo(constGrids[lit()],1,1));
 
-            // So this is silly, I am making a box on every data inner box
-            // regardless of whether its on the boundary. But if I have any
-            // empty boxes I have problems with BaseFAB later...
-            // const Box tmpBndBox = bdryLo(constGrids[lit()],1,1);
-            tmpBndGrids.ref(lit()) = tmpBndBox;
-            if (s_verbosity >= 4 && !tmpBndBox.isEmpty())
-            {
-                pout() << "boundary grid: " << tmpBndBox << endl;
-            }
-        }
+    //JK         // So this is silly, I am making a box on every data inner box
+    //JK         // regardless of whether its on the boundary. But if I have any
+    //JK         // empty boxes I have problems with BaseFAB later...
+    //JK         // const Box tmpBndBox = bdryLo(constGrids[lit()],1,1);
+    //JK         tmpBndGrids.ref(lit()) = tmpBndBox;
+    //JK         if (s_verbosity >= 4 && !tmpBndBox.isEmpty())
+    //JK         {
+    //JK             pout() << "boundary grid: " << tmpBndBox << endl;
+    //JK         }
+    //JK     }
 
-        // Mark the boundary grid as closed and copy to storage
-        tmpBndGrids.close();
-        m_bdryGrids = tmpBndGrids;
-    }
+    //JK     // Mark the boundary grid as closed and copy to storage
+    //JK     tmpBndGrids.close();
+    //JK     m_bdryGrids = tmpBndGrids;
+    //JK }
 
     // Define old and new state data structures
     IntVect ivGhost = m_numGhost*IntVect::Unit;

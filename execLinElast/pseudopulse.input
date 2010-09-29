@@ -13,7 +13,7 @@ physics.background =    0    0   0     0  -126    0   30   30   30
 # physics.background = 10 10 10 10 10 10 10 10 10
 # physics.background = 0 0 10 0 0 0 0 0 0
 
-physics.center_scale = -15
+physics.center_scale = -50
 physics.slope        = 1000
 physics.dTau         = 20
 physics.Vr           = 1.6
@@ -28,11 +28,11 @@ comp.verbosity = 1
 
 # Number of steps, final time, and time step
 comp.max_step = 100
-comp.max_time = 0.5
+comp.max_time = 10
 # comp.fixed_dt = 0.002
 
 # Size of the domain's longest dimension
-comp.domain_length = 30.0
+comp.domain_length = 100.0
 
 # Coarsest grid
 # comp.num_cells = 32 8 4
@@ -48,14 +48,14 @@ comp.num_cells = 1024 512 32
 
 
 # Grid refinement
-comp.max_level = 4
+comp.max_level = 5
 # For 2D
-comp.ref_ratio = 2 2 2 2 2
+comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
 # For 3D
 # comp.ref_ratio = 2 2 2 2 2
 
 # Regridding parameters
-comp.regrid_interval = 2 2 2 2 2 2
+comp.regrid_interval = 2 2 2 2 2 2 2 2 2 2
 comp.tag_buffer_size = 2
 comp.refine_thresh = 0.1
 
