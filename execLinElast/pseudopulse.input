@@ -48,7 +48,7 @@ comp.num_cells = 1024 512 32
 
 
 # Grid refinement
-comp.max_level = 5
+comp.max_level = 4
 # For 2D
 comp.ref_ratio = 4 4 4 4 4 4 4 4 4
 # For 3D
