@@ -106,7 +106,7 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
 
     m_gdnvPhysics = (LinElastPhysics*) a_godunovPhysics->new_godunovPhysics();
 
-    m_bdryUseData = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->hasBdryData();
+    //BD m_bdryUseData = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->hasBdryData();
 
     m_normalPredOrder = a_normalPredOrder;
 
@@ -197,7 +197,7 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     m_stateNames = m_gdnvPhysics->stateNames();
 
     // Setup the boundary Face box
-    m_bdryFaceBox = bdryLo(a_problemDomain.domainBox(),1,1);
+    //BD m_bdryFaceBox = bdryLo(a_problemDomain.domainBox(),1,1);
 }
 
 // Advance by one timestep
@@ -289,7 +289,7 @@ Real AMRLevelLinElast::advance()
 
     // Advance the solve one timestep
     newDt = m_LElevelGodunov.step(m_UNew,
-        m_bdryPsiNew,
+        //BD m_bdryPsiNew,
         flux,
         *finerFR,
         *coarserFR,
@@ -540,7 +540,7 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
 void AMRLevelLinElast::tagCellsInit(IntVectSet& a_tags)
 {
     CH_assert(allDefined());
-    if (s_verbosity >= 3)
+    // if (s_verbosity >= 3)
     {
         pout() << "AMRLevelLinElast::tagCellsInit " << m_level << endl;
     }
@@ -581,9 +581,8 @@ void AMRLevelLinElast::tagCellsInit(IntVectSet& a_tags)
 
             if (markFAB(iv) >= 0)
             {
-                //pout() << iv << endl;
+                pout() << iv << endl;
                 localTags |= iv;
-                //pout() << gradFab(iv,0) << "     " << gradFab(iv,1) << "     " << gradMagFab(iv) << "    " << m_refineThresh << endl;
             }
         }
     }
@@ -614,47 +613,47 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
     m_level_grids = a_newGrids;
     m_grids = loadBalance(a_newGrids);
 
-    {
-        // Indicate/guarantee that the indexing below is only for reading
-        // otherwise an error/assertion failure occurs
-        const DisjointBoxLayout& constGrids = m_grids;
-        DisjointBoxLayout tmpBndGrids;
-        tmpBndGrids.deepCopy(constGrids);
+    //BD {
+    //BD     // Indicate/guarantee that the indexing below is only for reading
+    //BD     // otherwise an error/assertion failure occurs
+    //BD     const DisjointBoxLayout& constGrids = m_grids;
+    //BD     DisjointBoxLayout tmpBndGrids;
+    //BD     tmpBndGrids.deepCopy(constGrids);
 
-        if (s_verbosity >= 4)
-        {
-            pout() << "new grids: " << endl;
-        }
-        for (LayoutIterator lit = constGrids.layoutIterator(); lit.ok(); ++lit)
-        {
-            if (s_verbosity >= 4)
-            {
-                pout() << "grid:          " << constGrids[lit()] << endl;
-            }
+    //BD     if (s_verbosity >= 4)
+    //BD     {
+    //BD         pout() << "new grids: " << endl;
+    //BD     }
+    //BD     for (LayoutIterator lit = constGrids.layoutIterator(); lit.ok(); ++lit)
+    //BD     {
+    //BD         if (s_verbosity >= 4)
+    //BD         {
+    //BD             pout() << "grid:          " << constGrids[lit()] << endl;
+    //BD         }
 
-            // We set the boundary box for this level to the intersection of the
-            // box edge with the boundary. I believe that this should let the
-            // boundary grid have the same layout structure as the underlying
-            // grid
+    //BD         // We set the boundary box for this level to the intersection of the
+    //BD         // box edge with the boundary. I believe that this should let the
+    //BD         // boundary grid have the same layout structure as the underlying
+    //BD         // grid
 
-            // WARNING: This line requires modifying BaseFab.cpp
-            const Box tmpBndBox = (m_bdryFaceBox & bdryLo(constGrids[lit()],1,1));
+    //BD         // WARNING: This line requires modifying BaseFab.cpp
+    //BD         const Box tmpBndBox = (m_bdryFaceBox & bdryLo(constGrids[lit()],1,1));
 
-            // So this is silly, I am making a box on every data inner box
-            // regardless of whether its on the boundary. But if I have any
-            // empty boxes I have problems with BaseFAB later...
-            // const Box tmpBndBox = bdryLo(constGrids[lit()],1,1);
-            tmpBndGrids.ref(lit()) = tmpBndBox;
-            if (s_verbosity >= 4 && !tmpBndBox.isEmpty())
-            {
-                pout() << "boundary grid: " << tmpBndBox << endl;
-            }
-        }
+    //BD         // So this is silly, I am making a box on every data inner box
+    //BD         // regardless of whether its on the boundary. But if I have any
+    //BD         // empty boxes I have problems with BaseFAB later...
+    //BD         // const Box tmpBndBox = bdryLo(constGrids[lit()],1,1);
+    //BD         tmpBndGrids.ref(lit()) = tmpBndBox;
+    //BD         if (s_verbosity >= 4 && !tmpBndBox.isEmpty())
+    //BD         {
+    //BD             pout() << "boundary grid: " << tmpBndBox << endl;
+    //BD         }
+    //BD     }
 
-        // Mark the boundary grid as closed and copy to storage
-        tmpBndGrids.close();
-        m_bdryGrids = tmpBndGrids;
-    }
+    //BD     // Mark the boundary grid as closed and copy to storage
+    //BD     tmpBndGrids.close();
+    //BD     m_bdryGrids = tmpBndGrids;
+    //BD }
 
     // Save data for later
     for(DataIterator dit = m_UNew.dataIterator(); dit.ok(); ++dit)
@@ -667,13 +666,13 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
     m_UNew.define(m_grids,m_numStates,ivGhost);
 
     // Reshape the boundary grid
-    m_bdryPsiNew.define(m_bdryGrids,1,IntVect::Zero);
+    //BD m_bdryPsiNew.define(m_bdryGrids,1,IntVect::Zero);
     LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
     lephysIBCPtr->initialize(m_UNew);
-    if(m_bdryUseData)
-    {
-        lephysIBCPtr->initializeBdry(m_bdryPsiNew);
-    }
+    //BD if(m_bdryUseData)
+    //BD {
+    //BD     lephysIBCPtr->initializeBdry(m_bdryPsiNew);
+    //BD }
 
     // Set up data structures
     levelSetup();
@@ -755,8 +754,8 @@ void AMRLevelLinElast::initialGrid(const Vector<Box>& a_newGrids)
     m_UOld.define(m_grids,m_numStates,ivGhost);
 
     // Define the old and new boundary data structures
-    m_bdryPsiNew.define(m_bdryGrids,1,IntVect::Zero);
-    m_bdryPsiOld.define(m_bdryGrids,1,IntVect::Zero);
+    //BD m_bdryPsiNew.define(m_bdryGrids,1,IntVect::Zero);
+    //BD m_bdryPsiOld.define(m_bdryGrids,1,IntVect::Zero);
 
     // Set up data structures
     levelSetup();
@@ -774,10 +773,10 @@ void AMRLevelLinElast::initialData()
 
     LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
     lephysIBCPtr->initialize(m_UNew);
-    if(m_bdryUseData)
-    {
-        lephysIBCPtr->initializeBdry(m_bdryPsiNew);
-    }
+    //BD if(m_bdryUseData)
+    //BD {
+    //BD     lephysIBCPtr->initializeBdry(m_bdryPsiNew);
+    //BD }
 }
 
 // Things to do after initialization
@@ -1335,7 +1334,7 @@ void AMRLevelLinElast::levelSetup()
 
         // Maintain levelGodunov
         m_LElevelGodunov.define(m_grids,
-            m_bdryGrids,
+            //BD m_bdryGrids,
             coarserLevelDomain,
             m_problem_domain,
             nRefCrse,
@@ -1369,7 +1368,7 @@ void AMRLevelLinElast::levelSetup()
     else
     {
         m_LElevelGodunov.define(m_grids,
-            m_bdryGrids,
+            //BD m_bdryGrids,
             DisjointBoxLayout(),
             m_problem_domain,
             m_ref_ratio,
