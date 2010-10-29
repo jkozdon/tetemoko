@@ -25,7 +25,7 @@ comp.domain_length = 100.0
 
 # Coarsest grid
 # comp.num_cells = 32 8 4
-comp.num_cells = 64 64 32
+comp.num_cells = 1024 512 32
 comp.is_periodic = 0 0 0
 
 # If not period what boundary type
@@ -71,7 +71,7 @@ comp.use_artificial_viscosity = 1
 comp.artificial_viscosity = 0.1
 
 # Plot file information
-comp.plot_interval = 5
+comp.plot_interval = 0
 # comp.plot_interval = 1
 comp.plot_prefix  = lockSlide.
 
