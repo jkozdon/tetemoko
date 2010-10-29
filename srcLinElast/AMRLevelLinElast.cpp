@@ -540,7 +540,7 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
 void AMRLevelLinElast::tagCellsInit(IntVectSet& a_tags)
 {
     CH_assert(allDefined());
-    // if (s_verbosity >= 3)
+    if (s_verbosity >= 3)
     {
         pout() << "AMRLevelLinElast::tagCellsInit " << m_level << endl;
     }
@@ -581,7 +581,7 @@ void AMRLevelLinElast::tagCellsInit(IntVectSet& a_tags)
 
             if (markFAB(iv) >= 0)
             {
-                pout() << iv << endl;
+                // pout() << iv << endl;
                 localTags |= iv;
             }
         }
