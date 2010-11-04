@@ -122,8 +122,9 @@ C
         real_t healEdge, pulseEdge
         real_t tauREF,tau_0,tau,beta
 
-        CALL PSPPULSEEDGE(pulseEdge,min(stopTime,t))
-        healEdge  = t * Vh * cs
+C       CALL PSPPULSEEDGE(pulseEdge,min(stopTime,t))
+        pulseEdge  = t * Vr * cs
+        healEdge   = t * Vh * cs
 
         tauREF = sqrt(background(6)*background(6)
      &             + background(8)*background(8)) - dTau

@@ -153,6 +153,8 @@ public:
   /**
    */
   virtual void writePlotLevel(HDF5Handle& a_handle) const;
+
+  void dumpBoundaryData() const;
 #endif
 
   /// Returns the dt computed earlier for this level

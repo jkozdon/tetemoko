@@ -1209,8 +1209,41 @@ void AMRLevelLinElast::writePlotLevel(HDF5Handle& a_handle) const
     write(a_handle,m_UNew.boxLayout());
     write(a_handle,m_UNew,"data", IntVect::Unit);
 
+    dumpBoundaryData();
+
 //    write(a_handle,m_bdryPsiNew.boxLayout());
 //    write(a_handle,m_bdryPsiNew,"psi", IntVect::Unit);
+}
+
+void AMRLevelLinElast::dumpBoundaryData() const
+{
+    const DisjointBoxLayout& levelDomain = m_UNew.disjointBoxLayout();
+    DataIterator dit = levelDomain.dataIterator();
+
+    char fileName[500];
+    sprintf(fileName,"boundDump/boundDump.t%f.p%d.l%d",m_time,procID(),m_level);
+    // pout() << fileName;
+    FILE * dumpFile;
+    dumpFile = fopen(fileName,"w");
+
+    for (dit.begin(); dit.ok(); ++dit)
+    {
+        const Box& b = levelDomain[dit()];
+        if(b.smallEnd()[1] == 0)
+        {
+            const FArrayBox& UFab = m_UNew[dit()];
+            for(int itor = b.smallEnd()[0]; itor <= b.bigEnd()[0]; itor++)
+            {
+                fprintf(dumpFile, "%f %d %d %f ",m_time, m_level, itor, itor*m_dx);
+                for(int comp = 0; comp < 9; comp++)
+                {
+                    fprintf(dumpFile, "%f ",UFab.get(IntVect(itor,0),comp));
+                }
+                fprintf(dumpFile, "\n");
+            }
+        }
+    }
+    fclose(dumpFile);
 }
 
 #endif
