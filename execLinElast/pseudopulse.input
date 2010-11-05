@@ -14,7 +14,7 @@ physics.background =    0    0   0     0  -126    0   30   30   30
 # physics.background = 0 0 10 0 0 0 0 0 0
 
 physics.center_scale = -50
-physics.slope        = 1000
+physics.slope        = 100
 physics.dTau         = 20
 physics.Vr           = 1.6
 physics.Vh           = 0
@@ -49,7 +49,7 @@ comp.num_cells = 1024 512 32
 
 
 # Grid refinement
-comp.max_level = 5
+comp.max_level = 1
 # For 2D
 comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
 # For 3D

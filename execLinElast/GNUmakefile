@@ -9,8 +9,12 @@ makefiles += example_AMRGodunov_execPolytropic
 ebase = amrGodunov
 
 # the location of Chombo lib dir
-CHOMBO_HOME = /home/jkozdon/packages/Chombo/lib
-# CHOMBO_HOME = /Users/jkozdon/apps/Chombo/lib
+HOSTNAME:=$(shell hostname)
+ifeq ($(HOSTNAME), rubberducky.stanford.edu)
+	CHOMBO_HOME = /Users/jkozdon/apps/Chombo/lib
+else
+	CHOMBO_HOME = /home/jkozdon/packages/Chombo/lib
+endif
 
 # names of Chombo libraries needed by this program, in order of search.
 LibNames = AMRTimeDependent AMRTools BoxTools

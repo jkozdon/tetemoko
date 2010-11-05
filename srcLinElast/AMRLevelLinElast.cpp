@@ -1209,7 +1209,7 @@ void AMRLevelLinElast::writePlotLevel(HDF5Handle& a_handle) const
     write(a_handle,m_UNew.boxLayout());
     write(a_handle,m_UNew,"data", IntVect::Unit);
 
-    dumpBoundaryData();
+    // dumpBoundaryData();
 
 //    write(a_handle,m_bdryPsiNew.boxLayout());
 //    write(a_handle,m_bdryPsiNew,"psi", IntVect::Unit);
