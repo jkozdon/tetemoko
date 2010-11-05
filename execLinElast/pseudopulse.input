@@ -36,8 +36,8 @@ comp.domain_length = 100.0
 
 # Coarsest grid
 # comp.num_cells = 32 8 4
-# comp.num_cells = 1024 512 32
-comp.num_cells = 128 64
+comp.num_cells = 1024 512 32
+# comp.num_cells = 128 64
 # comp.is_periodic = 0 0 0
 # 
 # # If not period what boundary type
@@ -49,7 +49,7 @@ comp.num_cells = 128 64
 
 
 # Grid refinement
-comp.max_level = 4
+comp.max_level = 5
 # For 2D
 comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
 # For 3D
