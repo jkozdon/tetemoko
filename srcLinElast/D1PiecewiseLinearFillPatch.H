@@ -146,13 +146,15 @@ virtual  ~D1PiecewiseLinearFillPatch();
     a_problem_domain (not modified): problem domain on the coarse level. \\
     a_ref_ratio (not modified): refinement ratio. \\
     a_interp_radius (not modified): number of layers of fine ghost cells to fill by interpolation. \\
+    a_dir (not modified): direction in which interpolation does not happen.\\
     */
   D1PiecewiseLinearFillPatch(const DisjointBoxLayout& a_fine_domain,
                            const DisjointBoxLayout& a_coarse_domain,
                            int a_num_comps,
                            const Box& a_crse_problem_domain,
                            int a_ref_ratio,
-                           int a_interp_radius
+                           int a_interp_radius,
+                           int a_dir
                            );
 
   ///
@@ -166,13 +168,15 @@ virtual  ~D1PiecewiseLinearFillPatch();
     a_problem_domain (not modified): problem domain on the coarse level. \\
     a_ref_ratio (not modified): refinement ratio. \\
     a_interp_radius (not modified): number of layers of fine ghost cells to fill by interpolation. \\
+    a_dir (not modified): direction in which interpolation does not happen.\\
     */
   D1PiecewiseLinearFillPatch(const DisjointBoxLayout& a_fine_domain,
                            const DisjointBoxLayout& a_coarse_domain,
                            int a_num_comps,
                            const ProblemDomain& a_crse_problem_domain,
                            int a_ref_ratio,
-                           int a_interp_radius
+                           int a_interp_radius,
+                           int a_dir
                            );
 
   ///
@@ -187,6 +191,7 @@ virtual  ~D1PiecewiseLinearFillPatch();
     a_problem_domain (not modified): problem domain on the coarse level. \\
     a_ref_ratio (not modified): refinement ratio. \\
     a_interp_radius (not modified): number of layers of fine ghost cells to fill by interpolation. \\
+    a_dir (not modified): direction in which interpolation does not happen.\\
 
     {\bf This:}\\
     ---This object is modified.---
@@ -198,7 +203,8 @@ virtual  ~D1PiecewiseLinearFillPatch();
          int a_num_comps,
          const Box& a_crse_problem_domain,
          int a_ref_ratio,
-         int a_interp_radius
+         int a_interp_radius,
+         int a_dir
          );
 
   ///
@@ -213,6 +219,7 @@ virtual  ~D1PiecewiseLinearFillPatch();
     a_problem_domain (not modified): problem domain on the coarse level. \\
     a_ref_ratio (not modified): refinement ratio. \\
     a_interp_radius (not modified): number of layers of fine ghost cells to fill by interpolation. \\
+    a_dir (not modified): direction in which interpolation does not happen.\\
 
     {\bf This:}\\
     ---This object is modified.---
@@ -224,7 +231,8 @@ virtual  ~D1PiecewiseLinearFillPatch();
          int a_num_comps,
          const ProblemDomain& a_crse_problem_domain,
          int a_ref_ratio,
-         int a_interp_radius
+         int a_interp_radius,
+         int a_dir
          );
 
   ///
@@ -338,6 +346,8 @@ protected:
   static const int s_stencil_radius;
   // refinement ratio
   int m_ref_ratio;
+  // direction in which interpolation does not happen
+  int m_dir;
   // number of layers of fine ghost cells to fill by interpolation.
   int m_interp_radius;
   // work array for coarse data in grids shaped like the fine level.

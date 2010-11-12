@@ -23,7 +23,7 @@
 #include "Vector.H"
 #include "DisjointBoxLayout.H"
 
-#include "LELevelGodunov.H"
+#include "LinElastLevelGodunov.H"
 #include "PhysIBC.H"
 #include "LEPhysIBC.H"
 #include "LinElastPhysics.H"
@@ -192,6 +192,7 @@ protected:
 
   // Conserved state, U, at old and new time
   LevelData<FArrayBox> m_UOld,m_UNew;
+  LevelData<FArrayBox> m_BOld,m_BNew;
 
   // CFL number
   Real m_cfl;
@@ -201,9 +202,11 @@ protected:
 
   // Interpolation from coarse to fine level
   FineInterp m_fineInterp;
+  FineInterp m_bdryFineInterp;
 
   // Averaging from fine to coarse level
   CoarseAverage m_coarseAverage;
+  CoarseAverage m_bdryCoarseAverage;
 
   // New time step
   Real m_dtNew;
@@ -221,7 +224,7 @@ protected:
   Real m_domainLength;
 
   // Level integrator
-  LELevelGodunov m_LElevelGodunov;
+  LinElastLevelGodunov m_LElevelGodunov;
 
   // Flux register
   LevelFluxRegister m_fluxRegister;

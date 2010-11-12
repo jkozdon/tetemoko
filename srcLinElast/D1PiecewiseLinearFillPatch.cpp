@@ -57,7 +57,8 @@ D1PiecewiseLinearFillPatch::D1PiecewiseLinearFillPatch(
   int a_num_comps,
   const Box& a_crse_problem_domain,
   int a_ref_ratio,
-  int a_interp_radius)
+  int a_interp_radius,
+  int a_dir)
   :
   m_is_defined(false)
 {
@@ -67,7 +68,8 @@ D1PiecewiseLinearFillPatch::D1PiecewiseLinearFillPatch(
          a_num_comps,
          crseProbDomain,
          a_ref_ratio,
-         a_interp_radius);
+         a_interp_radius,
+         a_dir);
 }
 
 D1PiecewiseLinearFillPatch::D1PiecewiseLinearFillPatch(
@@ -76,7 +78,8 @@ D1PiecewiseLinearFillPatch::D1PiecewiseLinearFillPatch(
   int a_num_comps,
   const ProblemDomain& a_crse_problem_domain,
   int a_ref_ratio,
-  int a_interp_radius)
+  int a_interp_radius,
+  int a_dir)
   :
   m_is_defined(false)
 {
@@ -85,7 +88,8 @@ D1PiecewiseLinearFillPatch::D1PiecewiseLinearFillPatch(
          a_num_comps,
          a_crse_problem_domain,
          a_ref_ratio,
-         a_interp_radius);
+         a_interp_radius,
+         a_dir);
 }
 
 void
@@ -95,12 +99,13 @@ D1PiecewiseLinearFillPatch::define(
   int a_num_comps,
   const Box& a_crse_problem_domain,
   int a_ref_ratio,
-  int a_interp_radius
+  int a_interp_radius,
+  int a_dir
   )
 {
   ProblemDomain crseProbDomain(a_crse_problem_domain);
   define(a_fine_domain, a_coarse_domain, a_num_comps,
-         crseProbDomain, a_ref_ratio, a_interp_radius);
+         crseProbDomain, a_ref_ratio, a_interp_radius,a_dir);
 }
 
 void
@@ -110,13 +115,15 @@ D1PiecewiseLinearFillPatch::define(
   int a_num_comps,
   const ProblemDomain& a_crse_problem_domain,
   int a_ref_ratio,
-  int a_interp_radius
+  int a_interp_radius,
+  int a_dir
   )
 {
   CH_TIME("D1PiecewiseLinearFillPatch::define");
   m_ref_ratio = a_ref_ratio;
   m_interp_radius = a_interp_radius;
   m_crse_problem_domain = a_crse_problem_domain;
+  m_dir = a_dir;
 
   const ProblemDomain  fine_problem_domain = refine(m_crse_problem_domain,
                                                     m_ref_ratio);

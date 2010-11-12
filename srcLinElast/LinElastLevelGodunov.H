@@ -8,8 +8,8 @@
  */
 #endif
 
-#ifndef _LELEVELGODUNOV_H_
-#define _LELEVELGODUNOV_H_
+#ifndef _LINELASTLEVELGODUNOV_H_
+#define _LINELASTLEVELGODUNOV_H_
 
 #include "FArrayBox.H"
 #include "FluxBox.H"
@@ -19,29 +19,30 @@
 #include "LevelFluxRegister.H"
 #include "ProblemDomain.H"
 #include "Copier.H"
+#include "LevelGodunov.H"
 
 #include "PatchGodunov.H"
-#include "LinElastPhysics.H"
 #include "NamespaceHeader.H"
 
-/// Level Godunov - really a hyperbolic level integrator
+
+/// Linear Elastic Level Godunov - really a hyperbolic level integrator
 /**
 */
-class LELevelGodunov
+class LinElastLevelGodunov
 {
 public:
     /// Default constructor
     /**
       Object requires define() to be called before all other functions.
       */
-    LELevelGodunov();
+    LinElastLevelGodunov();
 
     /// Destructor
     /**
       Destroys all objects created by define(). Passed in data references
       of define() are left alone.
       */
-    ~LELevelGodunov();
+    ~LinElastLevelGodunov();
 
     /// Actual constructor.
     /**
@@ -50,16 +51,15 @@ public:
       (coding standards).  a_refine is the refinement ratio between
       this level and the next coarser level.  For the coarsest level, an
       empty DisjointBoxLayout is passed in for coarserDisjointBoxLayout.
-
-      This has is just the inherited version plues the boundary data.
       */
     void define(const DisjointBoxLayout&    a_thisDisjointBoxLayout,
-        //BD const DisjointBoxLayout&    a_bdryDisjointBoxLayout,
+        const DisjointBoxLayout&    a_bdryDisjointBoxLayout,
         const DisjointBoxLayout&    a_coarserDisjointBoxLayout,
+        const DisjointBoxLayout&    a_bdryCoarserDisjointBoxLayout,
         const ProblemDomain&        a_domain,
         const int&                  a_refineCoarse,
         const Real&                 a_dx,
-        const LinElastPhysics* const a_godunovFactory,
+        const GodunovPhysics* const a_godunovFactory,
         const int&                  a_normalPredOrder,
         const bool&                 a_useFourthOrderSlopes,
         const bool&                 a_usePrimLimiting,
@@ -84,18 +84,18 @@ public:
       this level is the coarse level.  To the coarser level FR, this level
       is the fine level.  If source terms do not exist, "a_S" should be null
       constructed and not defined (i.e. its define() should not be called).
-
-      This has is just the inherited version plues the boundary data.
       */
     Real step(LevelData<FArrayBox>&       a_U,
-        //BD LevelData<FArrayBox>&       a_bdryPsi,
+        LevelData<FArrayBox>&       a_B,
         LevelData<FArrayBox>        a_flux[CH_SPACEDIM],
         LevelFluxRegister&          a_finerFluxRegister,
         LevelFluxRegister&          a_coarserFluxRegister,
         const LevelData<FArrayBox>& a_S,
         const LevelData<FArrayBox>& a_UCoarseOld,
+        const LevelData<FArrayBox>& a_BCoarseOld,
         const Real&                 a_TCoarseOld,
         const LevelData<FArrayBox>& a_UCoarseNew,
+        const LevelData<FArrayBox>& a_BCoarseNew,
         const Real&                 a_TCoarseNew,
         const Real&                 a_time,
         const Real&                 a_dt);
@@ -131,13 +131,13 @@ public:
 
     /// get the godunovPhysics pointer from the PatchGodunov member
     /**
-      Returns the pointer to the LinElastPhysics object which is
+      Returns the pointer to the GodunovPhysics object which is
       used in the PatchGodunov class.
       */
-    LinElastPhysics* getGodunovPhysicsPtr();
+    GodunovPhysics* getGodunovPhysicsPtr();
 
 
-    const LinElastPhysics* getGodunovPhysicsPtrConst() const ;
+    const GodunovPhysics* getGodunovPhysicsPtrConst() const ;
 
     void highOrderLimiter(bool a_highOrderLimiter);
 
@@ -145,20 +145,28 @@ protected:
     // Box layout for this level
     DisjointBoxLayout m_grids;
 
+    // Boundary box layout for this level
+    DisjointBoxLayout m_bdry;
+
     // Patch integrator
-    PatchGodunov    m_LEpatchGodunov;
+    PatchGodunov    m_patchGodunov;
 
     // Number of ghost cells need locally for this level
     int m_numGhost;
 
     // Exchange copier
     Copier m_exchangeCopier;
+    Copier m_bdryExchangeCopier;
 
     // Temporary storage space for conserved variables
     LevelData<FArrayBox> m_U;
 
+    // Temporary storage space for boundary variables
+    LevelData<FArrayBox> m_B;
+
     // Interpolator for filling in ghost cells from the next coarser level
     PiecewiseLinearFillPatch m_patcher;
+    PiecewiseLinearFillPatch m_bdryPatcher;
 
     // Grid spacing
     Real m_dx;
@@ -199,27 +207,18 @@ protected:
     // Has this object been defined
     bool m_isDefined;
 
-    // Box layout for this level
-    //BD DisjointBoxLayout m_bdryGrids;
-
-    // Temporary storage space for boundary data variables
-    //BD LevelData<FArrayBox> m_bdryPsi;
-
-    // Exchange copier
-    //BD Copier m_bdryExchangeCopier;
-
 
 private:
     // Disallowed for all the usual reasons
-    void operator=(const LELevelGodunov& a_input)
+    void operator=(const LinElastLevelGodunov& a_input)
     {
-        MayDay::Error("invalid operator");
+        MayDay::Error("LinElastLevelGodunov invalid operator");
     }
 
     // Disallowed for all the usual reasons
-    LELevelGodunov(const LELevelGodunov& a_input)
+    LinElastLevelGodunov(const LinElastLevelGodunov& a_input)
     {
-        MayDay::Error("invalid operator");
+        MayDay::Error("LinElastLevelGodunov invalid operator");
     }
 };
 

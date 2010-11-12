@@ -82,7 +82,7 @@ comp.use_artificial_viscosity = 1
 comp.artificial_viscosity = 0.1
 
 # Plot file information
-comp.plot_interval = 10
+comp.plot_interval = 0
 # comp.plot_interval = 1
 comp.plot_prefix  = pseudopulse/pseudopulse.
 
