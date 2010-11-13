@@ -104,7 +104,7 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
         m_gdnvPhysics = NULL;
     }
 
-    m_gdnvPhysics = (LinElastPhysics*) a_godunovPhysics->new_godunovPhysics();
+    m_gdnvPhysics = (GodunovPhysics*) a_godunovPhysics->new_godunovPhysics();
 
     //BD m_bdryUseData = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->hasBdryData();
 
@@ -195,6 +195,7 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     // Number and names of conserved states
     m_numStates  = m_gdnvPhysics->numConserved();
     m_stateNames = m_gdnvPhysics->stateNames();
+    m_numBdryVars = 2;
 
     // Setup the boundary Face box
     //BD m_bdryFaceBox = bdryLo(a_problemDomain.domainBox(),1,1);
@@ -326,9 +327,6 @@ void AMRLevelLinElast::postTimeStep()
 
         amrGodFinerPtr->m_coarseAverage.averageToCoarse(m_UNew,
             amrGodFinerPtr->m_UNew);
-
-        amrGodFinerPtr->m_bdryCoarseAverage.averageToCoarse(m_BNew,
-            amrGodFinerPtr->m_BNew);
     }
 
     if (s_verbosity >= 2 && m_level == 0)
@@ -602,7 +600,7 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
             // So this is silly, I am making a box on every data inner box
             // regardless of whether its on the boundary. But if I have any
             // empty boxes I have problems with BaseFAB later...
-            const Box tmpBndBox = adjCellLo(constGrids[lit()],1,-m_ref_ratio);
+            const Box tmpBndBox = bdryLo(constGrids[lit()],1,1);
             tmpBndGrids.ref(lit()) = tmpBndBox;
             if (s_verbosity >= 4 && !tmpBndBox.isEmpty())
             {
@@ -624,9 +622,9 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
 
     // Reshape state with new grids
     IntVect ivGhost = m_numGhost * IntVect::Unit;
-    IntVect ivBGhost = m_numGhost * (IntVect::Unit - 0*BASISV(1));
+    IntVect ivBGhost = m_numGhost * (IntVect::Unit - BASISV(1));
     m_UNew.define(m_grids,m_numStates,ivGhost);
-    m_BNew.define(m_bdryGrids,1,ivBGhost);
+    m_BNew.define(m_bdryGrids,m_numBdryVars,ivBGhost);
 
     // Reshape the boundary grid
     LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
@@ -644,7 +642,6 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
     {
         AMRLevelLinElast* amrGodCoarserPtr = getCoarserLevel();
         m_fineInterp.interpToFine(m_UNew,amrGodCoarserPtr->m_UNew);
-        m_bdryFineInterp.interpToFine(m_BNew,amrGodCoarserPtr->m_BNew);
     }
 
     // Copy from old state
@@ -658,7 +655,7 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
         m_BNew,
         m_BNew.interval());
 
-    m_BOld.define(m_bdryGrids,1,ivBGhost);
+    m_BOld.define(m_bdryGrids,m_numBdryVars,ivBGhost);
 }
 
 // Initialize grids
@@ -704,7 +701,7 @@ void AMRLevelLinElast::initialGrid(const Vector<Box>& a_newGrids)
             // So this is silly, I am making a box on every data inner box
             // regardless of whether its on the boundary. But if I have any
             // empty boxes I have problems with BaseFAB later...
-            const Box tmpBndBox = adjCellLo(constGrids[lit()],1,-m_ref_ratio);
+            const Box tmpBndBox = bdryLo(constGrids[lit()],1,1);
             tmpBndGrids.ref(lit()) = tmpBndBox;
             if (s_verbosity >= 4 && !tmpBndBox.isEmpty())
             {
@@ -723,9 +720,9 @@ void AMRLevelLinElast::initialGrid(const Vector<Box>& a_newGrids)
     m_UOld.define(m_grids,m_numStates,ivGhost);
 
     // Define the old and new boundary data structures
-    IntVect ivBGhost = m_numGhost*(IntVect::Unit-0*BASISV(1));
-    m_BNew.define(m_bdryGrids,1,ivBGhost);
-    m_BOld.define(m_bdryGrids,1,ivBGhost);
+    IntVect ivBGhost = m_numGhost*(IntVect::Unit-BASISV(1));
+    m_BNew.define(m_bdryGrids,m_numBdryVars,ivBGhost);
+    m_BOld.define(m_bdryGrids,m_numBdryVars,ivBGhost);
 
     // Set up data structures
     levelSetup();
@@ -767,9 +764,6 @@ void AMRLevelLinElast::postInitialize()
 
         amrGodFinerPtr->m_coarseAverage.averageToCoarse(m_UNew,
             amrGodFinerPtr->m_UNew);
-
-        amrGodFinerPtr->m_bdryCoarseAverage.averageToCoarse(m_BNew,
-            amrGodFinerPtr->m_BNew);
     }
 }
 
@@ -1188,36 +1182,36 @@ void AMRLevelLinElast::writePlotLevel(HDF5Handle& a_handle) const
 //    write(a_handle,m_bdryPsiNew,"psi", IntVect::Unit);
 }
 
-void AMRLevelLinElast::dumpBoundaryData() const
-{
-    const DisjointBoxLayout& levelDomain = m_UNew.disjointBoxLayout();
-    DataIterator dit = levelDomain.dataIterator();
-
-    char fileName[500];
-    sprintf(fileName,"boundDump/boundDump.t%f.p%d.l%d",m_time,procID(),m_level);
-    // pout() << fileName;
-    FILE * dumpFile;
-    dumpFile = fopen(fileName,"w");
-
-    for (dit.begin(); dit.ok(); ++dit)
-    {
-        const Box& b = levelDomain[dit()];
-        if(b.smallEnd()[1] == 0)
-        {
-            const FArrayBox& UFab = m_UNew[dit()];
-            for(int itor = b.smallEnd()[0]; itor <= b.bigEnd()[0]; itor++)
-            {
-                fprintf(dumpFile, "%f %d %d %f ",m_time, m_level, itor, itor*m_dx);
-                for(int comp = 0; comp < 9; comp++)
-                {
-                    fprintf(dumpFile, "%f ",UFab.get(IntVect(itor,0),comp));
-                }
-                fprintf(dumpFile, "\n");
-            }
-        }
-    }
-    fclose(dumpFile);
-}
+// void AMRLevelLinElast::dumpBoundaryData() const
+// {
+//     const DisjointBoxLayout& levelDomain = m_UNew.disjointBoxLayout();
+//     DataIterator dit = levelDomain.dataIterator();
+// 
+//     char fileName[500];
+//     sprintf(fileName,"boundDump/boundDump.t%f.p%d.l%d",m_time,procID(),m_level);
+//     // pout() << fileName;
+//     FILE * dumpFile;
+//     dumpFile = fopen(fileName,"w");
+// 
+//     for (dit.begin(); dit.ok(); ++dit)
+//     {
+//         const Box& b = levelDomain[dit()];
+//         if(b.smallEnd()[1] == 0)
+//         {
+//             const FArrayBox& UFab = m_UNew[dit()];
+//             for(int itor = b.smallEnd()[0]; itor <= b.bigEnd()[0]; itor++)
+//             {
+//                 fprintf(dumpFile, "%f %d %d %f ",m_time, m_level, itor, itor*m_dx);
+//                 for(int comp = 0; comp < 9; comp++)
+//                 {
+//                     fprintf(dumpFile, "%f ",UFab.get(IntVect(itor,0),comp));
+//                 }
+//                 fprintf(dumpFile, "\n");
+//             }
+//         }
+//     }
+//     fclose(dumpFile);
+// }
 
 #endif
 
@@ -1331,17 +1325,8 @@ void AMRLevelLinElast::levelSetup()
             m_numStates,
             nRefCrse);
 
-        m_bdryCoarseAverage.define(m_bdryGrids,
-            1,
-            nRefCrse);
-
         m_fineInterp.define(m_grids,
             m_numStates,
-            nRefCrse,
-            m_problem_domain);
-
-        m_bdryFineInterp.define(m_bdryGrids,
-            1,
             nRefCrse,
             m_problem_domain);
 

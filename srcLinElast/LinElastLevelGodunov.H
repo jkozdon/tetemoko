@@ -166,7 +166,6 @@ protected:
 
     // Interpolator for filling in ghost cells from the next coarser level
     PiecewiseLinearFillPatch m_patcher;
-    PiecewiseLinearFillPatch m_bdryPatcher;
 
     // Grid spacing
     Real m_dx;
@@ -176,6 +175,9 @@ protected:
 
     // Refinement ratio between this level and the next coarser
     int m_refineCoarse;
+
+    // Number of boundary variables
+    int m_numBdryVars;
 
     // Number of conserved variables
     int m_numCons;

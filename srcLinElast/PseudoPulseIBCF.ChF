@@ -94,6 +94,28 @@ C
 
 
 C
+C This is a constant initial data
+C
+        subroutine PSEUDOPULSESETBND(
+     &    CHF_FRA[B],
+     &    CHF_BOX[box],
+     &    CHF_CONST_FRA[U])
+
+        integer CHF_DDECL[i;j;k]
+
+        CHF_MULTIDO[box;i;j;k]
+
+C         Only south face slip velocity
+          B(CHF_IX[i;j;k],0) = SQRT(U(CHF_IX[i;j;k],0)**2 + U(CHF_IX[i;j;k],2))
+          B(CHF_IX[i;j;k],1) = SQRT(U(CHF_IX[i;j;k],6)**2 + U(CHF_IX[i;j;k],8))
+
+        CHF_ENDDO
+        
+        return
+        end
+
+
+C
 C Set the the boundary flux for a simple fault which is governed by an
 C arcsinh friction law with a time-space dependent normal stress.
 C

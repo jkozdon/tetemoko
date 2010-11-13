@@ -134,6 +134,7 @@ void PseudoPulseIBC::primBC(FArrayBox& a_WGdnv,
                     CHF_CONST_REAL(a_time),
                     CHF_CONST_INT(a_dir),
                     CHF_BOX(boundaryBox));
+                // pout() << "Boundary Box :: " << m_bdryData->box() << " :: for box :: " << a_WGdnv.box() << endl;
             }
             else
             {
@@ -193,4 +194,14 @@ void PseudoPulseIBC::artViscBC(FArrayBox&       a_F,
     const Real&      a_time)
 {
     pout() << "NOT SETUP :: PseudoPulseIBC::artViscBC" << endl;
+}
+
+void PseudoPulseIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir)
+{
+    if(a_dir == 1 && bdryLo(m_domain,1).contains(bdryLo(a_WHalf.box(),1)))
+    {
+        FORT_PSEUDOPULSESETBND(CHF_FRA((*m_bdryData)),
+            CHF_BOX(bdryLo(a_WHalf.box(),1)),
+            CHF_CONST_FRA(a_WHalf));
+    }
 }

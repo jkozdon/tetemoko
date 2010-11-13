@@ -18,6 +18,8 @@
 #include "AMRIO.H"
 #include "SPMD.H"
 #include "PhysIBC.H"
+#include "LEPhysIBC.H"
+#include "GodunovPhysics.H"
 #include "LoHiSide.H"
 #include "CH_Timer.H"
 
@@ -121,13 +123,14 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
         GodunovPhysics* nonConstPhysicsPtr = (GodunovPhysics*) a_gdnvPhysics;
         m_numCons   = nonConstPhysicsPtr->numConserved();
         m_numFluxes = nonConstPhysicsPtr->numFluxes();
+        m_numBdryVars = 2;
     }
 
     m_exchangeCopier.exchangeDefine(a_thisDisjointBoxLayout,
         m_numGhost*IntVect::Unit);
 
     m_bdryExchangeCopier.exchangeDefine(a_bdryDisjointBoxLayout,
-        m_numGhost*(IntVect::Unit-0*BASISV(1)));
+        m_numGhost*(IntVect::Unit-BASISV(1)));
 
     // Setup an interval corresponding to the conserved variables
     Interval UInterval(0,m_numCons-1);
@@ -136,7 +139,7 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
     {
         CH_TIME("setup::Udefine");
         m_U.define(m_grids,m_numCons,m_numGhost*IntVect::Unit);
-        m_B.define(m_bdry, 1,m_numGhost*(IntVect::Unit-0*BASISV(1)));
+        m_B.define(m_bdry, m_numBdryVars,m_numGhost*(IntVect::Unit-BASISV(1)));
     }
 
     // Set up the interpolator if there is a coarser level
@@ -145,12 +148,6 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
         m_patcher.define(a_thisDisjointBoxLayout,
             a_coarserDisjointBoxLayout,
             m_numCons,
-            coarsen(a_domain,a_refineCoarse),
-            a_refineCoarse,
-            m_numGhost);
-        m_bdryPatcher.define(a_bdryDisjointBoxLayout,
-            a_bdryCoarserDisjointBoxLayout,
-            1,
             coarsen(a_domain,a_refineCoarse),
             a_refineCoarse,
             m_numGhost);
@@ -252,11 +249,6 @@ Real LinElastLevelGodunov::step(LevelData<FArrayBox>&       a_U,
             a_UCoarseNew,
             alpha,
             0,0,m_numCons);
-        m_bdryPatcher.fillInterp(m_B,
-            a_BCoarseOld,
-            a_BCoarseNew,
-            alpha,
-            0,0,1);
     }
 
     // Potentially used in boundary conditions
@@ -299,6 +291,7 @@ Real LinElastLevelGodunov::step(LevelData<FArrayBox>&       a_U,
         Real maxWaveSpeedGrid;
 
         //JK Push the current boundary data to m_patchGodunov
+        ((LEPhysIBC*)m_patchGodunov.getGodunovPhysicsPtr()->getPhysIBC())->setBdryData(&curB);
 
         // Update the current grid's conserved variables, return the final
         // fluxes used for this, and the maximum wave speed for this grid

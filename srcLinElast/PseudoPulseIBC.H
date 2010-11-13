@@ -92,6 +92,10 @@ public:
             const int&       a_dir,
             const Real&      a_time);
 
+    /// Store pointer to boundary data
+    /**
+    */
+    virtual void updateBoundary(const FArrayBox& a_WHalf,int dir);
 
 protected:
     bool m_isFortranCommonSet;

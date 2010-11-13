@@ -69,6 +69,23 @@ public:
       */
     int numFluxes();
 
+    /// Compute the increment in the conserved variables from face variables.
+    /**
+      Compute dU = dt*dUdt, the change in the conserved variables over
+      the time step. The fluxes are returned are suitable for use in refluxing.
+      This has a default implementation but can be redefined as needed.
+      */
+    void computeUpdate(FArrayBox&       a_dU,
+        FluxBox&         a_F,
+        const FArrayBox& a_U,
+        const FluxBox&   a_WHalf,
+        const bool&      a_useArtificialViscosity,
+        const Real&      a_artificialViscosity,
+        const Real&      a_currentTime,
+        const Real&      a_dx,
+        const Real&      a_dt,
+        const Box&       a_box);
+
     /// Compute a flux from primitive variable values on a face
     /**
     */
@@ -155,30 +172,6 @@ public:
         const int&       a_dir,
         /// face-centered box on which to set a_WStar
         const Box&       a_box);
-
-    /// Compute the solution to the Riemann problem with boundary data.
-    /**
-      Given input left and right states in a direction, a_dir, compute a
-      Riemann problem and generate fluxes at the faces within a_box.
-      */
-    void riemannBdry(/// face-centered solution to Riemann problem
-        FArrayBox&       a_WStar,
-        /// left state, on cells to left of each face
-        const FArrayBox& a_WLeft,
-        /// right state, on cells to right of each face
-        const FArrayBox& a_WRight,
-        /// state on cells, used to set boundary conditions
-        const FArrayBox& a_W,
-        /// state of the boundary data
-        const FArrayBox& a_Psi,
-        /// current time
-        const Real&      a_time,
-        /// direction of faces
-        const int&       a_dir,
-        /// face-centered box on which to set a_WStar
-        const Box&       a_box,
-        /// face-centered boundary box
-        const Box&       a_bdryBox);
 
     /// Post-normal predictor calculation.
     /**

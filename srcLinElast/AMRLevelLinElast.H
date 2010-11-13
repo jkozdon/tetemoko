@@ -26,7 +26,7 @@
 #include "LinElastLevelGodunov.H"
 #include "PhysIBC.H"
 #include "LEPhysIBC.H"
-#include "LinElastPhysics.H"
+#include "GodunovPhysics.H"
 
 #include "UsingNamespace.H"
 
@@ -202,17 +202,18 @@ protected:
 
   // Interpolation from coarse to fine level
   FineInterp m_fineInterp;
-  FineInterp m_bdryFineInterp;
 
   // Averaging from fine to coarse level
   CoarseAverage m_coarseAverage;
-  CoarseAverage m_bdryCoarseAverage;
 
   // New time step
   Real m_dtNew;
 
   // Number of conserved states
   int m_numStates;
+
+  // Number of boundary varialbes
+  int m_numBdryVars;
 
   // Names of conserved states
   Vector<string> m_stateNames;
@@ -230,7 +231,7 @@ protected:
   LevelFluxRegister m_fluxRegister;
 
   // Pointer to the class defining the physics of the problem
-  LinElastPhysics* m_gdnvPhysics;
+  GodunovPhysics* m_gdnvPhysics;
 
   // Order of the normal predictor (1 -> PLM, 2-> PPM)
   int m_normalPredOrder;

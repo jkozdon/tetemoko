@@ -37,7 +37,7 @@ comp.domain_length = 100.0
 # Coarsest grid
 # comp.num_cells = 32 8 4
 # comp.num_cells = 1024 512 32
-comp.num_cells = 128 64
+comp.num_cells = 128 64 128
 # comp.is_periodic = 0 0 0
 # 
 # # If not period what boundary type

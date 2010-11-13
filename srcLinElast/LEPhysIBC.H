@@ -23,20 +23,6 @@ class LEPhysIBC: public PhysIBC
 {
 public:
 
-    /// Set boundary primitive values.
-    /**
-    */
-    virtual void primBC(FArrayBox& a_WGdnv,
-        const FArrayBox&      a_WshiftInside,
-        const FArrayBox&      a_W,
-        const FArrayBox&      a_Psi,
-        const int&            a_dir,
-        const Side::LoHiSide& a_side,
-        const Real&           a_time)
-    {
-        MayDay::Error("No boundary data for this problem");
-    }
-
 
     /// Set up initial conditions for the boundary data
     /**
@@ -54,7 +40,24 @@ public:
         return (0 == 1);
     }
 
+    /// Store pointer to boundary data
+    /**
+    */
+    virtual void setBdryData(FArrayBox* a_bdryData)
+    {
+        m_bdryData = a_bdryData;
+    }
+
+    /// Store pointer to boundary data
+    /**
+    */
+    virtual void updateBoundary(const FArrayBox& a_WHalf,int dir)
+    {
+        // Default implementation is to do nothing
+    }
+
 protected:
+    FArrayBox* m_bdryData;
 private:
 };
 
