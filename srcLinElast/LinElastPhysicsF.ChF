@@ -148,8 +148,11 @@ C
 
         CHF_MULTIDO[box;i;j;k]
           if(j .eq. 0
+          CHF_DTERM[
      &       .and. ((i + 1) * dx) .ge. refLocation 
-     &       .and. ((i    ) * dx) .le. refLocation) then
+     &       .and. ((i    ) * dx) .le. refLocation;;
+     &       .and. ((k + 1) * dx) .ge. refLocation 
+     &       .and. ((k    ) * dx) .le. refLocation]) then
 
               markCells(CHF_IX[i;j;k]) = 1
 

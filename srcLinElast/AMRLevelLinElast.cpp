@@ -196,6 +196,8 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     m_numStates  = m_gdnvPhysics->numConserved();
     m_stateNames = m_gdnvPhysics->stateNames();
     m_numBdryVars = 2;
+    m_bdryNames.push_back("V");
+    m_bdryNames.push_back("tau");
 
     // Setup the boundary Face box
     //BD m_bdryFaceBox = bdryLo(a_problemDomain.domainBox(),1,1);
@@ -642,6 +644,7 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
     {
         AMRLevelLinElast* amrGodCoarserPtr = getCoarserLevel();
         m_fineInterp.interpToFine(m_UNew,amrGodCoarserPtr->m_UNew);
+        //BD m_fineBndInterp.interpToFine(m_BNew,amrGodCoarserPtr->m_BNew);
     }
 
     // Copy from old state
@@ -740,10 +743,10 @@ void AMRLevelLinElast::initialData()
 
     LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
     lephysIBCPtr->initialize(m_UNew);
-    if(m_bdryUseData)
-    {
-        lephysIBCPtr->initializeBdry(m_bdryPsiNew);
-    }
+    //BD if(m_bdryUseData)
+    //BD {
+    //BD     lephysIBCPtr->initializeBdry(m_bdryPsiNew);
+    //BD }
 }
 
 // Things to do after initialization
@@ -1121,9 +1124,6 @@ void AMRLevelLinElast::writePlotHeader(HDF5Handle& a_handle) const
         header.m_string[compStr] = m_stateNames[comp];
     }
 
-    header.m_int["num_boundary"] = 1;
-    header.m_string["boundary"] = "psi";
-
     // Write the header
     header.writeToFile(a_handle);
     a_handle.setGroup("/Expressions");
@@ -1175,43 +1175,121 @@ void AMRLevelLinElast::writePlotLevel(HDF5Handle& a_handle) const
     // Write the data for this level
     write(a_handle,m_UNew.boxLayout());
     write(a_handle,m_UNew,"data", IntVect::Unit);
-
-    // dumpBoundaryData();
-
-//    write(a_handle,m_bdryPsiNew.boxLayout());
-//    write(a_handle,m_bdryPsiNew,"psi", IntVect::Unit);
 }
 
-// void AMRLevelLinElast::dumpBoundaryData() const
-// {
-//     const DisjointBoxLayout& levelDomain = m_UNew.disjointBoxLayout();
-//     DataIterator dit = levelDomain.dataIterator();
-// 
-//     char fileName[500];
-//     sprintf(fileName,"boundDump/boundDump.t%f.p%d.l%d",m_time,procID(),m_level);
-//     // pout() << fileName;
-//     FILE * dumpFile;
-//     dumpFile = fopen(fileName,"w");
-// 
-//     for (dit.begin(); dit.ok(); ++dit)
-//     {
-//         const Box& b = levelDomain[dit()];
-//         if(b.smallEnd()[1] == 0)
-//         {
-//             const FArrayBox& UFab = m_UNew[dit()];
-//             for(int itor = b.smallEnd()[0]; itor <= b.bigEnd()[0]; itor++)
-//             {
-//                 fprintf(dumpFile, "%f %d %d %f ",m_time, m_level, itor, itor*m_dx);
-//                 for(int comp = 0; comp < 9; comp++)
-//                 {
-//                     fprintf(dumpFile, "%f ",UFab.get(IntVect(itor,0),comp));
-//                 }
-//                 fprintf(dumpFile, "\n");
-//             }
-//         }
-//     }
-//     fclose(dumpFile);
-// }
+// Write boundary plotfile data for this level
+void AMRLevelLinElast::writeCustomPlotFile(const std::string& a_prefix,
+    const int& a_max_level,
+    const int& a_finest_level,
+    const int& a_cur_step,
+    const Real& a_cur_time)
+{
+  CH_TIME("AMR::writePlotFile");
+
+  CH_assert(m_isDefined);
+
+  if (s_verbosity >= 3)
+    {
+      pout() << "AMRLevelLinElast::writeCustomPlotFile" << endl;
+    }
+
+  char iter_str[80];
+
+  sprintf(iter_str,
+          "%sboundary.%06d.%dd.hdf5",
+          a_prefix.c_str(), a_cur_step, SpaceDim);
+
+  if (s_verbosity >= 2)
+    {
+      pout() << "plot file name = " << iter_str << endl;
+    }
+
+  HDF5Handle handle(iter_str, HDF5Handle::CREATE);
+
+  // write amr data
+  HDF5HeaderData header;
+  header.m_int ["max_level"]  = a_max_level;
+  header.m_int ["num_levels"] = a_finest_level + 1;
+  header.m_int ["iteration"]  = a_cur_step;
+  header.m_real["time"]       = a_cur_time;
+
+  // write the boundary physics class header data
+
+  // Setup the number of components
+  header.m_int["num_components"] = m_numBdryVars;
+
+  // Setup the component names
+  char compStr[30];
+  for (int comp = 0; comp < m_numBdryVars; ++comp)
+  {
+      sprintf(compStr,"component_%d",comp);
+      header.m_string[compStr] = m_bdryNames[comp];
+  }
+
+  if (s_verbosity >= 3)
+  {
+      pout() << header << endl;
+  }
+
+  header.writeToFile(handle);
+
+  // handle.setGroup("/Expressions");
+  // HDF5HeaderData expressions;
+  // m_LElevelGodunov.getGodunovPhysicsPtrConst()->expressions(expressions);
+  // expressions.writeToFile(handle);
+
+  if (s_verbosity >= 3)
+  {
+      pout() << header << endl;
+  }
+
+  // write physics class per-level data
+  writeThisBdryLevel(handle);
+
+  handle.close();
+}
+
+void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle)
+{
+    //JK Need to fix this so that it only puts data on the boundary
+    if (s_verbosity >= 3)
+    {
+        pout() << "AMRLevelLinElast::writeThisBdryLevel" << endl;
+    }
+
+    // Setup the level string
+    char levelStr[20];
+    sprintf(levelStr,"%d",m_level);
+    const std::string label = std::string("level_") + levelStr;
+
+    a_handle.setGroup(label);
+
+    // Setup the level header information
+    HDF5HeaderData header;
+
+    header.m_int ["ref_ratio"]   = m_ref_ratio;
+    header.m_real["dx"]          = m_dx;
+    header.m_real["dt"]          = m_dt;
+    header.m_real["time"]        = m_time;
+    header.m_box ["prob_domain"] = m_problem_domain.domainBox();
+
+    // Write the header for this level
+    header.writeToFile(a_handle);
+
+    if (s_verbosity >= 3)
+    {
+        pout() << header << endl;
+    }
+
+    // Write the data for this level
+    write(a_handle,m_BNew.boxLayout());
+    write(a_handle,m_BNew,"data", IntVect::Unit);
+
+    if (m_hasFiner)
+    {
+        getFinerLevel()->writeThisBdryLevel(a_handle);
+    }
+}
 
 #endif
 
@@ -1329,6 +1407,11 @@ void AMRLevelLinElast::levelSetup()
             m_numStates,
             nRefCrse,
             m_problem_domain);
+
+        //BDm_fineBndInterp.define(m_bdryGrids,
+        //BD    m_numBdryVars,
+        //BD    nRefCrse,
+        //BD    m_problem_domain);
 
         const DisjointBoxLayout& coarserLevelDomain = amrGodCoarserPtr->m_grids;
         const DisjointBoxLayout& bdryCoarserLevelDomain = amrGodCoarserPtr->m_bdryGrids;

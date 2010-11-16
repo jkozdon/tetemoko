@@ -16,6 +16,8 @@
 #include "AMRLevel.H"
 #include "CoarseAverage.H"
 #include "FineInterp.H"
+#include "CoarseAverageFace.H"
+#include "FineInterpFace.H"
 #include "LevelFluxRegister.H"
 #include "Box.H"
 #include "IntVectSet.H"
@@ -154,7 +156,17 @@ public:
    */
   virtual void writePlotLevel(HDF5Handle& a_handle) const;
 
-  void dumpBoundaryData() const;
+  //// pass the user stuff to do their own plot files
+  /**
+   * Allows doing your own plot files. Only called on the first level, user must
+   * handle all other functionality.
+   */
+  virtual void writeCustomPlotFile(const std::string& a_prefix,
+      const int& a_max_level,
+      const int& a_finest_level,
+      const int& a_step,
+      const Real& a_time);
+
 #endif
 
   /// Returns the dt computed earlier for this level
@@ -175,7 +187,6 @@ public:
 
   ///
   bool allDefined() const;
-
 
 protected:
   // Create a load-balanced DisjointBoxLayout from a collection of Boxes
@@ -202,9 +213,11 @@ protected:
 
   // Interpolation from coarse to fine level
   FineInterp m_fineInterp;
+  FineInterpFace m_fineBndInterp;
 
   // Averaging from fine to coarse level
   CoarseAverage m_coarseAverage;
+  CoarseAverageFace m_coarseBndAverage;
 
   // New time step
   Real m_dtNew;
@@ -217,6 +230,7 @@ protected:
 
   // Names of conserved states
   Vector<string> m_stateNames;
+  Vector<string> m_bdryNames;
 
   // Number of ghost cells (in each direction)
   int m_numGhost;
@@ -282,9 +296,6 @@ protected:
   // Boundary Grid Layout for this level
   DisjointBoxLayout m_bdryGrids;
 
-  // State Variable at the fault
-  LevelData<FArrayBox> m_bdryPsiOld,m_bdryPsiNew;
-
 private:
   // Disallowed for all the usual reasons
   void operator=(const AMRLevelLinElast& a_input)
@@ -297,6 +308,9 @@ private:
   {
     MayDay::Error("invalid operator");
   }
+#ifdef CH_USE_HDF5
+  void writeThisBdryLevel(HDF5Handle& a_handle);
+#endif
 };
 
 #endif
