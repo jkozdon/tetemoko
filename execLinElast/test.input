@@ -8,7 +8,7 @@ physics.mu = 30
 
 # Set the background values
 #                      vx   vy   vz  sxx   syy  szz  sxy  sxz  syz
-physics.background =    0    0   0     0  -126    0   30   30   30
+physics.background =    0    0   0     0  -126    0   30    0    0
 #physics.background =    0    0    0    0 -126    0    0    0  126
 # physics.background = 10 10 10 10 10 10 10 10 10
 # physics.background = 0 0 10 0 0 0 0 0 0
@@ -24,7 +24,7 @@ physics.stop_time    = 30
 
 # Turn on some output
 # comp.verbosity = 10
-comp.verbosity = 1
+comp.verbosity = 2
 
 # Number of steps, final time, and time step
 comp.max_step = 10

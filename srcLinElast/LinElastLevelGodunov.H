@@ -12,6 +12,7 @@
 #define _LINELASTLEVELGODUNOV_H_
 
 #include "FArrayBox.H"
+#include "GridData.H"
 #include "FluxBox.H"
 #include "DisjointBoxLayout.H"
 #include "LevelData.H"
@@ -87,6 +88,7 @@ public:
       */
     Real step(LevelData<FArrayBox>&       a_U,
         LevelData<FArrayBox>&       a_B,
+        LayoutData<GridData>&       a_relateUB,
         LevelData<FArrayBox>        a_flux[CH_SPACEDIM],
         LevelFluxRegister&          a_finerFluxRegister,
         LevelFluxRegister&          a_coarserFluxRegister,

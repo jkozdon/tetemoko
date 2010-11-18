@@ -164,6 +164,7 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
 // defined (i.e. its define() should not be called).
 Real LinElastLevelGodunov::step(LevelData<FArrayBox>&       a_U,
     LevelData<FArrayBox>&       a_B,
+    LayoutData<GridData>&       a_relateUB,
     LevelData<FArrayBox>        a_flux[CH_SPACEDIM],
     LevelFluxRegister&          a_finerFluxRegister,
     LevelFluxRegister&          a_coarserFluxRegister,
@@ -203,6 +204,9 @@ Real LinElastLevelGodunov::step(LevelData<FArrayBox>&       a_U,
         for (DataIterator dit = m_U.dataIterator(); dit.ok(); ++dit)
         {
             m_U[dit()].copy(a_U[dit()]);
+        }
+        for (DataIterator dit = m_B.dataIterator(); dit.ok(); ++dit)
+        {
             m_B[dit()].copy(a_B[dit()]);
         }
 
@@ -272,7 +276,6 @@ Real LinElastLevelGodunov::step(LevelData<FArrayBox>&       a_U,
 
         // The current grid of conserved variables
         FArrayBox& curU = m_U[dit()];
-        FArrayBox& curB = m_B[dit()];
 
         // The current source terms if they exist
         const FArrayBox* source = &zeroSource;
@@ -291,7 +294,11 @@ Real LinElastLevelGodunov::step(LevelData<FArrayBox>&       a_U,
         Real maxWaveSpeedGrid;
 
         //JK Push the current boundary data to m_patchGodunov
-        ((LEPhysIBC*)m_patchGodunov.getGodunovPhysicsPtr()->getPhysIBC())->setBdryData(&curB);
+        if(a_relateUB[dit()].hasBdryData())
+        {
+            FArrayBox& curB = m_B[a_relateUB[dit()].getBdryIndex()];
+            ((LEPhysIBC*)m_patchGodunov.getGodunovPhysicsPtr()->getPhysIBC())->setBdryData(&curB);
+        }
 
         // Update the current grid's conserved variables, return the final
         // fluxes used for this, and the maximum wave speed for this grid
@@ -345,6 +352,9 @@ Real LinElastLevelGodunov::step(LevelData<FArrayBox>&       a_U,
         for (DataIterator dit = m_U.dataIterator(); dit.ok(); ++dit)
         {
             a_U[dit()].copy(m_U[dit()]);
+        }
+        for (DataIterator dit = m_B.dataIterator(); dit.ok(); ++dit)
+        {
             a_B[dit()].copy(m_B[dit()]);
         }
     }

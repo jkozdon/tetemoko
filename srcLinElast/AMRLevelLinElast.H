@@ -12,12 +12,11 @@
 #define _AMRLEVELPOLYTROPICGAS_H_
 
 #include "FArrayBox.H"
+#include "GridData.H"
 #include "LevelData.H"
 #include "AMRLevel.H"
 #include "CoarseAverage.H"
 #include "FineInterp.H"
-#include "CoarseAverageFace.H"
-#include "FineInterpFace.H"
 #include "LevelFluxRegister.H"
 #include "Box.H"
 #include "IntVectSet.H"
@@ -192,6 +191,9 @@ protected:
   // Create a load-balanced DisjointBoxLayout from a collection of Boxes
   DisjointBoxLayout loadBalance(const Vector<Box>& a_grids);
 
+  // setup the pointers in the relateUB layoutData object
+  void setupRelateUB();
+
   // Setup menagerie of data structures
   void levelSetup();
 
@@ -204,6 +206,8 @@ protected:
   // Conserved state, U, at old and new time
   LevelData<FArrayBox> m_UOld,m_UNew;
   LevelData<FArrayBox> m_BOld,m_BNew;
+  LevelData<FArrayBox> m_BOld_old,m_BNew_old;
+  LayoutData<GridData> m_relateUB;
 
   // CFL number
   Real m_cfl;
@@ -213,11 +217,9 @@ protected:
 
   // Interpolation from coarse to fine level
   FineInterp m_fineInterp;
-  FineInterpFace m_fineBndInterp;
 
   // Averaging from fine to coarse level
   CoarseAverage m_coarseAverage;
-  CoarseAverageFace m_coarseBndAverage;
 
   // New time step
   Real m_dtNew;
@@ -294,6 +296,7 @@ protected:
   Box m_bdryFaceBox;
 
   // Boundary Grid Layout for this level
+  DisjointBoxLayout m_bdryGrids_old;
   DisjointBoxLayout m_bdryGrids;
 
 private:
