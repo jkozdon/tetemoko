@@ -55,6 +55,8 @@ public:
     */
     virtual void initialize(LevelData<FArrayBox>& a_U);
 
+    virtual void initializeBdry(LevelData<FArrayBox>& a_B);
+
     /// Set up initial boundary data
     /**
     */

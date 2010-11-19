@@ -75,27 +75,6 @@ C
 C
 C This is a constant initial data
 C
-        subroutine PSEUDOPULSESETFAB(
-     &    CHF_FRA1[U],
-     &    CHF_BOX[box],
-     &    CHF_CONST_REAL[val])
-
-        integer CHF_DDECL[i;j;k]
-        real_t CHF_DDECL[x;y;z]
-
-        CHF_MULTIDO[box;i;j;k]
-
-          U(CHF_IX[i;j;k]) = val
-
-        CHF_ENDDO
-        
-        return
-        end
-
-
-C
-C This is a constant initial data
-C
         subroutine PSEUDOPULSESETBND(
      &    CHF_FRA[B],
      &    CHF_BOX[box],
@@ -109,7 +88,7 @@ C
 C         Only south face slip velocity
           B(CHF_IX[i;j;k],0) = SQRT(U(CHF_IX[i;j;k],0)**2 + U(CHF_IX[i;j;k],2))
           B(CHF_IX[i;j;k],1) = SQRT(U(CHF_IX[i;j;k],6)**2 + U(CHF_IX[i;j;k],8))
-          B(CHF_IX[i;j;k],2) = dt*B(CHF_IX[i;j;k],0);
+          B(CHF_IX[i;j;k],2) = B(CHF_IX[i;j;k],2)+dt*B(CHF_IX[i;j;k],0);
 
         CHF_ENDDO
         

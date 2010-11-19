@@ -16,8 +16,8 @@ physics.background =    0    0   0     0  -126    0   30    0    0
 physics.center_scale = -50
 physics.slope        = 100
 physics.dTau         = 20
-physics.Vr           = 1.6
-physics.Vh           = 0
+physics.Vr           = 0.8
+physics.Vh           = 0.5
 physics.jump_time    = 0
 physics.stop_time    = 30
 
@@ -27,8 +27,8 @@ physics.stop_time    = 30
 comp.verbosity = 1
 
 # Number of steps, final time, and time step
-comp.max_step = 10
-comp.max_time = 10
+comp.max_step = 100
+comp.max_time = 100
 # comp.fixed_dt = 0.002
 
 # Size of the domain's longest dimension
@@ -49,11 +49,11 @@ comp.num_cells = 128 64 128
 
 
 # Grid refinement
-comp.max_level = 1
+comp.max_level = 3
 # For 2D
 # comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
 # For 3D
-comp.ref_ratio = 4 4 4 4 4
+comp.ref_ratio = 2 2 2 2 2
 
 # Regridding parameters
 comp.regrid_interval = 2 2 2 2 2 2 2 2 2 2

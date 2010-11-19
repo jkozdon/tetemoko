@@ -835,3 +835,25 @@ c
 
         return
         end
+
+C
+C This is a constant initial data
+C
+        subroutine LINELASTSETFAB(
+     &    CHF_FRA1[U],
+     &    CHF_BOX[box],
+     &    CHF_CONST_REAL[val])
+
+        integer CHF_DDECL[i;j;k]
+        real_t CHF_DDECL[x;y;z]
+
+        CHF_MULTIDO[box;i;j;k]
+
+          U(CHF_IX[i;j;k]) = val
+
+        CHF_ENDDO
+        
+        return
+        end
+
+

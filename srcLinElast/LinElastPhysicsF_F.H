@@ -489,6 +489,31 @@ inline void FORTRAN_NAME(inlineLINELASTSETF, inlineLINELASTSETF)(
 }
 #endif  // GUARDLINELASTSETF 
 
+#ifndef GUARDLINELASTSETFAB 
+#define GUARDLINELASTSETFAB 
+// Prototype for Fortran procedure LINELASTSETFAB ...
+//
+void FORTRAN_NAME( LINELASTSETFAB ,linelastsetfab )(
+      CHFp_FRA1(U)
+      ,CHFp_BOX(box)
+      ,CHFp_CONST_REAL(val) );
+
+#define FORT_LINELASTSETFAB FORTRAN_NAME( inlineLINELASTSETFAB, inlineLINELASTSETFAB)
+#define FORTNT_LINELASTSETFAB FORTRAN_NAME( LINELASTSETFAB, linelastsetfab)
+
+inline void FORTRAN_NAME(inlineLINELASTSETFAB, inlineLINELASTSETFAB)(
+      CHFp_FRA1(U)
+      ,CHFp_BOX(box)
+      ,CHFp_CONST_REAL(val) )
+{
+ CH_TIMELEAF("FORT_LINELASTSETFAB");
+ FORTRAN_NAME( LINELASTSETFAB ,linelastsetfab )(
+      CHFt_FRA1(U)
+      ,CHFt_BOX(box)
+      ,CHFt_CONST_REAL(val) );
+}
+#endif  // GUARDLINELASTSETFAB 
+
 }
 
 #endif

@@ -337,8 +337,8 @@ void AMRLevelLinElast::postTimeStep()
         amrGodFinerPtr->m_coarseAverage.averageToCoarse(m_UNew,
             amrGodFinerPtr->m_UNew);
 
-        // amrGodFinerPtr->m_bdryCoarseAverage.averageToCoarse(m_BNew,
-        //     amrGodFinerPtr->m_BNew);
+        amrGodFinerPtr->m_bdryCoarseAverage.averageToCoarse(m_BNew,
+            amrGodFinerPtr->m_BNew);
     }
 
     if (s_verbosity >= 2 && m_level == 0)
@@ -703,7 +703,7 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
     lephysIBCPtr->initialize(m_UNew);
     //BD if(m_bdryUseData)
     //BD {
-    //BD     lephysIBCPtr->initializeBdry(m_bdryPsiNew);
+    lephysIBCPtr->initializeBdry(m_BNew);
     //BD }
 
     // Set up data structures
@@ -880,7 +880,7 @@ void AMRLevelLinElast::initialData()
     lephysIBCPtr->initialize(m_UNew);
     //BD if(m_bdryUseData)
     //BD {
-    //BD     lephysIBCPtr->initializeBdry(m_bdryPsiNew);
+    lephysIBCPtr->initializeBdry(m_BNew);
     //BD }
 }
 
@@ -903,8 +903,8 @@ void AMRLevelLinElast::postInitialize()
         amrGodFinerPtr->m_coarseAverage.averageToCoarse(m_UNew,
             amrGodFinerPtr->m_UNew);
 
-        // amrGodFinerPtr->m_bdryCoarseAverage.averageToCoarse(m_BNew,
-        //     amrGodFinerPtr->m_BNew);
+        amrGodFinerPtr->m_bdryCoarseAverage.averageToCoarse(m_BNew,
+            amrGodFinerPtr->m_BNew);
     }
 }
 
@@ -1549,9 +1549,10 @@ void AMRLevelLinElast::levelSetup()
             nRefCrse,
             m_problem_domain);
 
-        // m_coarseAverage.define(m_bdryGrids,
-        //     m_numBdryVars,
-        //     nRefCrse);
+        m_bdryCoarseAverage.define(m_bdryGrids,
+            m_numBdryVars,
+            nRefCrse,
+            1);
 
         m_bdryFineInterp.define(m_bdryGrids,
             m_numBdryVars,

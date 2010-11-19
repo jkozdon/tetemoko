@@ -29,7 +29,7 @@ public:
     */
     virtual void initializeBdry(LevelData<FArrayBox>& a_Psi)
     {
-        MayDay::Error("No boundary data for this problem");
+        // MayDay::Error("No boundary data for this problem");
     }
 
     /// Allow the user to query whether there is boundary data

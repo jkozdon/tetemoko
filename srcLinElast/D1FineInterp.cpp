@@ -39,8 +39,6 @@ D1FineInterp::define(const DisjointBoxLayout& a_fine_domain,
         (m_fine_box.bigEnd()+IntVect::Unit-BASISV(m_dir))/m_ref_ratio-(IntVect::Unit-BASISV(m_dir)),
         BASISV(m_dir));
 
-    Vector<Box> vectBox;
-    Vector<int> vectPID;
     // Loop through the fine data boxes and define a new set of coarse data
     // boxes
     const DisjointBoxLayout& constGrids = a_fine_domain;

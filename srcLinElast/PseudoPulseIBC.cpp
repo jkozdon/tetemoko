@@ -79,6 +79,25 @@ void PseudoPulseIBC::initialize(LevelData<FArrayBox>& a_U)
     }
 }
 
+void PseudoPulseIBC::initializeBdry(LevelData<FArrayBox>& a_B)
+{
+    const Real tmpVal = 0.0;
+    for (DataIterator dit = a_B.dataIterator(); dit.ok(); ++dit)
+    {
+        // Storage for current grid
+        FArrayBox& B = a_B[dit()];
+
+        // Box of current grid
+        Box bBox = B.box();
+        bBox &= m_domain;
+
+        // Set up initial condition in this grid
+        FORT_LINELASTSETFAB(CHF_FRA1(B,2),
+            CHF_BOX(bBox),
+            CHF_CONST_REAL(tmpVal));
+    }
+}
+
 bool PseudoPulseIBC::hasBdryData()
 {
     return false;
