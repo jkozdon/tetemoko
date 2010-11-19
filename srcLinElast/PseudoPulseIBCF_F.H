@@ -102,7 +102,8 @@ inline void FORTRAN_NAME(inlinePSEUDOPULSESETFAB, inlinePSEUDOPULSESETFAB)(
 void FORTRAN_NAME( PSEUDOPULSESETBND ,pseudopulsesetbnd )(
       CHFp_FRA(B)
       ,CHFp_BOX(box)
-      ,CHFp_CONST_FRA(U) );
+      ,CHFp_CONST_FRA(U)
+      ,CHFp_CONST_REAL(dt) );
 
 #define FORT_PSEUDOPULSESETBND FORTRAN_NAME( inlinePSEUDOPULSESETBND, inlinePSEUDOPULSESETBND)
 #define FORTNT_PSEUDOPULSESETBND FORTRAN_NAME( PSEUDOPULSESETBND, pseudopulsesetbnd)
@@ -110,13 +111,15 @@ void FORTRAN_NAME( PSEUDOPULSESETBND ,pseudopulsesetbnd )(
 inline void FORTRAN_NAME(inlinePSEUDOPULSESETBND, inlinePSEUDOPULSESETBND)(
       CHFp_FRA(B)
       ,CHFp_BOX(box)
-      ,CHFp_CONST_FRA(U) )
+      ,CHFp_CONST_FRA(U)
+      ,CHFp_CONST_REAL(dt) )
 {
  CH_TIMELEAF("FORT_PSEUDOPULSESETBND");
  FORTRAN_NAME( PSEUDOPULSESETBND ,pseudopulsesetbnd )(
       CHFt_FRA(B)
       ,CHFt_BOX(box)
-      ,CHFt_CONST_FRA(U) );
+      ,CHFt_CONST_FRA(U)
+      ,CHFt_CONST_REAL(dt) );
 }
 #endif  // GUARDPSEUDOPULSESETBND 
 

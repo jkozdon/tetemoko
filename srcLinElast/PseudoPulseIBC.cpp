@@ -196,12 +196,13 @@ void PseudoPulseIBC::artViscBC(FArrayBox&       a_F,
     pout() << "NOT SETUP :: PseudoPulseIBC::artViscBC" << endl;
 }
 
-void PseudoPulseIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir)
+void PseudoPulseIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt)
 {
     if(a_dir == 1 && bdryLo(m_domain,1).contains(bdryLo(a_WHalf.box(),1)))
     {
         FORT_PSEUDOPULSESETBND(CHF_FRA((*m_bdryData)),
             CHF_BOX(bdryLo(a_WHalf.box(),1)),
-            CHF_CONST_FRA(a_WHalf));
+            CHF_CONST_FRA(a_WHalf),
+            CHF_CONST_REAL(a_dt));
     }
 }

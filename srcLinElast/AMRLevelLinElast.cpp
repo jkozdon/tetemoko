@@ -195,9 +195,10 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     // Number and names of conserved states
     m_numStates  = m_gdnvPhysics->numConserved();
     m_stateNames = m_gdnvPhysics->stateNames();
-    m_numBdryVars = 2;
+    m_numBdryVars = 3;
     m_bdryNames.push_back("V");
     m_bdryNames.push_back("tau");
+    m_bdryNames.push_back("slip");
 
     // Setup the boundary Face box
     m_bdryFaceBox = bdryLo(a_problemDomain.domainBox(),1,1);
@@ -335,6 +336,9 @@ void AMRLevelLinElast::postTimeStep()
 
         amrGodFinerPtr->m_coarseAverage.averageToCoarse(m_UNew,
             amrGodFinerPtr->m_UNew);
+
+        // amrGodFinerPtr->m_bdryCoarseAverage.averageToCoarse(m_BNew,
+        //     amrGodFinerPtr->m_BNew);
     }
 
     if (s_verbosity >= 2 && m_level == 0)
@@ -710,6 +714,7 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
     {
         AMRLevelLinElast* amrGodCoarserPtr = getCoarserLevel();
         m_fineInterp.interpToFine(m_UNew,amrGodCoarserPtr->m_UNew);
+        m_bdryFineInterp.interpToFine(m_BNew,amrGodCoarserPtr->m_BNew);
     }
 
     // Copy from old state
@@ -897,6 +902,9 @@ void AMRLevelLinElast::postInitialize()
 
         amrGodFinerPtr->m_coarseAverage.averageToCoarse(m_UNew,
             amrGodFinerPtr->m_UNew);
+
+        // amrGodFinerPtr->m_bdryCoarseAverage.averageToCoarse(m_BNew,
+        //     amrGodFinerPtr->m_BNew);
     }
 }
 
@@ -1541,6 +1549,17 @@ void AMRLevelLinElast::levelSetup()
             nRefCrse,
             m_problem_domain);
 
+        // m_coarseAverage.define(m_bdryGrids,
+        //     m_numBdryVars,
+        //     nRefCrse);
+
+        m_bdryFineInterp.define(m_bdryGrids,
+            m_numBdryVars,
+            nRefCrse,
+            1,
+            m_bdryFaceBox);
+
+
         const DisjointBoxLayout& coarserLevelDomain = amrGodCoarserPtr->m_grids;
         const DisjointBoxLayout& bdryCoarserLevelDomain = amrGodCoarserPtr->m_bdryGrids;
 
@@ -1651,7 +1670,7 @@ void AMRLevelLinElast::setupRelateUB()
         const Box tmpBndBox = (m_bdryFaceBox & bdryLo(m_UNew[dit()].box(),1,1+m_numGhost));
         //JK For somereason the right box isn't being generated and I cannot use
         //   is empty
-        if(tmpBndBox.bigEnd() >= tmpBndBox.smallEnd())
+        if(!tmpBndBox.isEmpty())
         {
             for (DataIterator bit = m_BNew.dataIterator(); bit.ok(); ++bit)
             {

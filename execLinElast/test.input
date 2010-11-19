@@ -24,7 +24,7 @@ physics.stop_time    = 30
 
 # Turn on some output
 # comp.verbosity = 10
-comp.verbosity = 2
+comp.verbosity = 1
 
 # Number of steps, final time, and time step
 comp.max_step = 10
@@ -53,7 +53,7 @@ comp.max_level = 1
 # For 2D
 # comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
 # For 3D
-comp.ref_ratio = 2 2 2 2 2
+comp.ref_ratio = 4 4 4 4 4
 
 # Regridding parameters
 comp.regrid_interval = 2 2 2 2 2 2 2 2 2 2

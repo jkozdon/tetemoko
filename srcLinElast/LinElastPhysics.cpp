@@ -155,7 +155,7 @@ void LinElastPhysics::computeUpdate(FArrayBox&       a_dU,
         // Add flux difference to dU
         a_dU += diff;
 
-        ((LEPhysIBC*)m_bc)->updateBoundary(a_WHalf[idir],idir);
+        ((LEPhysIBC*)m_bc)->updateBoundary(a_WHalf[idir],idir,a_dt);
     }
 
     // Multiply dU by dt/dx because that is what the output expects

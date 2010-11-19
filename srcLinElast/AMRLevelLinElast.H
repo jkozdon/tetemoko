@@ -17,6 +17,7 @@
 #include "AMRLevel.H"
 #include "CoarseAverage.H"
 #include "FineInterp.H"
+#include "D1FineInterp.H"
 #include "LevelFluxRegister.H"
 #include "Box.H"
 #include "IntVectSet.H"
@@ -220,6 +221,12 @@ protected:
 
   // Averaging from fine to coarse level
   CoarseAverage m_coarseAverage;
+
+  // Interpolation from coarse to fine level
+  D1FineInterp m_bdryFineInterp;
+
+  // Averaging from fine to coarse level
+  // D1CoarseAverage m_bdryCoarseAverage;
 
   // New time step
   Real m_dtNew;
