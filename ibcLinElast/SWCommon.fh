@@ -1,0 +1,6 @@
+C
+C   slip weakening problem constants
+C
+        real_t fs,fd,dw
+        real_t npatch(0:2*CH_SPACEDIM-3)
+        common /slipweak/ fs,fd,dw,npatch

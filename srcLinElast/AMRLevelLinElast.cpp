@@ -195,6 +195,8 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     // Number and names of conserved states
     m_numStates  = m_gdnvPhysics->numConserved();
     m_stateNames = m_gdnvPhysics->stateNames();
+    // use LEPhysIBC to get these values
+    // default is zero?
     m_numBdryVars = 3;
     m_bdryNames.push_back("V");
     m_bdryNames.push_back("tau");
@@ -1394,6 +1396,7 @@ void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle)
     {
         pout() << "AMRLevelLinElast::writeThisBdryLevel" << endl;
     }
+    if(m_BNew.boxLayout().numCells()==0) return;
 
     // Setup the level string
     char levelStr[20];

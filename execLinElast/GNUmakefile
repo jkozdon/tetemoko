@@ -21,7 +21,7 @@ LibNames = AMRTimeDependent AMRTools BoxTools
 
 # relative paths to source code directories
 base_dir = .
-src_dirs = ../srcLinElast
+src_dirs = ../srcLinElast ../ibcLinElast
 
 # input file for 'run' target
 INPUT = test.inputs

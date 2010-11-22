@@ -41,7 +41,7 @@ using std::ios;
 #include "SimpleIBC.H"
 #include "LockSlideIBC.H"
 #include "VelSlideAsinh1sIBC.H"
-// #include "RSIBC.H"
+#include "SWIBC.H"
 #include "PseudoPulseIBC.H"
 
 #include "UsingNamespace.H"
@@ -413,83 +413,79 @@ void amrGodunov()
                     endl << endl;
             }
         }
-        // else if (problemString == "ratestate")
-        // {
+        else if (problemString == "slipweak")
+        {
+            // This is a very slimple IBC loosely based on the SCEC problems
 
-        //     // where is the center of the slip region
-        //     Real center = 0.5;
-        //     ppphysics.query("center_scale",center);
-        //     // CH_assert(center >= 0);
-        //     if(center < 0)
-        //     {
-        //         center = -center;
-        //     }
-        //     else
-        //     {
-        //         center = center * domainLength;
-        //     }
+            // Where is the nucleation patch
+            vector<Real> nucPatch(2*(SpaceDim-1),0);
+            ppphysics.queryarr("nuc_patch",nucPatch,0,2*(SpaceDim-1));
 
-        //     // how big is the slip region
-        //     Real sigma = 10;
-        //     ppphysics.query("sigma",sigma);
-        //     CH_assert(sigma >= 0);
+            Real fricD = 0.525;
+            ppphysics.query("f_dynamic",fricD);
 
-        //     // how big is the slip region
-        //     Real ntime = 1;
-        //     ppphysics.query("nucleation_time",ntime);
-        //     CH_assert(ntime >= 0);
+            Real fricS = 0.677;
+            ppphysics.query("f_static",fricS);
 
-        //     // no dimensions are periodic with this problem
-        //     for (int dim = 0; dim < SpaceDim; dim++)
-        //     {
-        //         isPeriodic[dim] = false;
-        //     }
+            Real weakDist = 0.4;
+            ppphysics.query("d_weak",weakDist);
 
-        //     // rate and state parameters
-        //     Real psi_0 = -0.004581501914676;
-        //     ppphysics.query("psi",psi_0);
+            // get the boundary conditiions
+            // 0 : Outflow
+            // 1 : Free surface
+            // 2 : Fault (must be y_bound 2 X)
+            vector<int> xBoudaryT(2,0);
+            ppcomp.queryarr("x_boundary",xBoudaryT,0,2);
 
-        //     Real a = 0.016;
-        //     ppphysics.query("a",a);
+            vector<int> yBoudaryT(2,0);
+            ppcomp.queryarr("y_boundary",yBoudaryT,0,2);
 
-        //     Real b = 0.02;
-        //     ppphysics.query("b",b);
+            vector<int> zBoudaryT(2,0);
+            ppcomp.queryarr("z_boundary",zBoudaryT,0,2);
 
-        //     Real V0 = 1e-6;
-        //     ppphysics.query("V0",V0);
+            std::vector<int> boundaryType(6,0);
+            boundaryType[0] = xBoudaryT[0];
+            boundaryType[1] = xBoudaryT[1];
+            boundaryType[2] = yBoudaryT[0];
+            boundaryType[3] = yBoudaryT[1];
+            boundaryType[4] = zBoudaryT[0];
+            boundaryType[5] = zBoudaryT[1];
 
-        //     Real f0 = 0.6;
-        //     ppphysics.query("f0",f0);
-
-        //     Real L = 0.4;
-        //     ppphysics.query("L",L);
-
-        //     Real fw = 0.13;
-        //     ppphysics.query("fw",fw);
-
-        //     Real Vw = 0.17;
-        //     ppphysics.query("Vw",Vw);
+            // no dimensions are periodic with this problem
+            for (int dim = 0; dim < SpaceDim; dim++)
+            {
+                isPeriodic[dim] = false;
+                if(verbosity >= 2 && procID() == 0)
+                {
+                    pout() << "Using BCs " << boundaryType[dim*2] << " and " << boundaryType[dim*2+1] << " in direction: " << dim << endl;
+                }
+            }
 
 
-        //     RSIBC* rsibc =
-        //         new RSIBC(cs,cp,mu,backgroundVals,center,sigma,ntime,psi_0,a,b,V0,f0,L,fw,Vw);
-        //     ibc = rsibc;
-        //     if(verbosity >= 1)
-        //     {
-        //         pout() << "psi = " << psi_0 << endl;
-        //         pout() << "Background Values = " << 
-        //             backgroundVals[0] << " " <<
-        //             backgroundVals[1] << " " <<
-        //             backgroundVals[2] << " " <<
-        //             backgroundVals[3] << " " <<
-        //             backgroundVals[4] << " " <<
-        //             backgroundVals[5] << " " <<
-        //             backgroundVals[6] << " " <<
-        //             backgroundVals[7] << " " <<
-        //             backgroundVals[8] << " " <<
-        //             endl << endl;
-        //     }
-        // }
+            SWIBC* swibc =
+                new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,nucPatch,boundaryType);
+            ibc = swibc;
+            if(verbosity >= 1)
+            {
+                pout() << "Static Friction    = " << fricS << endl;
+                pout() << "Dynamic Friction   = " << fricD << endl;
+                pout() << "Weakening Distance = " << weakDist << endl;
+                pout() << "Nucleation Patch   = " << nucPatch[0] << " " << nucPatch[1];
+                if(SpaceDim > 2) pout() << " " << nucPatch[2] << " " << nucPatch[3];
+                pout() << endl;
+                pout() << "Background Values = " << 
+                    backgroundVals[0] << " " <<
+                    backgroundVals[1] << " " <<
+                    backgroundVals[2] << " " <<
+                    backgroundVals[3] << " " <<
+                    backgroundVals[4] << " " <<
+                    backgroundVals[5] << " " <<
+                    backgroundVals[6] << " " <<
+                    backgroundVals[7] << " " <<
+                    backgroundVals[8] << " " <<
+                    endl << endl;
+            }
+        }
         else if (problemString == "pseudopulse")
         {
 

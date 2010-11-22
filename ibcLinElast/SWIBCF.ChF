@@ -1,0 +1,165 @@
+C
+C Set the constant parameters
+C
+#include "CONSTANTS.H"
+
+        subroutine SWSETF(
+     &    CHF_CONST_REAL[afs],
+     &    CHF_CONST_REAL[afd],
+     &    CHF_CONST_REAL[adw],
+     &    CHF_CONST_VR[anpatch])
+
+#include "SWCommon.fh"
+
+c
+c       simulation parameters
+c
+
+        integer iv
+        fs = afs
+        fd = afd
+        dw = adw
+        do iv = 0,2*CH_SPACEDIM-3
+            npatch(iv) = anpatch(iv)
+        enddo
+
+        return
+        end
+
+
+
+C
+C This is a constant initial data
+C
+        subroutine SWINITF(
+     &    CHF_FRA[U],
+     &    CHF_CONST_REAL[dx],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+
+        integer CHF_DDECL[i;j;k]
+        real_t CHF_DDECL[x;y;z]
+
+        CHF_MULTIDO[box;i;j;k]
+
+          U(CHF_IX[i;j;k],0) = background(0)
+          U(CHF_IX[i;j;k],1) = background(1)
+          U(CHF_IX[i;j;k],2) = background(2)
+          U(CHF_IX[i;j;k],3) = background(3)
+          U(CHF_IX[i;j;k],4) = background(4)
+          U(CHF_IX[i;j;k],5) = background(5)
+          U(CHF_IX[i;j;k],6) = background(6)
+          U(CHF_IX[i;j;k],7) = background(7)
+          U(CHF_IX[i;j;k],8) = background(8)
+
+        CHF_ENDDO
+        
+        return
+        end
+
+C
+C This is a constant initial data
+C
+        subroutine SWSETBND(
+     &    CHF_FRA[B],
+     &    CHF_BOX[box],
+     &    CHF_CONST_FRA[U],
+     &    CHF_CONST_REAL[dt])
+
+        integer CHF_DDECL[i;j;k]
+
+        CHF_MULTIDO[box;i;j;k]
+
+C         Only south face slip velocity
+          B(CHF_IX[i;j;k],0) = 2*SQRT(U(CHF_IX[i;j;k],0)**2 + U(CHF_IX[i;j;k],2))
+          B(CHF_IX[i;j;k],1) = SQRT(U(CHF_IX[i;j;k],6)**2 + U(CHF_IX[i;j;k],8))
+          B(CHF_IX[i;j;k],2) = B(CHF_IX[i;j;k],2)+dt*B(CHF_IX[i;j;k],0);
+
+        CHF_ENDDO
+        
+        return
+        end
+
+
+C
+C Set the the boundary flux for a simple fault which is governed by an
+C slipweakening friction law
+C
+        subroutine SWFAULTBCF(
+     &    CHF_FRA[Wgdnv],
+     &    CHF_CONST_FRA[WInside],
+     &    CHF_CONST_FRA[W],
+     &    CHF_CONST_INT[lohisign],
+     &    CHF_CONST_REAL[dx],
+     &    CHF_CONST_REAL[t],
+     &    CHF_CONST_INT[idir],
+     &    CHF_CONST_FRA[B],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+#include "SWCommon.fh"
+
+        integer CHF_DDECL[i;j;k]
+        real_t CHF_DDECL[x;y;z]
+
+        real_t wpxy,wpyy,wpyz
+        real_t wmxy,wmyy,wmyz
+        real_t vx,vy,vz,sxx,syy,szz,sxy,sxz,syz
+        real_t SHF, tau, fric, V, tau_0, beta
+        fric = 1d0
+        CHF_MULTIDO[box;i;j;k]
+          CHF_DTERM[x = (i + half) * dx;
+          y = 0;
+          z = (k + half) * dx]
+
+
+          vx  = WInside(CHF_IX[i;j;k],0)
+          vy  = WInside(CHF_IX[i;j;k],1)
+          vz  = WInside(CHF_IX[i;j;k],2)
+          sxx = WInside(CHF_IX[i;j;k],3)
+          syy = WInside(CHF_IX[i;j;k],4)
+          szz = WInside(CHF_IX[i;j;k],5)
+          sxy = WInside(CHF_IX[i;j;k],6)
+          sxz = WInside(CHF_IX[i;j;k],7)
+          syz = WInside(CHF_IX[i;j;k],8)
+
+
+C         We assume that the boundary is on the bottom
+
+          wmxy = sxy + Zs * vx
+          wmyy = syy + Zp * vy
+          wmyz = syz + Zs * vz
+
+C         assume that the fault is locked
+          if(CHF_DTERM[x .gt. npatch(0) .and. x .lt. npatch(1);;
+                       z .gt. npatch(2) .and. z .lt. npatch(3)]) then
+            tau = 81.6d0
+          else
+            tau = sqrt(wmyz*wmyz + wmxy*wmxy)
+          endif
+
+          syy = background(4)
+          fric = min(fs,max(fd,fd+(1-B(CHF_IX[i;j;k],2)/dw)*(fs-fd)))
+          tau_0 = min(tau,-syy*fric)
+
+          beta = 2.0d0 * tau_0 / tau - 1.0d0
+
+          wpxy = wmxy * beta
+          wpyz = wmyz * beta
+
+          vy  = (wmyy - syy) / Zp
+          SHF = -(vy - syy) * lam / (lam + 2.0d0 * mu)
+          Wgdnv(CHF_IX[i;j;k],0) = (wmxy - wpxy) / (2.0d0 * Zs)
+          Wgdnv(CHF_IX[i;j;k],1) = vy
+          Wgdnv(CHF_IX[i;j;k],2) = (wmyz - wpyz) / (2.0d0 * Zs)
+          Wgdnv(CHF_IX[i;j;k],3) = syy + SHF
+          Wgdnv(CHF_IX[i;j;k],4) = syy
+          Wgdnv(CHF_IX[i;j;k],5) = szz + SHF
+          Wgdnv(CHF_IX[i;j;k],6) = (wmxy + wpxy) / (2.0d0)
+          Wgdnv(CHF_IX[i;j;k],7) = sxz
+          Wgdnv(CHF_IX[i;j;k],8) = (wmyz + wpyz) / (2.0d0)
+       CHF_ENDDO
+
+        return
+        end

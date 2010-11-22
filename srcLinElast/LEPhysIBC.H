@@ -58,6 +58,7 @@ public:
 
 protected:
     FArrayBox* m_bdryData;
+    int        m_numBdryVars;
 private:
 };
 

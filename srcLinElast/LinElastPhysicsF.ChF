@@ -210,7 +210,7 @@ c       current direction, if required.
         if (hasLo .eq. 1) then
           CHF_MULTIDO[loBox;i;j;k]
             diff = 0.0d0
-            do iv = 0,8
+            do iv = 0,2
               diff = max(diff,abs(u(CHF_IX[i+ioff;j+joff;k+koff],iv)
      &                           -u(CHF_IX[i     ;j     ;k     ],iv)))
             enddo
@@ -221,7 +221,7 @@ c       current direction, if required.
         if (hasHi .eq. 1) then
           CHF_MULTIDO[hiBox;i;j;k]
             diff = 0.0d0
-            do iv = 0,8
+            do iv = 0,2
               diff = max(diff,abs(u(CHF_IX[i     ;j     ;k     ],iv)
      &                           -u(CHF_IX[i-ioff;j-joff;k-koff],iv)))
             enddo

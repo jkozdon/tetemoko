@@ -125,7 +125,6 @@ C
         real_t healEdge, pulseEdge
         real_t tauREF,tau_0,tau,beta
 
-C       CALL PSPPULSEEDGE(pulseEdge,min(stopTime,t))
         pulseEdge  = t * Vr * cs
         healEdge   = t * Vh * cs
 
@@ -196,39 +195,6 @@ C         shooting for. i.e. tau_0 = LOCKED + PULSE_T)_HEAL + RAMP
         CHF_ENDDO
 
         
-
-        return
-        end
-
-        subroutine PSPPULSEEDGE(
-     &    CHF_REAL[pulseEdge],
-     &    CHF_CONST_REAL[t])
-
-#include "IBCCommon.fh"
-#include "PseudoPulseCommon.fh"
-        integer i
-        real_t t0,t1,t2
-        real_t c1,c2
-
-        c1 = 1.0d0 / 2.0d0
-        c2 = (SQRT(3.0d0) - SQRT(2.0d0)) / 2.0d0
-
-        t0 = min(jumpTime,t)
-        t1 = jumpTime
-        t2 = max(jumpTime,t)
-
-C       pulseEdge = t0 * (1.0d0 / 3.0d0 + c1) + (t2-t1) * (SQRT(2.0d0) + c2)
-        pulseEdge = t0 * half + (t2-t1) * (SQRT(2.0d0) + c2)
-        do i = 1,len_a
-           pulseEdge = pulseEdge + (a(i) / b(i)) * (
-     &                 c1 * (1 - COS(b(i) * t0))
-     &               + c2 * (COS(b(i) * t1) - COS(b(i) * t2)))
-        enddo
-
-        pulseEdge = cs * pulseEdge
-
-C        print *,-t
-C        print *,pulseEdge
 
         return
         end

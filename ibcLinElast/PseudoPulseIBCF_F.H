@@ -138,28 +138,6 @@ inline void FORTRAN_NAME(inlinePSEUDOPULSEFAULTBCF, inlinePSEUDOPULSEFAULTBCF)(
 }
 #endif  // GUARDPSEUDOPULSEFAULTBCF 
 
-#ifndef GUARDPSPPULSEEDGE 
-#define GUARDPSPPULSEEDGE 
-// Prototype for Fortran procedure PSPPULSEEDGE ...
-//
-void FORTRAN_NAME( PSPPULSEEDGE ,psppulseedge )(
-      CHFp_REAL(pulseEdge)
-      ,CHFp_CONST_REAL(t) );
-
-#define FORT_PSPPULSEEDGE FORTRAN_NAME( inlinePSPPULSEEDGE, inlinePSPPULSEEDGE)
-#define FORTNT_PSPPULSEEDGE FORTRAN_NAME( PSPPULSEEDGE, psppulseedge)
-
-inline void FORTRAN_NAME(inlinePSPPULSEEDGE, inlinePSPPULSEEDGE)(
-      CHFp_REAL(pulseEdge)
-      ,CHFp_CONST_REAL(t) )
-{
- CH_TIMELEAF("FORT_PSPPULSEEDGE");
- FORTRAN_NAME( PSPPULSEEDGE ,psppulseedge )(
-      CHFt_REAL(pulseEdge)
-      ,CHFt_CONST_REAL(t) );
-}
-#endif  // GUARDPSPPULSEEDGE 
-
 }
 
 #endif
