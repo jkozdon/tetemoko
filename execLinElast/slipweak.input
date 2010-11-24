@@ -13,6 +13,15 @@ physics.background =    0    0   0     0  -120    0   70    0    0
 physics.f_static  = 0.677
 physics.f_dynamic = 0.525
 physics.d_weak    = 0.4
+
+physics.num_patches = 3
+physics.tau_patches = 11.6 -8 8
+physics.xlo_patches = 13.5 6 21
+physics.xhi_patches = 16.5 9 24
+physics.zlo_patches = 6 6 6
+physics.zhi_patches = 9 9 9
+
+physics.tau_nuc   = 11.6
 physics.nuc_patch = 13.5 16.5 6 9
 
 # Turn on some output
@@ -20,15 +29,15 @@ physics.nuc_patch = 13.5 16.5 6 9
 comp.verbosity = 1
 
 # Number of steps, final time, and time step
-comp.max_step = 100
-comp.max_time = 100
+comp.max_step = 25
+comp.max_time = 12
 # comp.fixed_dt = 0.002
 
 # Size of the domain's longest dimension
 comp.domain_length = 30.0
 
 # Coarsest grid
-comp.num_cells = 256 128 128
+comp.num_cells = 64 32 32
 
 # # 0 : Outflow
 # # 1 : Free surface
@@ -41,9 +50,9 @@ comp.z_boundary  = 0 1
 # Grid refinement
 comp.max_level = 2
 # For 2D
-# comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
+comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
 # For 3D
-comp.ref_ratio = 2 2 2 2 2
+# comp.ref_ratio = 2 2 2 2 2
 
 # Regridding parameters
 comp.regrid_interval = 2 2 2 2 2 2 2 2 2 2
@@ -51,7 +60,7 @@ comp.tag_buffer_size = 2
 comp.refine_thresh = 0.1
 
 # Grid generation parameters
-comp.block_factor = 4
+comp.block_factor = 2
 comp.max_grid_size = 32
 comp.fill_ratio = 1
 
@@ -89,5 +98,5 @@ comp.cfl = 0.9
 comp.initial_cfl = 0.9
 
 # Variable time step parameters
-comp.max_dt_growth = 1.1
-comp.dt_tolerance_factor = 1.1
+comp.max_dt_growth = 1
+comp.dt_tolerance_factor = 1

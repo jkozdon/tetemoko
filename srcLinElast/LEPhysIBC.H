@@ -56,6 +56,23 @@ public:
         // Default implementation is to do nothing
     }
 
+    /// Do the initial tagging of cells
+    /**
+    */
+    virtual bool tagCellsInit(FArrayBox& markFAB)
+    {
+        // Default implementation is to do nothing
+        return false;
+    }
+
+    /// Do the physics dependent tagging of cells
+    /**
+    */
+    virtual bool tagCells(FArrayBox& markFAB, Real& time)
+    {
+        return false;
+    }
+
 protected:
     FArrayBox* m_bdryData;
     int        m_numBdryVars;

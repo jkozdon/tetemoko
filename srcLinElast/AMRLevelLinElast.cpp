@@ -437,6 +437,8 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
 
     // Compute relative gradient
     DataIterator dit = levelDomain.dataIterator();
+    LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
+
     for (dit.begin(); dit.ok(); ++dit)
     {
         const Box& b = levelDomain[dit()];
@@ -482,6 +484,8 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
             CHF_CONST_FRA(gradFab),
             CHF_BOX(b));
 
+        lephysIBCPtr->tagCellsInit(gradMagFab);
+
         // Tag where gradient exceeds threshold
         BoxIterator bit(b);
         for (bit.begin(); bit.ok(); ++bit)
@@ -526,35 +530,35 @@ void AMRLevelLinElast::tagCellsInit(IntVectSet& a_tags)
     //JK This is a silly way to do things, but it works...
     CH_assert(allDefined());
 
+
     // Create tags based on undivided gradient of density
     const DisjointBoxLayout& levelDomain = m_UNew.disjointBoxLayout();
     IntVectSet localTags;
 
     // Compute relative gradient
     DataIterator dit = levelDomain.dataIterator();
-    Real refLocation = m_domainLength / 2.0;
-    //Real refLocation = 60;
+
+    LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
 
     for (dit.begin(); dit.ok(); ++dit)
     {
+        // Let the Physics IBC handle the initial griding
         const Box& b = levelDomain[dit()];
         FArrayBox markFAB(b,1);
-        FORT_BOUNDREFINE(
-            CHF_FRA1(markFAB,0),
-            CHF_CONST_REAL(refLocation),
-            CHF_CONST_REAL(m_dx),
-            CHF_BOX(b));
-
-        // Tag where gradient exceeds threshold
-        BoxIterator bit(b);
-        for (bit.begin(); bit.ok(); ++bit)
+        markFAB.setVal(0.0);
+        if(lephysIBCPtr->tagCellsInit(markFAB))
         {
-            const IntVect& iv = bit();
-
-            if (markFAB(iv) >= 0)
+            // Tag where gradient exceeds threshold
+            BoxIterator bit(b);
+            for (bit.begin(); bit.ok(); ++bit)
             {
-                // pout() << iv << endl;
-                localTags |= iv;
+                const IntVect& iv = bit();
+
+                if (markFAB(iv) > 0)
+                {
+                    // pout() << iv << endl;
+                    localTags |= iv;
+                }
             }
         }
     }

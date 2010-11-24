@@ -28,7 +28,14 @@ public:
         const Real& fricS,
         const Real& fricD,
         const Real& weakD,
+        const Real& taunuc,
         const vector<Real> nucPatch,
+        const int numPatches,
+        const vector<Real> xloPatches,
+        const vector<Real> xhiPatches,
+        const vector<Real> zloPatches,
+        const vector<Real> zhiPatches,
+        const vector<Real> tauPatches,
         const Vector<int>& boundaryType);
 
     /// Destructor
@@ -97,9 +104,25 @@ public:
     */
     virtual void updateBoundary(const FArrayBox& a_WHalf,int dir,const Real& a_dt);
 
+    /// Do the initial tagging of cells
+    /**
+    */
+    virtual bool tagCellsInit(FArrayBox& markFAB);
+
+    /// Do the physics dependent tagging of cells
+    /**
+    */
+    virtual bool tagCells(FArrayBox& markFAB, Real& time)
+    {
+        return tagCellsInit(markFAB);
+    }
+
 protected:
     bool m_isFortranCommonSet;
-    // Vector<int> m_boundaryType;
+    Vector<int> m_boundaryType;
+    Vector<Real> m_nucPatch;
+    bool m_isNucBoxSet;
+    Box m_nucBox;
 
 private:
 };

@@ -7,6 +7,7 @@ C
      &    CHF_CONST_REAL[afs],
      &    CHF_CONST_REAL[afd],
      &    CHF_CONST_REAL[adw],
+     &    CHF_CONST_REAL[atauN],
      &    CHF_CONST_VR[anpatch])
 
 #include "SWCommon.fh"
@@ -19,9 +20,18 @@ c
         fs = afs
         fd = afd
         dw = adw
-        do iv = 0,2*CH_SPACEDIM-3
-            npatch(iv) = anpatch(iv)
-        enddo
+        tauN = atauN
+        CHF_DTERM[
+        npatch(0) = anpatch(0)
+        npatch(1) = anpatch(1)
+        r(0) = half * (npatch(0) + npatch(1))
+        l(0) = half * (npatch(1) - npatch(0))
+        ;;
+        npatch(2) = anpatch(2)
+        npatch(3) = anpatch(3)
+        r(1) = half * (npatch(2) + npatch(3))
+        l(1) = half * (npatch(3) - npatch(2))
+        ]
 
         return
         end
@@ -72,9 +82,9 @@ C
         CHF_MULTIDO[box;i;j;k]
 
 C         Only south face slip velocity
-          B(CHF_IX[i;j;k],0) = 2*SQRT(U(CHF_IX[i;j;k],0)**2 + U(CHF_IX[i;j;k],2))
-          B(CHF_IX[i;j;k],1) = SQRT(U(CHF_IX[i;j;k],6)**2 + U(CHF_IX[i;j;k],8))
-          B(CHF_IX[i;j;k],2) = B(CHF_IX[i;j;k],2)+dt*B(CHF_IX[i;j;k],0);
+          B(CHF_IX[i;j;k],0) = 2*SQRT(U(CHF_IX[i;j;k],0)**2 + U(CHF_IX[i;j;k],2)**2)
+          B(CHF_IX[i;j;k],1) =   SQRT(U(CHF_IX[i;j;k],6)**2 + U(CHF_IX[i;j;k],8)**2)
+          B(CHF_IX[i;j;k],2) =   B(CHF_IX[i;j;k],2)+dt*B(CHF_IX[i;j;k],0);
 
         CHF_ENDDO
         
@@ -102,17 +112,31 @@ C
 
         integer CHF_DDECL[i;j;k]
         real_t CHF_DDECL[x;y;z]
+        real_t CHF_DDECL[xlo;ylo;zlo]
+        real_t CHF_DDECL[xhi;yhi;zhi]
+        real_t CHF_DDECL[ax;ay;az]
 
         real_t wpxy,wpyy,wpyz
         real_t wmxy,wmyy,wmyz
         real_t vx,vy,vz,sxx,syy,szz,sxy,sxz,syz
-        real_t SHF, tau, fric, V, tau_0, beta
+        real_t SHF, tau, fric, V, tau_0, beta, tau_p, valx, valz
+c       real_t width, width2
+c       width    = 12.0d0*dx
+c       width2   =  6.0d0*dx
         fric = 1d0
         CHF_MULTIDO[box;i;j;k]
-          CHF_DTERM[x = (i + half) * dx;
-          y = 0;
-          z = (k + half) * dx]
+          CHF_DTERM[
+          x   = (i + half) * dx
+          xlo = (i       ) * dx
+          xhi = (i + one ) * dx;
+          y   = (j + half) * dx
+          ylo = (j       ) * dx
+          yhi = (j + one ) * dx;
+          z   = (k + half) * dx
+          zlo = (k       ) * dx
+          zhi = (k + one ) * dx]
 
+          tau_p = 0
 
           vx  = WInside(CHF_IX[i;j;k],0)
           vy  = WInside(CHF_IX[i;j;k],1)
@@ -124,7 +148,6 @@ C
           sxz = WInside(CHF_IX[i;j;k],7)
           syz = WInside(CHF_IX[i;j;k],8)
 
-
 C         We assume that the boundary is on the bottom
 
           wmxy = sxy + Zs * vx
@@ -132,18 +155,25 @@ C         We assume that the boundary is on the bottom
           wmyz = syz + Zs * vz
 
 C         assume that the fault is locked
-          if(CHF_DTERM[x .gt. npatch(0) .and. x .lt. npatch(1);;
-                       z .gt. npatch(2) .and. z .lt. npatch(3)]) then
-            tau = 81.6d0
-          else
-            tau = sqrt(wmyz*wmyz + wmxy*wmxy)
-          endif
+c         CHF_DTERM[
+c         call SMOOTHFUNC(valx,width, abs(x-r(0))-l(0)+width2)
+c         ;;
+c         call SMOOTHFUNC(valz,width, abs(z-r(1))-l(1)+width2)
+c         ]
+          CHF_DTERM[
+          call BOXCARFUNC(valx,l(0), abs(x-r(0)))
+          ;;
+          call BOXCARFUNC(valz,l(1), abs(z-r(1)))
+          ]
+          tau_p = tauN * valx * valz
 
-          syy = background(4)
-          fric = min(fs,max(fd,fd+(1-B(CHF_IX[i;j;k],2)/dw)*(fs-fd)))
+          tau   = sqrt((wmxy+tau_p)**2 + wmyz**2)
+
+          syy   = background(4)
+          fric  = min(fs,max(fd,fd+(1-B(CHF_IX[i;j;k],2)/dw)*(fs-fd)))
           tau_0 = min(tau,-syy*fric)
 
-          beta = 2.0d0 * tau_0 / tau - 1.0d0
+          beta  = 2.0d0 * tau_0 / tau - 1.0d0
 
           wpxy = wmxy * beta
           wpyz = wmyz * beta

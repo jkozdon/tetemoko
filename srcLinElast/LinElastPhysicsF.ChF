@@ -857,3 +857,46 @@ C
         end
 
 
+C
+C Gaussian function
+C
+        subroutine GAUSSIANFUNC(
+     &    CHF_REAL[val],
+     &    CHF_CONST_REAL[w],
+     &    CHF_CONST_REAL[r])
+
+        val = exp(-half*(r/w)**2)
+
+        end
+
+C
+C Infinitely smooth transition
+C
+        subroutine SMOOTHFUNC(
+     &    CHF_REAL[val],
+     &    CHF_CONST_REAL[w],
+     &    CHF_CONST_REAL[r])
+
+        if (r>=w) then
+            val = zero
+        elseif(r<=0) then
+            val = one
+        else
+            val = exp(r**2/(r**2 - w**2))
+        endif
+        end
+
+C
+C Box Car
+C
+        subroutine BOXCARFUNC(
+     &    CHF_REAL[val],
+     &    CHF_CONST_REAL[w],
+     &    CHF_CONST_REAL[r])
+
+        if (r>=w) then
+            val = zero
+        else
+            val = one
+        endif
+        end

@@ -18,12 +18,22 @@ SWIBC::SWIBC(const Real& a_cs,
     const Real& a_fricS,
     const Real& a_fricD,
     const Real& a_weakD,
+    const Real& a_tau_nuc,
     const vector<Real> a_nucPatch,
+    const int a_numPatches,
+    const vector<Real> a_xloPatches,
+    const vector<Real> a_xhiPatches,
+    const vector<Real> a_zloPatches,
+    const vector<Real> a_zhiPatches,
+    const vector<Real> a_tauPatches,
     const Vector<int>& a_boundaryType)
 {
     FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
-    FORT_SWSETF(CHF_CONST_REAL(a_fricS),CHF_CONST_REAL(a_fricD),CHF_CONST_REAL(a_weakD),CHF_CONST_VR(a_nucPatch));
+    FORT_SWSETF(CHF_CONST_REAL(a_fricS),CHF_CONST_REAL(a_fricD),CHF_CONST_REAL(a_weakD),CHF_CONST_REAL(a_tau_nuc),CHF_CONST_VR(a_nucPatch));
+    m_nucPatch           = a_nucPatch;
+    m_boundaryType       = a_boundaryType;
     m_isFortranCommonSet = true;
+    m_isNucBoxSet = false;
 }
 
 /// Destructor
@@ -49,6 +59,10 @@ PhysIBC* SWIBC::new_physIBC()
     {
         retval->setFortranCommonSet();
     }
+    retval->m_boundaryType = m_boundaryType;
+    retval->m_nucPatch = m_nucPatch;
+    retval->m_isNucBoxSet = m_isNucBoxSet;
+    retval->m_nucBox = m_nucBox;
     return static_cast<PhysIBC*>(retval);
 }
 
@@ -197,4 +211,41 @@ void SWIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt)
             CHF_CONST_FRA(a_WHalf),
             CHF_CONST_REAL(a_dt));
     }
+}
+
+/// Do the initial tagging of cells
+/**
+*/
+bool SWIBC::tagCellsInit(FArrayBox& markFAB)
+{
+    if(!m_isNucBoxSet)
+    {
+        IntVect nucSm;
+        IntVect nucBg;
+        int offSet = 0;
+        for(int itor = 0; itor < (SpaceDim); itor++)
+        {
+            if(itor == 1)
+            {
+                nucSm.setVal(itor,0);
+                nucBg.setVal(itor,0);
+            }
+            else
+            {
+                nucSm.setVal(itor,floor(m_nucPatch[offSet  ]/m_dx));
+                nucBg.setVal(itor, ceil(m_nucPatch[offSet+1]/m_dx));
+                offSet+= 2;
+            }
+        }
+        m_nucBox.define(Box(nucSm,nucBg));
+        m_isNucBoxSet = true;
+    }
+    markFAB.setVal(1,m_nucBox & markFAB.box(),0);
+
+    // FORT_BOUNDREFINE(
+    //     CHF_FRA1(markFAB,0),
+    //     CHF_CONST_REAL(refLocation),
+    //     CHF_CONST_REAL(m_dx),
+    //     CHF_BOX(b));
+    return true;
 }

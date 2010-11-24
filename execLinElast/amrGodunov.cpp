@@ -418,8 +418,26 @@ void amrGodunov()
             // This is a very slimple IBC loosely based on the SCEC problems
 
             // Where is the nucleation patch
+            int numPatches = 0;
+            ppphysics.get("num_patches",numPatches);
+
+            vector<Real> xloPatches(numPatches,0);
+            vector<Real> xhiPatches(numPatches,0);
+            vector<Real> zloPatches(numPatches,0);
+            vector<Real> zhiPatches(numPatches,0);
+            vector<Real> tauPatches(numPatches,0);
+
+            ppphysics.getarr("xlo_patches",xloPatches,0,numPatches);
+            ppphysics.getarr("xhi_patches",xhiPatches,0,numPatches);
+            ppphysics.getarr("zlo_patches",zloPatches,0,numPatches);
+            ppphysics.getarr("zhi_patches",zhiPatches,0,numPatches);
+            ppphysics.getarr("tau_patches",tauPatches,0,numPatches);
+
             vector<Real> nucPatch(2*(SpaceDim-1),0);
             ppphysics.queryarr("nuc_patch",nucPatch,0,2*(SpaceDim-1));
+
+            Real tauN = 10;
+            ppphysics.query("tau_nuc",tauN);
 
             Real fricD = 0.525;
             ppphysics.query("f_dynamic",fricD);
@@ -429,6 +447,7 @@ void amrGodunov()
 
             Real weakDist = 0.4;
             ppphysics.query("d_weak",weakDist);
+
 
             // get the boundary conditiions
             // 0 : Outflow
@@ -463,16 +482,22 @@ void amrGodunov()
 
 
             SWIBC* swibc =
-                new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,nucPatch,boundaryType);
+                new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,tauN,nucPatch,
+                    numPatches,xloPatches,xhiPatches,zloPatches,zhiPatches,tauPatches,
+                    boundaryType);
             ibc = swibc;
             if(verbosity >= 1)
             {
                 pout() << "Static Friction    = " << fricS << endl;
                 pout() << "Dynamic Friction   = " << fricD << endl;
                 pout() << "Weakening Distance = " << weakDist << endl;
-                pout() << "Nucleation Patch   = " << nucPatch[0] << " " << nucPatch[1];
-                if(SpaceDim > 2) pout() << " " << nucPatch[2] << " " << nucPatch[3];
-                pout() << endl;
+                pout() << "num patches        = " << numPatches << endl;
+                for(int itor = 0; itor < numPatches; itor++)
+                {
+                    pout() << "Patch " << itor << ": tau = " << tauPatches[itor];
+                    pout() << " at " << "((" << xloPatches[itor] << ",0," << zloPatches[itor] << ")";
+                    pout() << ",(" << xhiPatches[itor] << ",0," << zhiPatches[itor] << "))" << endl;
+                }
                 pout() << "Background Values = " << 
                     backgroundVals[0] << " " <<
                     backgroundVals[1] << " " <<
