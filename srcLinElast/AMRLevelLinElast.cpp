@@ -941,6 +941,14 @@ void AMRLevelLinElast::writeCheckpointHeader(HDF5Handle& a_handle) const
         header.m_string[compStr] = m_stateNames[comp];
     }
 
+    header.m_int["num_boundary_variables"] = m_numBdryVars;
+
+    for (int comp = 0; comp < m_numBdryVars; ++comp)
+    {
+        sprintf(compStr,"boundary_variable_%d",comp);
+        header.m_string[compStr] = m_bdryNames[comp];
+    }
+
     // Write the header
     header.writeToFile(a_handle);
 
@@ -1017,6 +1025,9 @@ void AMRLevelLinElast::writeCheckpointLevel(HDF5Handle& a_handle) const
     // Write the data for this level
     write(a_handle,m_UNew.boxLayout());
     write(a_handle,m_UNew,"data");
+
+    // Write the data for this level
+    write(a_handle,m_BNew,"boundary_data");
 }
 
 // Read checkpoint header
@@ -1065,6 +1076,37 @@ void AMRLevelLinElast::readCheckpointHeader(HDF5Handle& a_handle)
         if (stateName != m_stateNames[comp])
         {
             MayDay::Error("AMRLevelLinElast::readCheckpointHeader: state_name in checkpoint does not match solver");
+        }
+    }
+
+    //
+    // Get the number of components
+    if (header.m_int.find("num_boundary_variables") == header.m_int.end())
+    {
+        MayDay::Error("AMRLevelLinElast::readCheckpointHeader: checkpoint file does not have num_boundary_variables");
+    }
+
+    int numBdryVars = header.m_int["num_boundary_variables"];
+    if (numBdryVars != m_numBdryVars)
+    {
+        MayDay::Error("AMRLevelLinElast::readCheckpointHeader: num_boundary_variables in checkpoint file does not match solver");
+    }
+
+    // Get the component names
+    std::string bdryStateName;
+    // char compStr[60];
+    for (int comp = 0; comp < m_numBdryVars; ++comp)
+    {
+        sprintf(compStr,"boundary_variable_%d",comp);
+        if (header.m_string.find(compStr) == header.m_string.end())
+        {
+            MayDay::Error("AMRLevelLinElast::readCheckpointHeader: checkpoint file does not have enough component names");
+        }
+
+        bdryStateName = header.m_string[compStr];
+        if (bdryStateName != m_bdryNames[comp])
+        {
+            MayDay::Error("AMRLevelLinElast::readCheckpointHeader: boundary_variable_name in checkpoint does not match solver");
         }
     }
 }
@@ -1229,7 +1271,7 @@ void AMRLevelLinElast::readCheckpointLevel(HDF5Handle& a_handle)
         }
         pout() << endl;
     }
-
+    
     // Reshape state with new grids
     m_UNew.define(m_grids,m_numStates);
     const int dataStatus = read<FArrayBox>(a_handle,
@@ -1242,6 +1284,62 @@ void AMRLevelLinElast::readCheckpointLevel(HDF5Handle& a_handle)
         MayDay::Error("AMRLevelLinElast::readCheckpointLevel: file does not contain state data");
     }
     m_UOld.define(m_grids,m_numStates);
+
+    {
+        // Indicate/guarantee that the indexing below is only for reading
+        // otherwise an error/assertion failure occurs
+        const DisjointBoxLayout& constGrids = m_grids;
+        Vector<Box> vectBndBox;
+        Vector<int> vectBndPID;
+
+        if (s_verbosity >= 4)
+        {
+            pout() << "new grids: " << endl;
+        }
+        for (LayoutIterator lit = constGrids.layoutIterator(); lit.ok(); ++lit)
+        {
+            if (s_verbosity >= 4)
+            {
+                pout() << "grid:          " << constGrids[lit()] << endl;
+            }
+
+            // We set the boundary box for this level to the intersection of the
+            // box edge with the boundary. I believe that this should let the
+            // boundary grid have the same layout structure as the underlying
+            // grid
+
+            const Box tmpBndBox = (m_bdryFaceBox & bdryLo(constGrids[lit()],1,1));
+
+            if(!tmpBndBox.isEmpty())
+            {
+                vectBndBox.push_back(tmpBndBox);
+                vectBndPID.push_back(constGrids.procID(lit()));
+                if (s_verbosity >= 4)
+                {
+                    pout() << "boundary grid: " << tmpBndBox << " for: " << constGrids[lit()] << endl;
+                }
+            }
+        }
+
+        DisjointBoxLayout tmpBndGrids(vectBndBox,vectBndPID);
+        m_bdryGrids = tmpBndGrids;
+        // pout() << constGrids << endl;
+        // pout() << tmpBndGrids << endl;
+    }
+
+    const int bdryDataStatus = read<FArrayBox>(a_handle,
+        m_BNew,
+        "boundary_data",
+        m_bdryGrids);
+
+    if (bdryDataStatus != 0)
+    {
+        MayDay::Error("AMRLevelLinElast::readCheckpointLevel: file does not contain boundary data");
+    }
+    m_BOld.define(m_bdryGrids,m_numBdryVars);
+
+    m_relateUB.define(m_grids);
+    setupRelateUB();
 
     // Set up data structures
     levelSetup();

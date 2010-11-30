@@ -34,7 +34,8 @@ physics.nuc_patch = 14.5 17.5 7 10
 comp.verbosity = 1
 
 # Number of steps, final time, and time step
-comp.max_step = 250
+# comp.restart_file = slipweak/check.10.3d.hdf5
+comp.max_step = 100
 comp.max_time = 12
 # comp.fixed_dt = 0.002
 
@@ -53,11 +54,11 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 1
+comp.max_level = 3
 # For 2D
-comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
+# comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
 # For 3D
-# comp.ref_ratio = 2 2 2 2 2
+comp.ref_ratio = 2 2 2 2 2
 
 # Regridding parameters
 comp.regrid_interval = 2 2 2 2 2 2 2 2 2 2
@@ -86,14 +87,14 @@ comp.use_artificial_viscosity = 1
 comp.artificial_viscosity = 0.1
 
 # Plot file information
-comp.plot_interval = 1
+comp.plot_interval = 10
 # comp.plot_interval = 1
-comp.plot_prefix  = slipweak/slipweak.
+comp.plot_prefix  = slipweak/ref.slipweak.
 
 # Checkpoint file information
-comp.checkpoint_interval = -1
+comp.checkpoint_interval = 10
 # comp.checkpoint_interval = 1
-# comp.chk_prefix = check.
+comp.chk_prefix = slipweak/check.
 
 # Restart file information
 # comp.restart_file = check.20.2d.hdf5
