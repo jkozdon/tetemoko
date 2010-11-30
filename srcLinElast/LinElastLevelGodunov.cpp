@@ -123,7 +123,7 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
         GodunovPhysics* nonConstPhysicsPtr = (GodunovPhysics*) a_gdnvPhysics;
         m_numCons   = nonConstPhysicsPtr->numConserved();
         m_numFluxes = nonConstPhysicsPtr->numFluxes();
-        m_numBdryVars = 3;
+        m_numBdryVars = ((LEPhysIBC*) nonConstPhysicsPtr->getPhysIBC())->numBdryVars();
     }
 
     m_exchangeCopier.exchangeDefine(a_thisDisjointBoxLayout,

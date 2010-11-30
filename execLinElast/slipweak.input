@@ -34,7 +34,7 @@ physics.nuc_patch = 14.5 17.5 7 10
 comp.verbosity = 1
 
 # Number of steps, final time, and time step
-# comp.restart_file = slipweak/check.10.3d.hdf5
+comp.restart_file = slipweak/check.50.3d.hdf5
 comp.max_step = 100
 comp.max_time = 12
 # comp.fixed_dt = 0.002
@@ -89,7 +89,7 @@ comp.artificial_viscosity = 0.1
 # Plot file information
 comp.plot_interval = 10
 # comp.plot_interval = 1
-comp.plot_prefix  = slipweak/ref.slipweak.
+comp.plot_prefix  = slipweak/slipweak.
 
 # Checkpoint file information
 comp.checkpoint_interval = 10

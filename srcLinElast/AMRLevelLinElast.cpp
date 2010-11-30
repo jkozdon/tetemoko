@@ -197,10 +197,12 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     m_stateNames = m_gdnvPhysics->stateNames();
     // use LEPhysIBC to get these values
     // default is zero?
-    m_numBdryVars = 3;
-    m_bdryNames.push_back("V");
-    m_bdryNames.push_back("tau");
-    m_bdryNames.push_back("slip");
+    m_numBdryVars = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->numBdryVars();
+    m_bdryNames = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->bdryNames();
+    // m_numBdryVars = 3;
+    // m_bdryNames.push_back("V");
+    // m_bdryNames.push_back("tau");
+    // m_bdryNames.push_back("slip");
 
     // Setup the boundary Face box
     m_bdryFaceBox = bdryLo(a_problemDomain.domainBox(),1,1);

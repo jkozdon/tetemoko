@@ -118,6 +118,20 @@ public:
         return tagCellsInit(markFAB);
     }
 
+    virtual int numBdryVars()
+    {
+        return 3;
+    }
+
+    virtual Vector<string> bdryNames()
+    {
+        Vector<string> bdryNames;
+        bdryNames.push_back("V");
+        bdryNames.push_back("tau");
+        bdryNames.push_back("slip");
+        return bdryNames;
+    }
+
 protected:
     bool m_isFortranCommonSet;
     Vector<int> m_boundaryType;

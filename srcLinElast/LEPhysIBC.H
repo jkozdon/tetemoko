@@ -73,6 +73,18 @@ public:
         return false;
     }
 
+    virtual int numBdryVars()
+    {
+        return 1;
+    }
+
+    virtual Vector<string> bdryNames()
+    {
+        Vector<string> junk;
+        junk.push_back("junk");
+        return junk;
+    }
+
 protected:
     FArrayBox* m_bdryData;
     int        m_numBdryVars;
