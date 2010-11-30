@@ -19,8 +19,8 @@ physics.width_fric_box  = 15 15
 physics.outside_f_static = 10000
 
 physics.num_patches = 3
-# physics.tau_patches = 11.6 -8 8
-physics.tau_patches = 11.6 0 0
+physics.tau_patches = 11.6 -8 8
+# physics.tau_patches = 11.6 0 0
 physics.xc_patches  =  16 8.5 23.5
 physics.zc_patches  = 8.5 8.5 8.5
 physics.xw_patches  = 1.5 1.5  1.5
