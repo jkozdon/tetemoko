@@ -176,7 +176,7 @@ c           call BOXCARFUNC(valx,l(0), abs(x-r(0)))
 c           ;;
 c           call BOXCARFUNC(valz,l(1), abs(z-r(1)))
 c           ]
-            tau_p = tau_p + tauPatches(ip) * valx * valz
+            tau_p = tau_p + tauPatches(ip) * CHF_DTERM[valx;;*valz]
           enddo
 
           tau   = sqrt((wmxy+tau_p)**2 + wmyz**2)
@@ -189,8 +189,9 @@ c         fric  = min(fs,max(fd,fd+(1-B(CHF_IX[i;j;k],2)/dw)*(fs-fd)))
           ;;
           call SMOOTHFUNC(valz,width,abs(z-16.0d0)-15.0d0+half*width)
           ]
-          fric  = fs*valx*valz + (1-valx*valz)*10000
+          fric  = fs*CHF_DTERM[valx;;*valz] + (1-CHF_DTERM[valx;;*valz])*10000
           fric  = min(fric,max(fd,fd+(1-B(CHF_IX[i;j;k],2)/dw)*(fric-fd)))
+          print*,x,tau_p,fric
 
           tau_0 = min(tau,-syy*fric)
 

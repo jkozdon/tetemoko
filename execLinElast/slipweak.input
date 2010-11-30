@@ -43,7 +43,7 @@ comp.max_time = 12
 comp.domain_length = 32.0
 
 # Coarsest grid
-comp.num_cells = 64 32 32
+comp.num_cells = 320 160 160
 
 # # 0 : Outflow
 # # 1 : Free surface
@@ -54,7 +54,7 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 3
+comp.max_level = 0
 # For 2D
 # comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
 # For 3D
