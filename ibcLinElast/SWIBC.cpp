@@ -19,21 +19,30 @@ SWIBC::SWIBC(const Real& a_cs,
     const Real& a_fricD,
     const Real& a_weakD,
     const Real& a_tau_nuc,
+    const Real& a_width,
     const vector<Real> a_nucPatch,
     const int a_numPatches,
-    const vector<Real> a_xloPatches,
-    const vector<Real> a_xhiPatches,
-    const vector<Real> a_zloPatches,
-    const vector<Real> a_zhiPatches,
+    const vector<Real> a_xcPatches,
+    const vector<Real> a_xwPatches,
+    const vector<Real> a_zcPatches,
+    const vector<Real> a_zwPatches,
     const vector<Real> a_tauPatches,
     const Vector<int>& a_boundaryType)
 {
     FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
-    FORT_SWSETF(CHF_CONST_REAL(a_fricS),CHF_CONST_REAL(a_fricD),CHF_CONST_REAL(a_weakD),CHF_CONST_REAL(a_tau_nuc),CHF_CONST_VR(a_nucPatch));
+    FORT_SWSETF(CHF_CONST_REAL(a_fricS),CHF_CONST_REAL(a_fricD),CHF_CONST_REAL(a_weakD),CHF_CONST_REAL(a_tau_nuc),
+        CHF_CONST_VR(a_nucPatch),CHF_CONST_REAL(a_width));
     m_nucPatch           = a_nucPatch;
     m_boundaryType       = a_boundaryType;
     m_isFortranCommonSet = true;
     m_isNucBoxSet = false;
+
+    m_numPatches = a_numPatches;
+    m_xcPatches = a_xcPatches;
+    m_xwPatches = a_xwPatches;
+    m_zcPatches = a_zcPatches;
+    m_zwPatches = a_zwPatches;
+    m_tauPatches = a_tauPatches;
 }
 
 /// Destructor
@@ -63,6 +72,12 @@ PhysIBC* SWIBC::new_physIBC()
     retval->m_nucPatch = m_nucPatch;
     retval->m_isNucBoxSet = m_isNucBoxSet;
     retval->m_nucBox = m_nucBox;
+    retval->m_numPatches = m_numPatches;
+    retval->m_xcPatches  = m_xcPatches;
+    retval->m_xwPatches  = m_xwPatches;
+    retval->m_zcPatches  = m_zcPatches;
+    retval->m_zwPatches  = m_zwPatches;
+    retval->m_tauPatches = m_tauPatches;
     return static_cast<PhysIBC*>(retval);
 }
 
@@ -165,10 +180,15 @@ void SWIBC::primBC(FArrayBox& a_WGdnv,
                     CHF_CONST_REAL(a_time),
                     CHF_CONST_INT(a_dir),
                     CHF_CONST_FRA((*m_bdryData)),
+                    CHF_CONST_INT(m_numPatches),
+                    CHF_CONST_VR(m_xcPatches),
+                    CHF_CONST_VR(m_xwPatches),
+                    CHF_CONST_VR(m_zcPatches),
+                    CHF_CONST_VR(m_zwPatches),
+                    CHF_CONST_VR(m_tauPatches),
                     CHF_BOX(boundaryBox));
-                // pout() << "Boundary Box :: " << m_bdryData->box() << " :: for box :: " << a_WGdnv.box() << endl;
             }
-            else
+            else if(m_boundaryType[a_dir*2 + (lohisign+1)/2] == 0)
             {
                 FORT_LINELASTOUTBCF(CHF_FRA(a_WGdnv),
                     CHF_CONST_FRA(a_WShiftInside),
@@ -177,6 +197,20 @@ void SWIBC::primBC(FArrayBox& a_WGdnv,
                     CHF_CONST_REAL(m_dx),
                     CHF_CONST_INT(a_dir),
                     CHF_BOX(boundaryBox));
+            }
+            else if(m_boundaryType[a_dir*2 + (lohisign+1)/2] == 1)
+            {
+                FORT_LINELASTFREEBCF(CHF_FRA(a_WGdnv),
+                    CHF_CONST_FRA(a_WShiftInside),
+                    CHF_CONST_FRA(a_W),
+                    CHF_CONST_INT(lohisign),
+                    CHF_CONST_REAL(m_dx),
+                    CHF_CONST_INT(a_dir),
+                    CHF_BOX(boundaryBox));
+            }
+            else
+            {
+                MayDay::Error("Invalid Boundary Type");
             }
         }
     }

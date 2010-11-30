@@ -8,7 +8,8 @@ C
      &    CHF_CONST_REAL[afd],
      &    CHF_CONST_REAL[adw],
      &    CHF_CONST_REAL[atauN],
-     &    CHF_CONST_VR[anpatch])
+     &    CHF_CONST_VR[anpatch],
+     &    CHF_CONST_REAL[awidth])
 
 #include "SWCommon.fh"
 
@@ -21,6 +22,7 @@ c
         fd = afd
         dw = adw
         tauN = atauN
+        smWidth = awidth
         CHF_DTERM[
         npatch(0) = anpatch(0)
         npatch(1) = anpatch(1)
@@ -105,12 +107,19 @@ C
      &    CHF_CONST_REAL[t],
      &    CHF_CONST_INT[idir],
      &    CHF_CONST_FRA[B],
+     &    CHF_CONST_INT[numPatches],
+     &    CHF_CONST_VR[xcPatches],
+     &    CHF_CONST_VR[xwPatches],
+     &    CHF_CONST_VR[zcPatches],
+     &    CHF_CONST_VR[zwPatches],
+     &    CHF_CONST_VR[tauPatches],
      &    CHF_BOX[box])
 
 #include "IBCCommon.fh"
 #include "SWCommon.fh"
 
         integer CHF_DDECL[i;j;k]
+        integer ip
         real_t CHF_DDECL[x;y;z]
         real_t CHF_DDECL[xlo;ylo;zlo]
         real_t CHF_DDECL[xhi;yhi;zhi]
@@ -120,9 +129,9 @@ C
         real_t wmxy,wmyy,wmyz
         real_t vx,vy,vz,sxx,syy,szz,sxy,sxz,syz
         real_t SHF, tau, fric, V, tau_0, beta, tau_p, valx, valz
-c       real_t width, width2
-c       width    = 12.0d0*dx
-c       width2   =  6.0d0*dx
+        real_t width
+c       width = 12.0d0*dx
+        width = smWidth
         fric = 1d0
         CHF_MULTIDO[box;i;j;k]
           CHF_DTERM[
@@ -155,22 +164,34 @@ C         We assume that the boundary is on the bottom
           wmyz = syz + Zs * vz
 
 C         assume that the fault is locked
-c         CHF_DTERM[
-c         call SMOOTHFUNC(valx,width, abs(x-r(0))-l(0)+width2)
-c         ;;
-c         call SMOOTHFUNC(valz,width, abs(z-r(1))-l(1)+width2)
-c         ]
-          CHF_DTERM[
-          call BOXCARFUNC(valx,l(0), abs(x-r(0)))
-          ;;
-          call BOXCARFUNC(valz,l(1), abs(z-r(1)))
-          ]
-          tau_p = tauN * valx * valz
+          tau_p = zero
+          do ip = 0,numPatches-1
+            CHF_DTERM[
+            call SMOOTHFUNC(valx,width, abs(x-xcPatches(ip))-xwPatches(ip)+half*width)
+            ;;
+            call SMOOTHFUNC(valz,width, abs(z-zcPatches(ip))-zwPatches(ip)+half*width)
+            ]
+c           CHF_DTERM[
+c           call BOXCARFUNC(valx,l(0), abs(x-r(0)))
+c           ;;
+c           call BOXCARFUNC(valz,l(1), abs(z-r(1)))
+c           ]
+            tau_p = tau_p + tauPatches(ip) * valx * valz
+          enddo
 
           tau   = sqrt((wmxy+tau_p)**2 + wmyz**2)
 
           syy   = background(4)
-          fric  = min(fs,max(fd,fd+(1-B(CHF_IX[i;j;k],2)/dw)*(fs-fd)))
+c         fric  = min(fs,max(fd,fd+(1-B(CHF_IX[i;j;k],2)/dw)*(fs-fd)))
+
+          CHF_DTERM[
+          call SMOOTHFUNC(valx,width,abs(x-16.0d0)-15.0d0+half*width)
+          ;;
+          call SMOOTHFUNC(valz,width,abs(z-16.0d0)-15.0d0+half*width)
+          ]
+          fric  = fs*valx*valz + (1-valx*valz)*10000
+          fric  = min(fric,max(fd,fd+(1-B(CHF_IX[i;j;k],2)/dw)*(fric-fd)))
+
           tau_0 = min(tau,-syy*fric)
 
           beta  = 2.0d0 * tau_0 / tau - 1.0d0

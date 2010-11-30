@@ -14,27 +14,32 @@ physics.f_static  = 0.677
 physics.f_dynamic = 0.525
 physics.d_weak    = 0.4
 
+physics.center_fric_box = 16 16
+physics.width_fric_box  = 15 15
+physics.outside_f_static = 10000
+
 physics.num_patches = 3
-physics.tau_patches = 11.6 -8 8
-physics.xlo_patches = 13.5 6 21
-physics.xhi_patches = 16.5 9 24
-physics.zlo_patches = 6 6 6
-physics.zhi_patches = 9 9 9
+# physics.tau_patches = 11.6 -8 8
+physics.tau_patches = 11.6 0 0
+physics.xc_patches  =  16 8.5 23.5
+physics.zc_patches  = 8.5 8.5 8.5
+physics.xw_patches  = 1.5 1.5  1.5
+physics.zw_patches  = 1.5 1.5 1.5
 
 physics.tau_nuc   = 11.6
-physics.nuc_patch = 13.5 16.5 6 9
+physics.nuc_patch = 14.5 17.5 7 10
 
 # Turn on some output
 # comp.verbosity = 10
 comp.verbosity = 1
 
 # Number of steps, final time, and time step
-comp.max_step = 25
+comp.max_step = 250
 comp.max_time = 12
 # comp.fixed_dt = 0.002
 
 # Size of the domain's longest dimension
-comp.domain_length = 30.0
+comp.domain_length = 32.0
 
 # Coarsest grid
 comp.num_cells = 64 32 32
@@ -48,7 +53,7 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 2
+comp.max_level = 1
 # For 2D
 comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
 # For 3D

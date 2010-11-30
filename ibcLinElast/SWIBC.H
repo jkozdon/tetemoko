@@ -29,12 +29,13 @@ public:
         const Real& fricD,
         const Real& weakD,
         const Real& taunuc,
+        const Real& width,
         const vector<Real> nucPatch,
         const int numPatches,
         const vector<Real> xloPatches,
-        const vector<Real> xhiPatches,
+        const vector<Real> xwPatches,
         const vector<Real> zloPatches,
-        const vector<Real> zhiPatches,
+        const vector<Real> zwPatches,
         const vector<Real> tauPatches,
         const Vector<int>& boundaryType);
 
@@ -124,6 +125,12 @@ protected:
     bool m_isNucBoxSet;
     Box m_nucBox;
 
+    int m_numPatches;
+    Vector<Real> m_xcPatches;
+    Vector<Real> m_xwPatches;
+    Vector<Real> m_zcPatches;
+    Vector<Real> m_zwPatches;
+    Vector<Real> m_tauPatches;
 private:
 };
 

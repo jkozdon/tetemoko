@@ -224,6 +224,154 @@ void amrGodunov()
     Real maxTime = 0.0;
     ppcomp.get("max_time",maxTime);
 
+    // Stop after this number of steps
+    int nstop = 0;
+    ppcomp.get("max_step",nstop);
+
+    // Set the resolution of the coarsest level
+    vector<int> numCells(SpaceDim);
+    for (int i = 0; i < SpaceDim; ++i)
+    {
+        numCells[i] = 0;
+    }
+    ppcomp.getarr("num_cells",numCells,0,SpaceDim);
+
+    CH_assert(D_TERM(   (numCells[0] > 0),
+            && (numCells[1] > 0),
+            && (numCells[2] > 0)));
+    CH_assert(D_TERM(   (numCells[0] % 2 == 0),
+            && (numCells[1] % 2 == 0),
+            && (numCells[2] % 2 == 0)));
+
+    // Maximum AMR level limit
+    int maxLevel = 0;
+    ppcomp.get("max_level",maxLevel);
+    int numReadLevels = Max(maxLevel,1);
+
+    // Refinement ratios between levels
+    std::vector<int> refRatios;
+    // Note: this requires a refRatio to be defined for the finest level
+    // (even though it will never be used)
+    ppcomp.getarr("ref_ratio",refRatios,0,numReadLevels+1);
+
+    // Number of coarse time steps from one regridding to the next
+    std::vector<int> regridIntervals;
+    ppcomp.getarr("regrid_interval",regridIntervals,0,numReadLevels);
+
+    // How far to extend refinement from cells newly tagged for refinement
+    int tagBufferSize = 3;
+    ppcomp.get("tag_buffer_size",tagBufferSize);
+
+    // Threshold that triggers refinement
+    Real refineThresh = 0.3;
+    ppcomp.get ("refine_thresh",refineThresh);
+
+    // Minimum dimension of a grid
+    int blockFactor = 1;
+    ppcomp.get("block_factor",blockFactor);
+
+    // Maximum dimension of a grid
+    int maxGridSize = 32;
+    ppcomp.get("max_grid_size",maxGridSize);
+
+    Real fillRatio = 0.75;
+    ppcomp.get("fill_ratio",fillRatio);
+
+    // Order of the normal predictor (CTU -> 0, PLM -> 1, PPM -> 2)
+    std::string normalPred;
+    int normalPredOrder;
+    ppcomp.get("normal_predictor",normalPred);
+    if (normalPred == "CTU" || normalPred == "ctu")
+    {
+        normalPredOrder = 0;
+    }
+    else if (normalPred == "PLM" || normalPred == "plm")
+    {
+        normalPredOrder = 1;
+    }
+    else if (normalPred == "PPM" || normalPred == "ppm")
+    {
+        normalPredOrder = 2;
+    }
+    else
+    {
+        MayDay::Error("Normal predictor must by PLM or PPM");
+    }
+
+    // Use fourth order slopes
+    int inFourthOrderSlopes = 1;
+    bool useFourthOrderSlopes;
+    ppcomp.get("use_fourth_order_slopes",inFourthOrderSlopes);
+    useFourthOrderSlopes = (inFourthOrderSlopes == 1);
+
+    // Do slope limiting
+    int inPrimLimiting = 1;
+    bool usePrimLimiting;
+    ppcomp.get("use_prim_limiting",inPrimLimiting);
+    usePrimLimiting = (inPrimLimiting == 1);
+
+    // Do slope limiting using characteristics
+    int inCharLimiting = 0;
+    bool useCharLimiting;
+    ppcomp.get("use_char_limiting",inCharLimiting);
+    useCharLimiting = (inCharLimiting == 1);
+
+    // Do slope flattening
+    int inFlattening = 0;
+    bool useFlattening;
+    //JK NOT CURRENTLY IMPLEMENTED
+    // ppcomp.get("use_flattening",inFlattening);
+    useFlattening = (inFlattening == 1);
+
+    // Apply artificial viscosity
+    int inArtificialViscosity = 0;
+    bool useArtificialViscosity;
+    //JK NOT CURRENTLY IMPLEMENTED
+    // ppcomp.get("use_artificial_viscosity",inArtificialViscosity);
+    useArtificialViscosity = (inArtificialViscosity == 1);
+
+    // Artificial viscosity coefficient/multiplier
+    Real artificialViscosity = 0.1;
+    ppcomp.get("artificial_viscosity",artificialViscosity);
+
+    // Don't use high-order limiter by default
+    int inHighOrderLimiter = 0;
+    bool highOrderLimiter;
+    ppcomp.query("high_order_limiter", inHighOrderLimiter);
+    highOrderLimiter = (inHighOrderLimiter == 1);
+
+    // Set up checkpointing
+    int checkpointInterval = 0;
+    ppcomp.query("checkpoint_interval",checkpointInterval);
+
+    // Set up plot file writing
+    int plotInterval = 0;
+    ppcomp.query("plot_interval",plotInterval);
+
+    // CFL multiplier
+    Real cfl = 0.8;
+    ppcomp.get("cfl",cfl);
+
+    // Initial CFL multiplier
+    Real initialCFL = 0.1;
+    ppcomp.get("initial_cfl",initialCFL);
+
+    // Determine if a fixed or variable time step will be used
+    Real fixedDt = -1;
+    ppcomp.query("fixed_dt",fixedDt);
+
+    // Limit the time step growth
+    Real maxDtGrowth = 1.1;
+    ppcomp.get("max_dt_growth",maxDtGrowth);
+
+    // Let the time step grow by this factor above the "maximum" before
+    // reducing it
+    Real dtToleranceFactor = 1.1;
+    ppcomp.get("dt_tolerance_factor",dtToleranceFactor);
+
+    // End timing the reading of the input file
+    TimeReadInput.stop();
+
     // Create and define IBC (initial and boundary condition) object
     PhysIBC* ibc;
 
@@ -421,16 +569,16 @@ void amrGodunov()
             int numPatches = 0;
             ppphysics.get("num_patches",numPatches);
 
-            vector<Real> xloPatches(numPatches,0);
-            vector<Real> xhiPatches(numPatches,0);
-            vector<Real> zloPatches(numPatches,0);
-            vector<Real> zhiPatches(numPatches,0);
+            vector<Real> xcPatches(numPatches,0);
+            vector<Real> xwPatches(numPatches,0);
+            vector<Real> zcPatches(numPatches,0);
+            vector<Real> zwPatches(numPatches,0);
             vector<Real> tauPatches(numPatches,0);
 
-            ppphysics.getarr("xlo_patches",xloPatches,0,numPatches);
-            ppphysics.getarr("xhi_patches",xhiPatches,0,numPatches);
-            ppphysics.getarr("zlo_patches",zloPatches,0,numPatches);
-            ppphysics.getarr("zhi_patches",zhiPatches,0,numPatches);
+            ppphysics.getarr("xc_patches",xcPatches,0,numPatches);
+            ppphysics.getarr("xw_patches",xwPatches,0,numPatches);
+            ppphysics.getarr("zc_patches",zcPatches,0,numPatches);
+            ppphysics.getarr("zw_patches",zwPatches,0,numPatches);
             ppphysics.getarr("tau_patches",tauPatches,0,numPatches);
 
             vector<Real> nucPatch(2*(SpaceDim-1),0);
@@ -480,10 +628,21 @@ void amrGodunov()
                 }
             }
 
+            Real dx = domainLength;
+            for(int dim = 0; dim < SpaceDim; dim++)
+            {
+                dx = min(dx,domainLength/((Real) numCells[dim]));
+            }
+            // for(int lvl = 0; lvl < numReadLevels; lvl++)
+            // {
+            //     dx = dx / ((Real) refRatios[lvl]);
+            // }
+
+            Real width = 4*dx;
 
             SWIBC* swibc =
-                new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,tauN,nucPatch,
-                    numPatches,xloPatches,xhiPatches,zloPatches,zhiPatches,tauPatches,
+                new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,tauN,width,nucPatch,
+                    numPatches,xcPatches,xwPatches,zcPatches,zwPatches,tauPatches,
                     boundaryType);
             ibc = swibc;
             if(verbosity >= 1)
@@ -495,8 +654,8 @@ void amrGodunov()
                 for(int itor = 0; itor < numPatches; itor++)
                 {
                     pout() << "Patch " << itor << ": tau = " << tauPatches[itor];
-                    pout() << " at " << "((" << xloPatches[itor] << ",0," << zloPatches[itor] << ")";
-                    pout() << ",(" << xhiPatches[itor] << ",0," << zhiPatches[itor] << "))" << endl;
+                    pout() << " at " << "(" << xcPatches[itor] << ",0," << zcPatches[itor] << ")";
+                    pout() << " +/- (" << xwPatches[itor] << ",0," << zwPatches[itor] << ")" << endl;
                 }
                 pout() << "Background Values = " << 
                     backgroundVals[0] << " " <<
@@ -595,153 +754,6 @@ void amrGodunov()
         return;
     }
 
-    // Stop after this number of steps
-    int nstop = 0;
-    ppcomp.get("max_step",nstop);
-
-    // Set the resolution of the coarsest level
-    vector<int> numCells(SpaceDim);
-    for (int i = 0; i < SpaceDim; ++i)
-    {
-        numCells[i] = 0;
-    }
-    ppcomp.getarr("num_cells",numCells,0,SpaceDim);
-
-    CH_assert(D_TERM(   (numCells[0] > 0),
-            && (numCells[1] > 0),
-            && (numCells[2] > 0)));
-    CH_assert(D_TERM(   (numCells[0] % 2 == 0),
-            && (numCells[1] % 2 == 0),
-            && (numCells[2] % 2 == 0)));
-
-    // Maximum AMR level limit
-    int maxLevel = 0;
-    ppcomp.get("max_level",maxLevel);
-    int numReadLevels = Max(maxLevel,1);
-
-    // Refinement ratios between levels
-    std::vector<int> refRatios;
-    // Note: this requires a refRatio to be defined for the finest level
-    // (even though it will never be used)
-    ppcomp.getarr("ref_ratio",refRatios,0,numReadLevels+1);
-
-    // Number of coarse time steps from one regridding to the next
-    std::vector<int> regridIntervals;
-    ppcomp.getarr("regrid_interval",regridIntervals,0,numReadLevels);
-
-    // How far to extend refinement from cells newly tagged for refinement
-    int tagBufferSize = 3;
-    ppcomp.get("tag_buffer_size",tagBufferSize);
-
-    // Threshold that triggers refinement
-    Real refineThresh = 0.3;
-    ppcomp.get ("refine_thresh",refineThresh);
-
-    // Minimum dimension of a grid
-    int blockFactor = 1;
-    ppcomp.get("block_factor",blockFactor);
-
-    // Maximum dimension of a grid
-    int maxGridSize = 32;
-    ppcomp.get("max_grid_size",maxGridSize);
-
-    Real fillRatio = 0.75;
-    ppcomp.get("fill_ratio",fillRatio);
-
-    // Order of the normal predictor (CTU -> 0, PLM -> 1, PPM -> 2)
-    std::string normalPred;
-    int normalPredOrder;
-    ppcomp.get("normal_predictor",normalPred);
-    if (normalPred == "CTU" || normalPred == "ctu")
-    {
-        normalPredOrder = 0;
-    }
-    else if (normalPred == "PLM" || normalPred == "plm")
-    {
-        normalPredOrder = 1;
-    }
-    else if (normalPred == "PPM" || normalPred == "ppm")
-    {
-        normalPredOrder = 2;
-    }
-    else
-    {
-        MayDay::Error("Normal predictor must by PLM or PPM");
-    }
-
-    // Use fourth order slopes
-    int inFourthOrderSlopes = 1;
-    bool useFourthOrderSlopes;
-    ppcomp.get("use_fourth_order_slopes",inFourthOrderSlopes);
-    useFourthOrderSlopes = (inFourthOrderSlopes == 1);
-
-    // Do slope limiting
-    int inPrimLimiting = 1;
-    bool usePrimLimiting;
-    ppcomp.get("use_prim_limiting",inPrimLimiting);
-    usePrimLimiting = (inPrimLimiting == 1);
-
-    // Do slope limiting using characteristics
-    int inCharLimiting = 0;
-    bool useCharLimiting;
-    ppcomp.get("use_char_limiting",inCharLimiting);
-    useCharLimiting = (inCharLimiting == 1);
-
-    // Do slope flattening
-    int inFlattening = 0;
-    bool useFlattening;
-    //JK NOT CURRENTLY IMPLEMENTED
-    // ppcomp.get("use_flattening",inFlattening);
-    useFlattening = (inFlattening == 1);
-
-    // Apply artificial viscosity
-    int inArtificialViscosity = 0;
-    bool useArtificialViscosity;
-    //JK NOT CURRENTLY IMPLEMENTED
-    // ppcomp.get("use_artificial_viscosity",inArtificialViscosity);
-    useArtificialViscosity = (inArtificialViscosity == 1);
-
-    // Artificial viscosity coefficient/multiplier
-    Real artificialViscosity = 0.1;
-    ppcomp.get("artificial_viscosity",artificialViscosity);
-
-    // Don't use high-order limiter by default
-    int inHighOrderLimiter = 0;
-    bool highOrderLimiter;
-    ppcomp.query("high_order_limiter", inHighOrderLimiter);
-    highOrderLimiter = (inHighOrderLimiter == 1);
-
-    // Set up checkpointing
-    int checkpointInterval = 0;
-    ppcomp.query("checkpoint_interval",checkpointInterval);
-
-    // Set up plot file writing
-    int plotInterval = 0;
-    ppcomp.query("plot_interval",plotInterval);
-
-    // CFL multiplier
-    Real cfl = 0.8;
-    ppcomp.get("cfl",cfl);
-
-    // Initial CFL multiplier
-    Real initialCFL = 0.1;
-    ppcomp.get("initial_cfl",initialCFL);
-
-    // Determine if a fixed or variable time step will be used
-    Real fixedDt = -1;
-    ppcomp.query("fixed_dt",fixedDt);
-
-    // Limit the time step growth
-    Real maxDtGrowth = 1.1;
-    ppcomp.get("max_dt_growth",maxDtGrowth);
-
-    // Let the time step grow by this factor above the "maximum" before
-    // reducing it
-    Real dtToleranceFactor = 1.1;
-    ppcomp.get("dt_tolerance_factor",dtToleranceFactor);
-
-    // End timing the reading of the input file
-    TimeReadInput.stop();
 
 #ifndef CH_NTIMER
     pout() << "Input Read completed --- "
