@@ -581,9 +581,6 @@ void amrGodunov()
             ppphysics.getarr("zw_patches",zwPatches,0,numPatches);
             ppphysics.getarr("tau_patches",tauPatches,0,numPatches);
 
-            vector<Real> nucPatch(2*(SpaceDim-1),0);
-            ppphysics.queryarr("nuc_patch",nucPatch,0,2*(SpaceDim-1));
-
             Real fricD = 0.525;
             ppphysics.query("f_dynamic",fricD);
 
@@ -635,10 +632,10 @@ void amrGodunov()
             //     dx = dx / ((Real) refRatios[lvl]);
             // }
 
-            Real width = 10*dx;
+            Real width = 12*dx;
 
             SWIBC* swibc =
-                new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,width,nucPatch,
+                new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,width,
                     numPatches,xcPatches,xwPatches,zcPatches,zwPatches,tauPatches,
                     boundaryType);
             ibc = swibc;

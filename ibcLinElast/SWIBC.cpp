@@ -19,7 +19,6 @@ SWIBC::SWIBC(const Real& a_cs,
     const Real& a_fricD,
     const Real& a_weakD,
     const Real& a_width,
-    const vector<Real> a_nucPatch,
     const int a_numPatches,
     const vector<Real> a_xcPatches,
     const vector<Real> a_xwPatches,
@@ -30,7 +29,6 @@ SWIBC::SWIBC(const Real& a_cs,
 {
     FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
     FORT_SWSETF(CHF_CONST_REAL(a_fricS),CHF_CONST_REAL(a_fricD),CHF_CONST_REAL(a_weakD),CHF_CONST_REAL(a_width));
-    m_nucPatch           = a_nucPatch;
     m_boundaryType       = a_boundaryType;
     m_isFortranCommonSet = true;
     m_isNucBoxSet = false;
@@ -67,7 +65,6 @@ PhysIBC* SWIBC::new_physIBC()
         retval->setFortranCommonSet();
     }
     retval->m_boundaryType = m_boundaryType;
-    retval->m_nucPatch = m_nucPatch;
     retval->m_isNucBoxSet = m_isNucBoxSet;
     retval->m_nucBox = m_nucBox;
     retval->m_numPatches = m_numPatches;
@@ -106,7 +103,8 @@ void SWIBC::initialize(LevelData<FArrayBox>& a_U)
 
 void SWIBC::initializeBdry(LevelData<FArrayBox>& a_B)
 {
-    const Real tmpVal = 0.0;
+    const Real tmpVal  =  0.0;
+    const Real tmpVal2 = -1.0;
     for (DataIterator dit = a_B.dataIterator(); dit.ok(); ++dit)
     {
         // Storage for current grid
@@ -117,9 +115,15 @@ void SWIBC::initializeBdry(LevelData<FArrayBox>& a_B)
         bBox &= m_domain;
 
         // Set up initial condition in this grid
-        FORT_LINELASTSETFAB(CHF_FRA1(B,2),
+        FORT_LINELASTSETFAB(CHF_FRA1(B,4),
             CHF_BOX(bBox),
             CHF_CONST_REAL(tmpVal));
+        FORT_LINELASTSETFAB(CHF_FRA1(B,5),
+            CHF_BOX(bBox),
+            CHF_CONST_REAL(tmpVal));
+        FORT_LINELASTSETFAB(CHF_FRA1(B,6),
+            CHF_BOX(bBox),
+            CHF_CONST_REAL(tmpVal2));
     }
 }
 
@@ -272,7 +276,6 @@ bool SWIBC::tagCellsInit(FArrayBox& markFAB)
             nucBg.setVal(2, ceil((m_zcPatches[0]+m_zwPatches[0])/m_dx));
         }
         m_nucBox.define(Box(nucSm,nucBg));
-        pout() << m_nucBox << endl;
         m_isNucBoxSet = true;
     }
     markFAB.setVal(1,m_nucBox & markFAB.box(),0);

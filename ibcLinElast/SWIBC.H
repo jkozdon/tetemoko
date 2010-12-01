@@ -29,7 +29,6 @@ public:
         const Real& fricD,
         const Real& weakD,
         const Real& width,
-        const vector<Real> nucPatch,
         const int numPatches,
         const vector<Real> xloPatches,
         const vector<Real> xwPatches,
@@ -138,7 +137,6 @@ public:
 protected:
     bool m_isFortranCommonSet;
     Vector<int> m_boundaryType;
-    Vector<Real> m_nucPatch;
     bool m_isNucBoxSet;
     Box m_nucBox;
 
