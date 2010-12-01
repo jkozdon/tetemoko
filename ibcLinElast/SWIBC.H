@@ -28,7 +28,6 @@ public:
         const Real& fricS,
         const Real& fricD,
         const Real& weakD,
-        const Real& taunuc,
         const Real& width,
         const vector<Real> nucPatch,
         const int numPatches,
@@ -103,7 +102,7 @@ public:
     /// Store pointer to boundary data
     /**
     */
-    virtual void updateBoundary(const FArrayBox& a_WHalf,int dir,const Real& a_dt);
+    virtual void updateBoundary(const FArrayBox& a_WHalf,int dir,const Real& a_dt,const Real& a_time);
 
     /// Do the initial tagging of cells
     /**
@@ -120,15 +119,19 @@ public:
 
     virtual int numBdryVars()
     {
-        return 3;
+        return 7;
     }
 
     virtual Vector<string> bdryNames()
     {
         Vector<string> bdryNames;
-        bdryNames.push_back("V");
-        bdryNames.push_back("tau");
-        bdryNames.push_back("slip");
+        bdryNames.push_back("Vx");
+        bdryNames.push_back("Vz");
+        bdryNames.push_back("sxy");
+        bdryNames.push_back("syz");
+        bdryNames.push_back("dx");
+        bdryNames.push_back("dz");
+        bdryNames.push_back("rupture");
         return bdryNames;
     }
 

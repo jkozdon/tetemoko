@@ -18,7 +18,6 @@ SWIBC::SWIBC(const Real& a_cs,
     const Real& a_fricS,
     const Real& a_fricD,
     const Real& a_weakD,
-    const Real& a_tau_nuc,
     const Real& a_width,
     const vector<Real> a_nucPatch,
     const int a_numPatches,
@@ -30,7 +29,7 @@ SWIBC::SWIBC(const Real& a_cs,
     const Vector<int>& a_boundaryType)
 {
     FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
-    FORT_SWSETF(CHF_CONST_REAL(a_fricS),CHF_CONST_REAL(a_fricD),CHF_CONST_REAL(a_weakD),CHF_CONST_REAL(a_tau_nuc),
+    FORT_SWSETF(CHF_CONST_REAL(a_fricS),CHF_CONST_REAL(a_fricD),CHF_CONST_REAL(a_weakD),
         CHF_CONST_VR(a_nucPatch),CHF_CONST_REAL(a_width));
     m_nucPatch           = a_nucPatch;
     m_boundaryType       = a_boundaryType;
@@ -236,14 +235,15 @@ void SWIBC::artViscBC(FArrayBox&       a_F,
     pout() << "NOT SETUP :: SWIBC::artViscBC" << endl;
 }
 
-void SWIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt)
+void SWIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,const Real& a_time)
 {
     if(a_dir == 1 && bdryLo(m_domain,1).contains(bdryLo(a_WHalf.box(),1)))
     {
         FORT_SWSETBND(CHF_FRA((*m_bdryData)),
             CHF_BOX(bdryLo(a_WHalf.box(),1)),
             CHF_CONST_FRA(a_WHalf),
-            CHF_CONST_REAL(a_dt));
+            CHF_CONST_REAL(a_dt),
+            CHF_CONST_REAL(a_time));
     }
 }
 

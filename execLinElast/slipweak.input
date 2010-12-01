@@ -26,7 +26,6 @@ physics.zc_patches  = 8.5 8.5 8.5
 physics.xw_patches  = 1.5 1.5  1.5
 physics.zw_patches  = 1.5 1.5 1.5
 
-physics.tau_nuc   = 11.6
 physics.nuc_patch = 14.5 17.5 7 10
 
 # Turn on some output
@@ -43,7 +42,7 @@ comp.max_time = 12
 comp.domain_length = 32.0
 
 # Coarsest grid
-comp.num_cells = 320 160 160
+comp.num_cells = 160 80 80
 
 # # 0 : Outflow
 # # 1 : Free surface
@@ -54,7 +53,7 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 0
+comp.max_level = 2
 # For 2D
 # comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
 # For 3D

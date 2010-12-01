@@ -1029,7 +1029,8 @@ void AMRLevelLinElast::writeCheckpointLevel(HDF5Handle& a_handle) const
     write(a_handle,m_UNew,"data");
 
     // Write the data for this level
-    write(a_handle,m_BNew,"boundary_data");
+    if(m_BNew.boxLayout().numCells() > 0)
+        write(a_handle,m_BNew,"boundary_data");
 }
 
 // Read checkpoint header
