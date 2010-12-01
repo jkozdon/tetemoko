@@ -189,6 +189,10 @@ public:
   ///
   bool allDefined() const;
 
+
+  ///
+  const int level(){return m_level;}
+
 protected:
   // Create a load-balanced DisjointBoxLayout from a collection of Boxes
   DisjointBoxLayout loadBalance(const Vector<Box>& a_grids);

@@ -29,8 +29,7 @@ SWIBC::SWIBC(const Real& a_cs,
     const Vector<int>& a_boundaryType)
 {
     FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
-    FORT_SWSETF(CHF_CONST_REAL(a_fricS),CHF_CONST_REAL(a_fricD),CHF_CONST_REAL(a_weakD),
-        CHF_CONST_VR(a_nucPatch),CHF_CONST_REAL(a_width));
+    FORT_SWSETF(CHF_CONST_REAL(a_fricS),CHF_CONST_REAL(a_fricD),CHF_CONST_REAL(a_weakD),CHF_CONST_REAL(a_width));
     m_nucPatch           = a_nucPatch;
     m_boundaryType       = a_boundaryType;
     m_isFortranCommonSet = true;
@@ -257,21 +256,23 @@ bool SWIBC::tagCellsInit(FArrayBox& markFAB)
         IntVect nucSm;
         IntVect nucBg;
         int offSet = 0;
-        for(int itor = 0; itor < (SpaceDim); itor++)
+        if(SpaceDim > 0)
         {
-            if(itor == 1)
-            {
-                nucSm.setVal(itor,0);
-                nucBg.setVal(itor,0);
-            }
-            else
-            {
-                nucSm.setVal(itor,floor(m_nucPatch[offSet  ]/m_dx));
-                nucBg.setVal(itor, ceil(m_nucPatch[offSet+1]/m_dx));
-                offSet+= 2;
-            }
+            nucSm.setVal(0,floor((m_xcPatches[0]-m_xwPatches[0])/m_dx));
+            nucBg.setVal(0, ceil((m_xcPatches[0]+m_xwPatches[0])/m_dx));
+        }
+        if(SpaceDim > 1)
+        {
+            nucSm.setVal(1,0);
+            nucBg.setVal(1,0);
+        }
+        if(SpaceDim > 0)
+        {
+            nucSm.setVal(2,floor((m_zcPatches[0]-m_zwPatches[0])/m_dx));
+            nucBg.setVal(2, ceil((m_zcPatches[0]+m_zwPatches[0])/m_dx));
         }
         m_nucBox.define(Box(nucSm,nucBg));
+        pout() << m_nucBox << endl;
         m_isNucBoxSet = true;
     }
     markFAB.setVal(1,m_nucBox & markFAB.box(),0);
