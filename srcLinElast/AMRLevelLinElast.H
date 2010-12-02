@@ -191,7 +191,13 @@ public:
 
 
   ///
-  const int level(){return m_level;}
+  int level(){return m_level;}
+
+  /// Calls the IBC routine on the boundary data do dump it to a file
+  /**
+   * Primarily used to save the rupture and seismic data
+   */
+  virtual void dumpBdryData();
 
 protected:
   // Create a load-balanced DisjointBoxLayout from a collection of Boxes

@@ -1794,3 +1794,24 @@ void AMRLevelLinElast::setupRelateUB()
         }
     }
 }
+
+void AMRLevelLinElast::dumpBdryData()
+{
+    if(m_level == 0)
+    {
+        char prefix[30];
+        sprintf(prefix,"boundary_data.%d",procID());
+        FILE * boundaryData;
+        boundaryData = fopen(prefix,"w");
+        if(boundaryData != NULL)
+        {
+            LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
+            for (DataIterator dit = m_BNew.dataIterator(); dit.ok(); ++dit)
+            {
+                lephysIBCPtr->setBdryData(&m_BNew[dit()]);
+                lephysIBCPtr->dumpBdryData(boundaryData);
+            }
+            fclose(boundaryData);
+        }
+    }
+}

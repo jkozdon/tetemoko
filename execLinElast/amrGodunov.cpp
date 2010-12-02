@@ -1013,13 +1013,11 @@ void amrGodunov()
     // Run and time the computation
     TimeRun.start();
     amr.run(maxTime,nstop);
-    Vector<AMRLevel*> vecLevels = amr.getAMRLevels();
-    for(int ator = 0; ator < vecLevels.size(); ator++)
-    {
-        if(((AMRLevelLinElast*)vecLevels[ator])->level() == 0)
-        {
-        }
-    }
+    // Vector<AMRLevel*> vecLevels = amr.getAMRLevels();
+    // for(int ator = 0; ator < vecLevels.size(); ator++)
+    // {
+    //     ((AMRLevelLinElast*)vecLevels[ator])->dumpBdryData();
+    // }
     TimeRun.stop();
 
 #ifndef CN_NTIMER

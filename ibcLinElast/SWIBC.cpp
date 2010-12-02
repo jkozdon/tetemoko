@@ -4,6 +4,7 @@
 #include "SWIBC.H"
 #include "SWIBCF_F.H"
 #include "LinElastPhysicsF_F.H"
+#include "BoxIterator.H"
 
 /// Null Constructor
 SWIBC::SWIBC()
@@ -104,7 +105,7 @@ void SWIBC::initialize(LevelData<FArrayBox>& a_U)
 void SWIBC::initializeBdry(LevelData<FArrayBox>& a_B)
 {
     const Real tmpVal  =  0.0;
-    const Real tmpVal2 = -1.0;
+    const Real tmpVal2 = 1e100;
     for (DataIterator dit = a_B.dataIterator(); dit.ok(); ++dit)
     {
         // Storage for current grid
@@ -286,4 +287,20 @@ bool SWIBC::tagCellsInit(FArrayBox& markFAB)
     //     CHF_CONST_REAL(m_dx),
     //     CHF_BOX(b));
     return true;
+}
+
+void SWIBC::dumpBdryData(FILE * a_boundaryDataFile)
+{
+    Box b = m_bdryData->box();
+    BoxIterator bit(b);
+    for (bit.begin(); bit.ok(); ++bit)
+    {
+        const IntVect& iv = bit();
+        Real x = iv[0]*m_dx-m_xcPatches[0];
+        Real z = iv[2]*m_dx-m_zcPatches[0];
+        if(abs(x) <= 15 & abs(z) <= 15)
+        {
+            fprintf(a_boundaryDataFile,"%E %E %E\n", x, z, m_bdryData->get(iv,6));
+        }
+    }
 }

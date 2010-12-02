@@ -134,6 +134,8 @@ public:
         return bdryNames;
     }
 
+    virtual void dumpBdryData(FILE * a_boundaryDataFile);
+
 protected:
     bool m_isFortranCommonSet;
     Vector<int> m_boundaryType;

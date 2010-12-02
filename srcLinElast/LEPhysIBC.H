@@ -85,6 +85,10 @@ public:
         return junk;
     }
 
+    virtual void dumpBdryData(FILE * a_boundaryDataFile)
+    {
+    }
+
 protected:
     FArrayBox* m_bdryData;
     int        m_numBdryVars;

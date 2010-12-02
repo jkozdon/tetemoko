@@ -32,7 +32,7 @@ comp.verbosity = 1
 
 # Number of steps, final time, and time step
 # comp.restart_file = slipweak/check.50.3d.hdf5
-comp.max_step = 50
+comp.max_step = 5
 comp.max_time = 12
 # comp.fixed_dt = 0.002
 
@@ -51,7 +51,7 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 0
+comp.max_level = 1
 # For 2D
 # comp.ref_ratio = 4 4 4 4 4 4 4 4 4 
 # For 3D
