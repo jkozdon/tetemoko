@@ -641,7 +641,8 @@ void amrGodunov()
             //     dx = dx / ((Real) refRatios[lvl]);
             // }
 
-            Real width = 12*dx;
+            // Real width = 12*dx;
+            Real width = 0;
 
             SWIBC* swibc =
                 new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,width,
