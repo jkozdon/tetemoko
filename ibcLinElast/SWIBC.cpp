@@ -318,8 +318,8 @@ void SWIBC::dumpBdryData(FILE * a_boundaryDataFile)
     for (bit.begin(); bit.ok(); ++bit)
     {
         const IntVect& iv = bit();
-        Real x = iv[0]*m_dx-m_fricBoxCenter[0];
-        Real z = iv[2]*m_dx-m_fricBoxCenter[1];
+        Real x = (iv[0]+0.5)*m_dx-m_fricBoxCenter[0];
+        Real z = (iv[2]+0.5)*m_dx-m_fricBoxCenter[1];
         if(abs(x) <= m_fricBoxWidth[0] & abs(z) <= m_fricBoxWidth[1])
         {
             fprintf(a_boundaryDataFile,"%E %E %E\n", x, z, m_bdryData->get(iv,6));
