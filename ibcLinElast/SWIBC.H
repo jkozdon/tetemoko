@@ -35,6 +35,9 @@ public:
         const vector<Real> zloPatches,
         const vector<Real> zwPatches,
         const vector<Real> tauPatches,
+        const vector<Real> fricBoxCenter,
+        const vector<Real> fricBoxWidth,
+        const Real outsideFriction,
         const Vector<int>& boundaryType);
 
     /// Destructor
@@ -148,6 +151,10 @@ protected:
     Vector<Real> m_zcPatches;
     Vector<Real> m_zwPatches;
     Vector<Real> m_tauPatches;
+
+    Real m_outsideFriction;
+    Vector<Real> m_fricBoxCenter;
+    Vector<Real> m_fricBoxWidth;
 private:
 };
 

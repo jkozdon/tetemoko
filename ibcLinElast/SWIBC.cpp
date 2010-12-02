@@ -26,6 +26,9 @@ SWIBC::SWIBC(const Real& a_cs,
     const vector<Real> a_zcPatches,
     const vector<Real> a_zwPatches,
     const vector<Real> a_tauPatches,
+    const vector<Real> a_fricBoxCenter,
+    const vector<Real> a_fricBoxWidth,
+    const Real a_outsideFriction,
     const Vector<int>& a_boundaryType)
 {
     FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
@@ -40,6 +43,10 @@ SWIBC::SWIBC(const Real& a_cs,
     m_zcPatches = a_zcPatches;
     m_zwPatches = a_zwPatches;
     m_tauPatches = a_tauPatches;
+
+    m_fricBoxCenter   = a_fricBoxCenter;
+    m_fricBoxWidth    = a_fricBoxWidth; 
+    m_outsideFriction = a_outsideFriction;
 }
 
 /// Destructor
@@ -65,15 +72,18 @@ PhysIBC* SWIBC::new_physIBC()
     {
         retval->setFortranCommonSet();
     }
-    retval->m_boundaryType = m_boundaryType;
-    retval->m_isNucBoxSet = m_isNucBoxSet;
-    retval->m_nucBox = m_nucBox;
-    retval->m_numPatches = m_numPatches;
-    retval->m_xcPatches  = m_xcPatches;
-    retval->m_xwPatches  = m_xwPatches;
-    retval->m_zcPatches  = m_zcPatches;
-    retval->m_zwPatches  = m_zwPatches;
-    retval->m_tauPatches = m_tauPatches;
+    retval->m_boundaryType    = m_boundaryType;
+    retval->m_isNucBoxSet     = m_isNucBoxSet;
+    retval->m_nucBox          = m_nucBox;
+    retval->m_numPatches      = m_numPatches;
+    retval->m_xcPatches       = m_xcPatches;
+    retval->m_xwPatches       = m_xwPatches;
+    retval->m_zcPatches       = m_zcPatches;
+    retval->m_zwPatches       = m_zwPatches;
+    retval->m_tauPatches      = m_tauPatches;
+    retval->m_fricBoxCenter   = m_fricBoxCenter;
+    retval->m_fricBoxWidth    = m_fricBoxWidth;
+    retval->m_outsideFriction = m_outsideFriction;
     return static_cast<PhysIBC*>(retval);
 }
 
@@ -189,6 +199,9 @@ void SWIBC::primBC(FArrayBox& a_WGdnv,
                     CHF_CONST_VR(m_zcPatches),
                     CHF_CONST_VR(m_zwPatches),
                     CHF_CONST_VR(m_tauPatches),
+                    CHF_CONST_VR(m_fricBoxCenter),
+                    CHF_CONST_VR(m_fricBoxWidth),
+                    CHF_CONST_REAL(m_outsideFriction),
                     CHF_BOX(boundaryBox));
             }
             else if(m_boundaryType[a_dir*2 + (lohisign+1)/2] == 0)
@@ -291,14 +304,23 @@ bool SWIBC::tagCellsInit(FArrayBox& markFAB)
 
 void SWIBC::dumpBdryData(FILE * a_boundaryDataFile)
 {
+    // Get the box that defines this layer
     Box b = m_bdryData->box();
+
+    // Remove the ghost cells
+    pout() << b << endl;
+    b.grow(-(IntVect::Unit - BASISV(1)));
+    pout() << b << endl;
+
+
+    // loop over the box saving the values
     BoxIterator bit(b);
     for (bit.begin(); bit.ok(); ++bit)
     {
         const IntVect& iv = bit();
-        Real x = iv[0]*m_dx-m_xcPatches[0];
-        Real z = iv[2]*m_dx-m_zcPatches[0];
-        if(abs(x) <= 15 & abs(z) <= 15)
+        Real x = iv[0]*m_dx-m_fricBoxCenter[0];
+        Real z = iv[2]*m_dx-m_fricBoxCenter[1];
+        if(abs(x) <= m_fricBoxWidth[0] & abs(z) <= m_fricBoxWidth[1])
         {
             fprintf(a_boundaryDataFile,"%E %E %E\n", x, z, m_bdryData->get(iv,6));
         }

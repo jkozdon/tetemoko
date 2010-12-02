@@ -114,6 +114,9 @@ C
      &    CHF_CONST_VR[zcPatches],
      &    CHF_CONST_VR[zwPatches],
      &    CHF_CONST_VR[tauPatches],
+     &    CHF_CONST_VR[fricBoxCenter],
+     &    CHF_CONST_VR[fricBoxWidth],
+     &    CHF_CONST_REAL[outsideFriction],
      &    CHF_BOX[box])
 
 #include "IBCCommon.fh"
@@ -181,11 +184,11 @@ C         assume that the fault is locked
 c         fric  = min(fs,max(fd,fd+(1-B(CHF_IX[i;j;k],2)/dw)*(fs-fd)))
 
           CHF_DTERM[
-          call SMOOTHFUNC(valx,width,abs(x-16.0d0)-15.0d0+half*width)
+          call SMOOTHFUNC(valx,width,abs(x-fricBoxCenter(0))-fricBoxWidth(0)+half*width)
           ;;
-          call SMOOTHFUNC(valz,width,abs(z-16.0d0)-15.0d0+half*width)
+          call SMOOTHFUNC(valz,width,abs(z-fricBoxCenter(1))-fricBoxWidth(1)+half*width)
           ]
-          fric  = fs*CHF_DTERM[valx;;*valz] + (1-CHF_DTERM[valx;;*valz])*10000
+          fric  = fs*CHF_DTERM[valx;;*valz] + (1-CHF_DTERM[valx;;*valz])*outsideFriction
           fric  = min(fric,max(fd,fd+(1-SQRT(B(CHF_IX[i;j;k],4)**2 + B(CHF_IX[i;j;k],5)**2)/dw)*(fric-fd)))
 
           tau_0 = min(tau,-syy*fric)

@@ -565,6 +565,15 @@ void amrGodunov()
         {
             // This is a very slimple IBC loosely based on the SCEC problems
 
+
+            // Get the strengthening region
+            vector<Real> fricBoxCenter(2,0);
+            vector<Real> fricBoxWidth(2,0);
+            Real outsideFriction;
+            ppphysics.get("outside_f_static",outsideFriction);
+            ppphysics.getarr("center_fric_box",fricBoxCenter,0,2);
+            ppphysics.getarr("width_fric_box",fricBoxWidth,0,2);
+
             // Where is the nucleation patch
             int numPatches = 0;
             ppphysics.get("num_patches",numPatches);
@@ -637,7 +646,7 @@ void amrGodunov()
             SWIBC* swibc =
                 new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,width,
                     numPatches,xcPatches,xwPatches,zcPatches,zwPatches,tauPatches,
-                    boundaryType);
+                    fricBoxCenter, fricBoxWidth, outsideFriction,boundaryType);
             ibc = swibc;
             if(verbosity >= 1)
             {
