@@ -38,6 +38,7 @@ public:
         const vector<Real> fricBoxCenter,
         const vector<Real> fricBoxWidth,
         const Real outsideFriction,
+        const Real ruptureVelocityThreshold,
         const Vector<int>& boundaryType);
 
     /// Destructor
@@ -142,8 +143,7 @@ public:
 protected:
     bool m_isFortranCommonSet;
     Vector<int> m_boundaryType;
-    bool m_isNucBoxSet;
-    Box m_nucBox;
+    bool m_isPatchBoxSet;
 
     int m_numPatches;
     Vector<Real> m_xcPatches;
@@ -153,8 +153,11 @@ protected:
     Vector<Real> m_tauPatches;
 
     Real m_outsideFriction;
+    Real m_smoothWidth;
+    int  m_smoothWidthNumCells;
     Vector<Real> m_fricBoxCenter;
     Vector<Real> m_fricBoxWidth;
+    Vector<Box>  m_patchBoxes;
 private:
 };
 

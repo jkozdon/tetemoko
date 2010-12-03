@@ -487,8 +487,8 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
             CHF_BOX(b));
 
         //JK THIS SHOUlD REALLY BE AN ARGUMENT NOT HARD CODED!!!!
-        if(m_time < 1)
-            lephysIBCPtr->tagCellsInit(gradMagFab);
+        // if(m_time < 1)
+        lephysIBCPtr->tagCellsInit(gradMagFab);
 
         // Tag where gradient exceeds threshold
         BoxIterator bit(b);

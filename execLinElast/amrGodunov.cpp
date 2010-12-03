@@ -600,6 +600,13 @@ void amrGodunov()
             ppphysics.query("d_weak",weakDist);
 
 
+            Real ruptureVelocityThreshold = 0.001;
+            ppphysics.query("rupture_front_vel_thresh",ruptureVelocityThreshold);
+
+            Real smoothingWidth = 12;
+            ppphysics.query("boxcar_smoothing_width",smoothingWidth);
+
+
             // get the boundary conditiions
             // 0 : Outflow
             // 1 : Free surface
@@ -636,17 +643,16 @@ void amrGodunov()
             {
                 dx = min(dx,domainLength/((Real) numCells[dim]));
             }
-            // for(int lvl = 0; lvl < numReadLevels; lvl++)
-            // {
-            //     dx = dx / ((Real) refRatios[lvl]);
-            // }
-
-            Real width = 12*dx;
+            for(int lvl = 0; lvl < numReadLevels; lvl++)
+            {
+                dx = dx / ((Real) refRatios[lvl]);
+            }
+            smoothingWidth = smoothingWidth * dx;
 
             SWIBC* swibc =
-                new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,width,
+                new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,smoothingWidth,
                     numPatches,xcPatches,xwPatches,zcPatches,zwPatches,tauPatches,
-                    fricBoxCenter, fricBoxWidth, outsideFriction,boundaryType);
+                    fricBoxCenter, fricBoxWidth, outsideFriction, ruptureVelocityThreshold, boundaryType);
             ibc = swibc;
             if(verbosity >= 1)
             {

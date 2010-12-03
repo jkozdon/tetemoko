@@ -2,9 +2,9 @@
 physics.problem = slipweak
 
 # Physical parameters: S- and P- wave speed, shear modulus
-physics.cs = 3
-# physics.cp = 3 by default we set cp = sqrt(3)*cs
-physics.mu = 30
+physics.cs = 3.464
+physics.cp = 6
+physics.mu = 32.0381203
 
 # Set the background values
 #                      vx   vy   vz  sxx   syy  szz  sxy  sxz  syz
@@ -14,17 +14,21 @@ physics.f_static  = 0.677
 physics.f_dynamic = 0.525
 physics.d_weak    = 0.4
 
-physics.center_fric_box = 16 16
+physics.center_fric_box = 16 8.5
 physics.width_fric_box  = 15 15
 physics.outside_f_static = 10000
 
-physics.num_patches = 3
-physics.tau_patches = 11.6 -8 8
 # physics.tau_patches = 11.6 0 0
-physics.xc_patches  =  16 8.5 23.5
-physics.zc_patches  = 8.5 8.5 8.5
-physics.xw_patches  = 1.5 1.5  1.5
-physics.zw_patches  = 1.5 1.5 1.5
+physics.num_patches = 3
+physics.tau_patches = 11.6 8.0  -8.0
+physics.xc_patches  = 16.0 8.5  23.5
+physics.zc_patches  =  8.5 8.5   8.5
+physics.xw_patches  =  1.5 1.5   1.5
+physics.zw_patches  =  1.5 1.5   1.5
+
+physics.rupture_front_vel_thresh = 0.001
+
+physics.boxcar_smoothing_width = 12
 
 # Turn on some output
 # comp.verbosity = 10
@@ -32,7 +36,7 @@ comp.verbosity = 1
 
 # Number of steps, final time, and time step
 # comp.restart_file = slipweak/check.50.3d.hdf5
-comp.max_step = 1
+comp.max_step = 10000
 comp.max_time = 12
 # comp.fixed_dt = 0.002
 
@@ -84,12 +88,12 @@ comp.use_artificial_viscosity = 1
 comp.artificial_viscosity = 0.1
 
 # Plot file information
-comp.plot_interval = 10
+comp.plot_interval = 5
 # comp.plot_interval = 1
 comp.plot_prefix  = slipweak/slipweak.
 
 # Checkpoint file information
-comp.checkpoint_interval = 10
+comp.checkpoint_interval = -1
 # comp.checkpoint_interval = 1
 comp.chk_prefix = slipweak/check.
 
