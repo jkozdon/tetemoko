@@ -14,17 +14,17 @@ physics.f_static  = 0.677
 physics.f_dynamic = 0.525
 physics.d_weak    = 0.4
 
-physics.center_fric_box = 16 8.5
+physics.center_fric_box = 16 16
 physics.width_fric_box  = 15 15
 physics.outside_f_static = 10000
 
 # physics.tau_patches = 11.6 0 0
 physics.num_patches = 3
-physics.tau_patches = 11.6 8.0  -8.0
-physics.xc_patches  = 16.0 8.5  23.5
-physics.zc_patches  =  8.5 8.5   8.5
-physics.xw_patches  =  1.5 1.5   1.5
-physics.zw_patches  =  1.5 1.5   1.5
+physics.tau_patches = 11.6 -8.0   8.0
+physics.xc_patches  = 16.0  8.5  23.5
+physics.zc_patches  =  8.5  8.5   8.5
+physics.xw_patches  =  1.5  1.5   1.5
+physics.zw_patches  =  1.5  1.5   1.5
 
 physics.rupture_front_vel_thresh = 0.001
 

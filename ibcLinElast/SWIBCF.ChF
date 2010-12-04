@@ -175,9 +175,9 @@ C         assume that the fault is locked
           tau_p = zero
           do ip = 0,numPatches-1
             CHF_DTERM[
-            call SMOOTHFUNC(valx,width, abs(x-xcPatches(ip))-xwPatches(ip)+half*width)
+            call SMOOTHFUNC2(valx,width, abs(x-xcPatches(ip))-xwPatches(ip)+half*width)
             ;;
-            call SMOOTHFUNC(valz,width, abs(z-zcPatches(ip))-zwPatches(ip)+half*width)
+            call SMOOTHFUNC2(valz,width, abs(z-zcPatches(ip))-zwPatches(ip)+half*width)
             ]
             tau_p = tau_p + tauPatches(ip) * CHF_DTERM[valx;;*valz]
           enddo
@@ -188,9 +188,9 @@ C         assume that the fault is locked
 c         fric  = min(fs,max(fd,fd+(1-B(CHF_IX[i;j;k],2)/dw)*(fs-fd)))
 
           CHF_DTERM[
-          call SMOOTHFUNC(valx,width,abs(x-fricBoxCenter(0))-fricBoxWidth(0)-width)
+          call SMOOTHFUNC2(valx,width,abs(x-fricBoxCenter(0))-fricBoxWidth(0)-width)
           ;;
-          call SMOOTHFUNC(valz,width,abs(z-fricBoxCenter(1))-fricBoxWidth(1)-width)
+          call SMOOTHFUNC2(valz,width,abs(z-fricBoxCenter(1))-fricBoxWidth(1)-width)
           ]
           fric  = fs*CHF_DTERM[valx;;*valz] + (1-CHF_DTERM[valx;;*valz])*outsideFriction
           fric  = min(fric,max(fd,fd+(1-SQRT(B(CHF_IX[i;j;k],4)**2 + B(CHF_IX[i;j;k],5)**2)/dw)*(fric-fd)))

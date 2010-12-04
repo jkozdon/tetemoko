@@ -900,3 +900,22 @@ C
             val = one
         endif
         end
+
+C
+C Infinitely smooth transition
+C
+        subroutine SMOOTHFUNC2(
+     &    CHF_REAL[val],
+     &    CHF_CONST_REAL[w],
+     &    CHF_CONST_REAL[r])
+
+
+        if (r>=w) then
+            val = zero
+        elseif(r<=0) then
+            val = one
+        else
+            val = two / (one / exp(r**2/(r**2 - w**2)) + one / (one - exp((r-w)**2/((r-w)**2 - w**2))))
+        endif
+        end
+
