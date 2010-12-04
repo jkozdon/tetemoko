@@ -865,7 +865,7 @@ C
      &    CHF_CONST_REAL[w],
      &    CHF_CONST_REAL[r])
 
-        val = exp(-half*(r/w)**2)
+        val = exp(-(r/w)**2)
 
         end
 
