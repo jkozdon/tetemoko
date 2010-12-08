@@ -216,7 +216,7 @@ Real AMRLevelLinElast::advance()
 
     if (s_verbosity >= 3)
     {
-        pout() << "AMRLevelLinElast::advance level " << m_level << " to time " << m_time + m_dt << endl;
+        pout() << "AMRLevelLinElast::advance level " << m_level << " to time " << m_time + m_dt << " by dt " << m_dt << endl;
     }
 
     // Copy the new to the old

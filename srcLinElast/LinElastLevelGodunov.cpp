@@ -396,6 +396,8 @@ void LinElastLevelGodunov::computeWHalf(LayoutData<FluxBox>&        a_WHalf,
 {
     CH_TIME("LinElastLevelGodunov::computeWHalf");
 
+    CH_assert(false);
+
     // Make sure everything is defined
     CH_assert(m_isDefined);
 
