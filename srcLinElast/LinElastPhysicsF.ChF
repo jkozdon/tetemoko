@@ -815,8 +815,8 @@ c
 c
 c       other physical (dependent) parameters
 c
-        rho = mu / cs / cs
-        lam = cp * cp * rho - 2.0d0 * mu
+        rho = mu / (cs**2)
+        lam = (cp**2) * rho - two * mu
         Zs  = rho * cs
         Zp  = rho * cp
 
@@ -865,7 +865,7 @@ C
      &    CHF_CONST_REAL[w],
      &    CHF_CONST_REAL[r])
 
-        val = exp(-(r/w)**2)
+        val = exp(-half*(r/w)**2)
 
         end
 
@@ -884,6 +884,19 @@ C
         else
             val = exp(r**2/(r**2 - w**2))
         endif
+        end
+
+C
+C Gaussian function
+C
+        subroutine SMOOTHBOXCAR(
+     &    CHF_REAL[val],
+     &    CHF_CONST_REAL[w],
+     &    CHF_CONST_REAL[r],
+     &    CHF_CONST_REAL[p])
+
+        val = exp(-(r/w)**p)
+
         end
 
 C
@@ -919,3 +932,14 @@ C
         endif
         end
 
+c
+c Smooth Ramp
+c
+        subroutine SMOOTHRAMP(
+     &    CHF_REAL[val],
+     &    CHF_REAL[x],
+     &    CHF_REAL[k])
+
+        val = half * ( x + log(two * cosh(k * x)) / k)
+
+        end

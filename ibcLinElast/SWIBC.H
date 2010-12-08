@@ -132,8 +132,8 @@ public:
         bdryNames.push_back("Vz");
         bdryNames.push_back("sxy");
         bdryNames.push_back("syz");
-        bdryNames.push_back("dx");
-        bdryNames.push_back("dz");
+        bdryNames.push_back("V");
+        bdryNames.push_back("slip");
         bdryNames.push_back("rupture");
         return bdryNames;
     }

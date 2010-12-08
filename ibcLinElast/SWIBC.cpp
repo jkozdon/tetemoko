@@ -307,20 +307,22 @@ bool SWIBC::tagCellsInit(FArrayBox& markFAB)
         }
     }
 
-    for(int itor = 0; itor < m_patchBoxes.capacity(); itor++)
-    {
-        markFAB.setVal(1,adjCellLo(m_patchBoxes[itor],0, m_smoothWidthNumCells) & markFAB.box(),0);
-        markFAB.setVal(1,adjCellHi(m_patchBoxes[itor],0, m_smoothWidthNumCells) & markFAB.box(),0);
-        markFAB.setVal(1,adjCellLo(m_patchBoxes[itor],0,-m_smoothWidthNumCells) & markFAB.box(),0);
-        markFAB.setVal(1,adjCellHi(m_patchBoxes[itor],0,-m_smoothWidthNumCells) & markFAB.box(),0);
-        if(SpaceDim > 2)
-        {
-            markFAB.setVal(1,adjCellLo(m_patchBoxes[itor],2, m_smoothWidthNumCells) & markFAB.box(),0);
-            markFAB.setVal(1,adjCellHi(m_patchBoxes[itor],2, m_smoothWidthNumCells) & markFAB.box(),0);
-            markFAB.setVal(1,adjCellLo(m_patchBoxes[itor],2,-m_smoothWidthNumCells) & markFAB.box(),0);
-            markFAB.setVal(1,adjCellHi(m_patchBoxes[itor],2,-m_smoothWidthNumCells) & markFAB.box(),0);
-        }
-    }
+    markFAB.setVal(1,m_patchBoxes[0] & markFAB.box(),0);
+    // markFAB.setVal(1,markFAB.box(),0);
+    // for(int itor = 0; itor < m_patchBoxes.capacity(); itor++)
+    // {
+    //     markFAB.setVal(1,adjCellLo(m_patchBoxes[itor],0, m_smoothWidthNumCells) & markFAB.box(),0);
+    //     markFAB.setVal(1,adjCellHi(m_patchBoxes[itor],0, m_smoothWidthNumCells) & markFAB.box(),0);
+    //     markFAB.setVal(1,adjCellLo(m_patchBoxes[itor],0,-m_smoothWidthNumCells) & markFAB.box(),0);
+    //     markFAB.setVal(1,adjCellHi(m_patchBoxes[itor],0,-m_smoothWidthNumCells) & markFAB.box(),0);
+    //     if(SpaceDim > 2)
+    //     {
+    //         markFAB.setVal(1,adjCellLo(m_patchBoxes[itor],2, m_smoothWidthNumCells) & markFAB.box(),0);
+    //         markFAB.setVal(1,adjCellHi(m_patchBoxes[itor],2, m_smoothWidthNumCells) & markFAB.box(),0);
+    //         markFAB.setVal(1,adjCellLo(m_patchBoxes[itor],2,-m_smoothWidthNumCells) & markFAB.box(),0);
+    //         markFAB.setVal(1,adjCellHi(m_patchBoxes[itor],2,-m_smoothWidthNumCells) & markFAB.box(),0);
+    //     }
+    // }
 
     // FORT_BOUNDREFINE(
     //     CHF_FRA1(markFAB,0),
