@@ -47,6 +47,7 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
     const DisjointBoxLayout&    a_coarserDisjointBoxLayout,
     const DisjointBoxLayout&    a_bdryCoarserDisjointBoxLayout,
     const ProblemDomain&        a_domain,
+    const Box&                  a_bdryFaceBox,
     const int&                  a_refineCoarse,
     const Real&                 a_dx,
     const GodunovPhysics* const a_gdnvPhysics,
@@ -88,6 +89,7 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
     // Cache data
     m_dx           = a_dx;
     m_domain       = a_domain;
+    m_bdryFaceBox  = a_bdryFaceBox;
     m_refineCoarse = a_refineCoarse;
     m_hasCoarser   = a_hasCoarser;
     m_hasFiner     = a_hasFiner;
@@ -149,6 +151,13 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
             a_coarserDisjointBoxLayout,
             m_numCons,
             coarsen(a_domain,a_refineCoarse),
+            a_refineCoarse,
+            m_numGhost);
+        m_bndPatcher.define(a_bdryDisjointBoxLayout,
+            a_bdryCoarserDisjointBoxLayout,
+            m_numBdryVars,
+            a_bdryFaceBox,
+            1,
             a_refineCoarse,
             m_numGhost);
     }
@@ -253,6 +262,11 @@ Real LinElastLevelGodunov::step(LevelData<FArrayBox>&       a_U,
             a_UCoarseNew,
             alpha,
             0,0,m_numCons);
+        m_bndPatcher.fillInterp(m_B,
+            a_BCoarseOld,
+            a_BCoarseNew,
+            alpha,
+            0,0,m_numBdryVars);
     }
 
     // Potentially used in boundary conditions
@@ -454,6 +468,11 @@ void LinElastLevelGodunov::computeWHalf(LayoutData<FluxBox>&        a_WHalf,
             a_UCoarseNew,
             alpha,
             0,0,m_numCons);
+        //JK m_bndPatcher.fillInterp(B,
+        //JK     a_BCoarseOld,
+        //JK     a_BCoarseNew,
+        //JK     alpha,
+        //JK     0,0,m_numCons);
     }
 
     // Exchange all the data between grids at this level

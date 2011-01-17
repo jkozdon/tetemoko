@@ -17,6 +17,7 @@
 #include "DisjointBoxLayout.H"
 #include "LevelData.H"
 #include "PiecewiseLinearFillPatch.H"
+#include "D1PiecewiseLinearFillPatch.H"
 #include "LevelFluxRegister.H"
 #include "ProblemDomain.H"
 #include "Copier.H"
@@ -58,6 +59,7 @@ public:
         const DisjointBoxLayout&    a_coarserDisjointBoxLayout,
         const DisjointBoxLayout&    a_bdryCoarserDisjointBoxLayout,
         const ProblemDomain&        a_domain,
+        const Box&                  a_bdryBox,
         const int&                  a_refineCoarse,
         const Real&                 a_dx,
         const GodunovPhysics* const a_godunovFactory,
@@ -166,14 +168,20 @@ protected:
     // Temporary storage space for boundary variables
     LevelData<FArrayBox> m_B;
 
-    // Interpolator for filling in ghost cells from the next coarser level
+    // interpolator for filling in ghost cells from the next coarser level
     PiecewiseLinearFillPatch m_patcher;
+
+    // interpolator for filling in ghost cells on the boundary from the next coarser level
+    D1PiecewiseLinearFillPatch m_bndPatcher;
 
     // Grid spacing
     Real m_dx;
 
     // Problem domain - index space for this level
     ProblemDomain m_domain;
+
+    // Boundary Box, face centered
+    Box m_bdryFaceBox;
 
     // Refinement ratio between this level and the next coarser
     int m_refineCoarse;

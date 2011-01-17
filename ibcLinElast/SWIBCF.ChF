@@ -203,10 +203,10 @@ c           tau_p = tau_p + tauPatches(ip) * CHF_DTERM[valx;;*valz]
           ]
           fric  = fs*CHF_DTERM[valx;;*valz] + (1-CHF_DTERM[valx;;*valz])*outsideFriction
 
-c         fric  = min(fric,max(fd,fric-B(CHF_IX[i;j;k],5)/dw*(fric-fd)))
+          fric  = min(fric,max(fd,fric-B(CHF_IX[i;j;k],5)/dw*(fric-fd)))
 
-          call SMOOTHRAMP(valx,-B(CHF_IX[i;j;k],5)+dw,one/width)
-          fric = fd - ((fd-fric)/dw)*valx
+c         call SMOOTHRAMP(valx,-B(CHF_IX[i;j;k],5)+dw,one/width)
+c         fric = fd - ((fd-fric)/dw)*valx
           
           tau_0 = min(tau,-syy*fric)
 
