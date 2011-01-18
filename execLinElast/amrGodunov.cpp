@@ -603,8 +603,8 @@ void amrGodunov()
             Real ruptureVelocityThreshold = 0.001;
             ppphysics.query("rupture_front_vel_thresh",ruptureVelocityThreshold);
 
-            Real smoothingWidth = 12;
-            ppphysics.query("boxcar_smoothing_width",smoothingWidth);
+            Real smoothValue = 12;
+            ppphysics.query("boxcar_smoothing_value",smoothValue);
 
 
             // get the boundary conditiions
@@ -638,19 +638,19 @@ void amrGodunov()
                 }
             }
 
-            Real dx = domainLength;
-            for(int dim = 0; dim < SpaceDim; dim++)
-            {
-                dx = min(dx,domainLength/((Real) numCells[dim]));
-            }
-            for(int lvl = 0; lvl < numReadLevels; lvl++)
-            {
-                dx = dx / ((Real) refRatios[lvl]);
-            }
-            smoothingWidth = smoothingWidth * dx;
+            // Real dx = domainLength;
+            // for(int dim = 0; dim < SpaceDim; dim++)
+            // {
+            //     dx = min(dx,domainLength/((Real) numCells[dim]));
+            // }
+            // for(int lvl = 0; lvl < numReadLevels; lvl++)
+            // {
+            //     dx = dx / ((Real) refRatios[lvl]);
+            // }
+            // smoothValue = smoothValue * dx;
 
             SWIBC* swibc =
-                new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,smoothingWidth,
+                new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,smoothValue,
                     numPatches,xcPatches,xwPatches,zcPatches,zwPatches,tauPatches,
                     fricBoxCenter, fricBoxWidth, outsideFriction, ruptureVelocityThreshold, boundaryType);
             ibc = swibc;

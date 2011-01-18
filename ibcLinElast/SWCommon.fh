@@ -1,5 +1,5 @@
 C
 C   slip weakening problem constants
 C
-        real_t fs,fd,dw,smWidth,ruptureThreshold
-        common /slipweak/ fs,fd,dw,smWidth,ruptureThreshold
+        real_t fs,fd,dw,smValue,ruptureThreshold
+        common /slipweak/ fs,fd,dw,smValue,ruptureThreshold

@@ -895,7 +895,8 @@ C
      &    CHF_CONST_REAL[r],
      &    CHF_CONST_REAL[p])
 
-        val = exp(-(r/w)**p)
+c       val = exp(-(r/w)**p)
+        val = 1 - 1/(1+exp(-p*(r-w)))
 
         end
 

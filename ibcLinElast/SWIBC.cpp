@@ -19,7 +19,7 @@ SWIBC::SWIBC(const Real& a_cs,
     const Real& a_fricS,
     const Real& a_fricD,
     const Real& a_weakD,
-    const Real& a_width,
+    const Real& a_smoothValue,
     const int a_numPatches,
     const vector<Real> a_xcPatches,
     const vector<Real> a_xwPatches,
@@ -34,7 +34,7 @@ SWIBC::SWIBC(const Real& a_cs,
 {
     FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
     FORT_SWSETF(CHF_CONST_REAL(a_fricS),CHF_CONST_REAL(a_fricD),CHF_CONST_REAL(a_weakD),
-        CHF_CONST_REAL(a_width), CHF_CONST_REAL(a_ruptureVelocityThreshold));
+        CHF_CONST_REAL(a_smoothValue), CHF_CONST_REAL(a_ruptureVelocityThreshold));
     m_boundaryType       = a_boundaryType;
     m_isFortranCommonSet = true;
     m_isPatchBoxSet = false;
@@ -46,7 +46,7 @@ SWIBC::SWIBC(const Real& a_cs,
     m_zwPatches = a_zwPatches;
     m_tauPatches = a_tauPatches;
 
-    m_smoothWidth = a_width;
+    m_smoothValue     = a_smoothValue;
     m_fricBoxCenter   = a_fricBoxCenter;
     m_fricBoxWidth    = a_fricBoxWidth; 
     m_outsideFriction = a_outsideFriction;
@@ -86,9 +86,9 @@ PhysIBC* SWIBC::new_physIBC()
     retval->m_fricBoxCenter       = m_fricBoxCenter;
     retval->m_fricBoxWidth        = m_fricBoxWidth;
     retval->m_outsideFriction     = m_outsideFriction;
-    retval->m_smoothWidth         = m_smoothWidth;
+    retval->m_smoothValue         = m_smoothValue;
     retval->m_patchBoxes          = m_patchBoxes;
-    retval->m_smoothWidth         = m_smoothWidth;
+    retval->m_smoothValue         = m_smoothValue;
     retval->m_smoothWidthNumCells = m_smoothWidthNumCells;
     return static_cast<PhysIBC*>(retval);
 }
@@ -302,7 +302,7 @@ bool SWIBC::tagCellsInit(FArrayBox& markFAB)
                 nucBg.setVal(2, ceil((m_zcPatches[itor]+m_zwPatches[itor])/m_dx));
             }
             m_patchBoxes[itor] = Box(nucSm,nucBg);
-            m_smoothWidthNumCells = ceil(m_smoothWidth / m_dx / 2);
+            m_smoothWidthNumCells = ceil(m_smoothValue / m_dx / 2);
             m_isPatchBoxSet = true;
         }
     }

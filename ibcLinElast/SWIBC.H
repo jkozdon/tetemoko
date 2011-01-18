@@ -28,7 +28,7 @@ public:
         const Real& fricS,
         const Real& fricD,
         const Real& weakD,
-        const Real& width,
+        const Real& smoothValue,
         const int numPatches,
         const vector<Real> xloPatches,
         const vector<Real> xwPatches,
@@ -153,7 +153,7 @@ protected:
     Vector<Real> m_tauPatches;
 
     Real m_outsideFriction;
-    Real m_smoothWidth;
+    Real m_smoothValue;
     int  m_smoothWidthNumCells;
     Vector<Real> m_fricBoxCenter;
     Vector<Real> m_fricBoxWidth;
