@@ -186,6 +186,16 @@ public:
         const int&       a_dir,
         const Box&       a_box);
 
+    /// Compute a temporary update to the boundary data
+    /**
+    */
+    void quasilinearBoundaryUpdate(
+        const FArrayBox& a_wHalf,
+        const Real&      a_scale,
+        const int&       a_dir,
+        const Box&       a_box,
+        const Real&      a_dt);
+
     /// Compute the quasilinear update A*dW/dx.
     /**
     */

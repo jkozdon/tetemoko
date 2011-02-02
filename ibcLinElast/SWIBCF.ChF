@@ -62,8 +62,9 @@ C
 C This is a constant initial data
 C
         subroutine SWSETBND(
-     &    CHF_FRA[B],
+     &    CHF_FRA[Bout],
      &    CHF_BOX[box],
+     &    CHF_CONST_FRA[Bin],
      &    CHF_CONST_FRA[U],
      &    CHF_CONST_REAL[dt],
      &    CHF_CONST_REAL[time])
@@ -76,21 +77,21 @@ C
 
 C         Only south face slip velocity
 C         Vx
-          B(CHF_IX[i;j;k],0) = 2*U(CHF_IX[i;j;k],0)
+          Bout(CHF_IX[i;j;k],0) = 2*U(CHF_IX[i;j;k],0)
 C         Vz
-          B(CHF_IX[i;j;k],1) = 2*U(CHF_IX[i;j;k],2)
+          Bout(CHF_IX[i;j;k],1) = 2*U(CHF_IX[i;j;k],2)
 C         sxy
-          B(CHF_IX[i;j;k],2) =   U(CHF_IX[i;j;k],6)
+          Bout(CHF_IX[i;j;k],2) =   U(CHF_IX[i;j;k],6)
 C         syz
-          B(CHF_IX[i;j;k],3) =   U(CHF_IX[i;j;k],8)
+          Bout(CHF_IX[i;j;k],3) =   U(CHF_IX[i;j;k],8)
 C         V
-          B(CHF_IX[i;j;k],4) = SQRT((B(CHF_IX[i;j;k],0)**2 + B(CHF_IX[i;j;k],1)**2))
+          Bout(CHF_IX[i;j;k],4) = SQRT((Bout(CHF_IX[i;j;k],0)**2 + Bout(CHF_IX[i;j;k],1)**2))
 C         slip
-          B(CHF_IX[i;j;k],5) = B(CHF_IX[i;j;k],5) + dt*B(CHF_IX[i;j;k],4)
+          Bout(CHF_IX[i;j;k],5) = Bin(CHF_IX[i;j;k],5) + dt*Bout(CHF_IX[i;j;k],4)
 C         rupture
-          if (B(CHF_IX[i;j;k],6) .gt. time .and.
-     &        B(CHF_IX[i;j;k],4) .gt. ruptureThreshold) then
-            B(CHF_IX[i;j;k],6) = time
+          if (Bin(CHF_IX[i;j;k],6) .gt. time .and.
+     &        Bin(CHF_IX[i;j;k],4) .gt. ruptureThreshold) then
+            Bout(CHF_IX[i;j;k],6) = time
           endif
 
         CHF_ENDDO
@@ -134,78 +135,130 @@ C
 
         real_t wpxy,wpyy,wpyz
         real_t wmxy,wmyy,wmyz
-        real_t vx,vy,vz,sxx,syy,szz,sxy,sxz,syz
-        real_t SHF, tau, fric, V, tau_0, beta, tau_p, valx, valz
+
+        real_t wpxy1,wpyy1,wpyz1
+        real_t wmxy1,wmyy1,wmyz1
+        real_t wpxy2,wpyy2,wpyz2
+        real_t wmxy2,wmyy2,wmyz2
+        real_t vx1,vy1,vz1,sxx1,syy1,szz1,sxy1,sxz1,syz1
+        real_t vx2,vy2,vz2,sxx2,syy2,szz2,sxy2,sxz2,syz2
+
+        real_t SHF, tau, fric, V, tau_0, beta, valx, valz
+
+        real_t tau_lock, tau_back
+        real_t phi_xy,phi_yz,phi
         real_t r
+
+C       background shear stress
+        tau_back = sqrt(background(6)**2+background(8)**2)
+
         CHF_MULTIDO[box;i;j;k]
           CHF_DTERM[
           x   = (i + half) * dx - fricBoxCenter(0);
           y   = (j + half) * dx;
           z   = (k + half) * dx - fricBoxCenter(1)]
 
-          vx  = WInside(CHF_IX[i;j;k],0)
-          vy  = WInside(CHF_IX[i;j;k],1)
-          vz  = WInside(CHF_IX[i;j;k],2)
-          sxx = WInside(CHF_IX[i;j;k],3)
-          syy = WInside(CHF_IX[i;j;k],4)
-          szz = WInside(CHF_IX[i;j;k],5)
-          sxy = WInside(CHF_IX[i;j;k],6)
-          sxz = WInside(CHF_IX[i;j;k],7)
-          syz = WInside(CHF_IX[i;j;k],8)
+C         Get the values on side 1
+          vx1  = WInside(CHF_IX[i;j;k],0)
+          vy1  = WInside(CHF_IX[i;j;k],1)
+          vz1  = WInside(CHF_IX[i;j;k],2)
+          sxx1 = WInside(CHF_IX[i;j;k],3)
+          syy1 = WInside(CHF_IX[i;j;k],4)
+          szz1 = WInside(CHF_IX[i;j;k],5)
+          sxy1 = WInside(CHF_IX[i;j;k],6)
+          sxz1 = WInside(CHF_IX[i;j;k],7)
+          syz1 = WInside(CHF_IX[i;j;k],8)
 
-C         We assume that the boundary is on the bottom
+C         Set side 2 values by symmetry
+          vx2  = -vx1
+          vy2  =  vy1
+          vz2  = -vz1
+          syy2 = syy1
+          sxy2 = sxy1
+          syz2 = syz1
 
-          wmxy = sxy + Zs * vx
-          wmyy = syy + Zp * vy
-          wmyz = syz + Zs * vz
+C         Get the characteristic propagating into the fault
 
-C         assume that the fault is locked
-          tau_p = zero
+          wpxy1 = -sxy1 - Zs * vx1
+          wpyy1 = -syy1 - Zp * vy1
+          wpyz1 = -syz1 - Zs * vz1
+
+          wpxy2 =  sxy2 - Zs * vx2
+          wpyy2 =  syy2 - Zp * vy2
+          wpyz2 =  syz2 - Zs * vz2
+
+C         set the perturbation
+          tau_0 = 0
           do ip = 0,numPatches-1
             CHF_DTERM[
 c           call BOXCARFUNC(valx,xwPatches(ip), abs(x-xcPatches(ip)))
             call SMOOTHBOXCAR(valx,xwPatches(ip),abs(x-xcPatches(ip)),smValue)
+c           call GAUSSIANFUNC(valx,xwPatches(ip),abs(x-xcPatches(ip)))
 c           call SMOOTHBOXCAR(valx,xwPatches(ip),abs(x-xcPatches(ip)),one/smValue)
             ;;
 c           call BOXCARFUNC(valz,zwPatches(ip), abs(z-zcPatches(ip)))
             call SMOOTHBOXCAR(valz,zwPatches(ip),abs(z-zcPatches(ip)),smValue)
+c           call GAUSSIANFUNC(valz,zwPatches(ip),abs(z-zcPatches(ip)))
 c           call SMOOTHBOXCAR(valz,zwPatches(ip),abs(z-zcPatches(ip)),one/smValue)
             ]
-            tau_p = tau_p + tauPatches(ip) * CHF_DTERM[valx;;*valz]
+            tau_0 = tau_0 + tauPatches(ip) * CHF_DTERM[valx;;*valz]
           enddo
 
-          tau   = sqrt((wmxy+tau_p)**2 + wmyz**2)
+C         Find tau_0
+          tau_lock = sqrt((half*(wpxy2-wpxy1)+tau_0)**2 + (half*(wpyz2-wpyz1))**2)
 
-          syy   = background(4)
+C         find the normal stress
+          syy1   = background(4)
+          syy2   = background(4)
 
+C         figure out the static stress value
           CHF_DTERM[
           call SMOOTHBOXCAR(valx,fricBoxWidth(0),abs(x),smValue)
           ;;
           call SMOOTHBOXCAR(valz,fricBoxWidth(1),abs(z),smValue)
           ]
-
           fric  = fs*CHF_DTERM[valx;;*valz] + (1-CHF_DTERM[valx;;*valz])*outsideFriction
 
-          fric  = min(fric,max(fd,fric-B(CHF_IX[i;j;k],5)/dw*(fric-fd)))
+C         Apply slip weakening friction
+          fric  = fric-(fric-fd)*min(one,B(CHF_IX[i;j;k],5)/dw)
 
-          tau_0 = min(tau,-syy*fric)
+C         strengh is minimum of friction strength and forced strength
+          tau = min(tau_lock,-syy1*fric)-tau_0
 
-          beta  = 2.0d0 * tau_0 / tau - 1.0d0
+C         set stress and slip velocity
+C         tau = min(tau_lock,tau_0)
 
-          wpxy = wmxy * beta
-          wpyz = wmyz * beta
+C         We use the fact that 
+C            \vec{\tau} = \vec{phi} - \frac{\tilde{Z}_{S} \vec{V}
+C         which since \vec{\tau} = \alpha \vec{V} implies they are
+C         parallel with \vec{phi} as well. So we can use this to split
+C         tau (magnitude) into tau_xy and tau_y
 
-          vy  = (wmyy - syy) / Zp
-          SHF = -(vy - syy) * lam / (lam + 2.0d0 * mu)
-          Wgdnv(CHF_IX[i;j;k],0) = (wmxy - wpxy) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],1) = vy
-          Wgdnv(CHF_IX[i;j;k],2) = (wmyz - wpyz) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],3) = syy + SHF
-          Wgdnv(CHF_IX[i;j;k],4) = syy
-          Wgdnv(CHF_IX[i;j;k],5) = szz + SHF
-          Wgdnv(CHF_IX[i;j;k],6) = (wmxy + wpxy) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],7) = sxz
-          Wgdnv(CHF_IX[i;j;k],8) = (wmyz + wpyz) / (2.0d0)
+C         phi_xy = (wpxy2*Zs1-wpxy1*Zs2)/(Zs1+Zs2)
+C         phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
+
+          phi_xy = half*(wpxy2-wpxy1)
+          phi_yz = half*(wpyz2-wpyz1)
+          phi    = sqrt(phi_xy**2 + phi_yz**2)
+
+          sxy1   = (phi_xy/phi) * tau
+          syz1   = (phi_yz/phi) * tau
+
+          vx1    = -(sxy1 + wpxy1)/Zs
+          vz1    = -(syz1 + wpyz1)/Zs
+          vy1    = -(syy1 + wpyy1)/Zp
+
+          SHF = -(vy1 - syy1) * lam / (lam + 2.0d0 * mu)
+
+          Wgdnv(CHF_IX[i;j;k],0) = vx1
+          Wgdnv(CHF_IX[i;j;k],1) = vy1
+          Wgdnv(CHF_IX[i;j;k],2) = vz1
+          Wgdnv(CHF_IX[i;j;k],3) = syy1 + SHF
+          Wgdnv(CHF_IX[i;j;k],4) = syy1
+          Wgdnv(CHF_IX[i;j;k],5) = szz1 + SHF
+          Wgdnv(CHF_IX[i;j;k],6) = sxy1
+          Wgdnv(CHF_IX[i;j;k],7) = sxz1
+          Wgdnv(CHF_IX[i;j;k],8) = syz1
        CHF_ENDDO
 
         return

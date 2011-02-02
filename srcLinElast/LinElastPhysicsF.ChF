@@ -281,7 +281,7 @@ C
           F(CHF_IX[i;j;k],cx    ) = -sxx / rho
           F(CHF_IX[i;j;k],cy    ) = -sxy / rho
           F(CHF_IX[i;j;k],cz    ) = -sxz / rho
-          F(CHF_IX[i;j;k],cx + 3) = -vx * (lam + 2.0d0 * mu)
+          F(CHF_IX[i;j;k],cx + 3) = -vx * (lam + two * mu)
           F(CHF_IX[i;j;k],cy + 3) = -vx * lam
           F(CHF_IX[i;j;k],cz + 3) = -vx * lam
           F(CHF_IX[i;j;k],cxy   ) = -vy * mu

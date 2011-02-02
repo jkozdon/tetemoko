@@ -201,6 +201,13 @@ void amrGodunov()
     ppphysics.query("mu",mu);
     CH_assert(mu >= 0);
 
+    Real rho = -10;
+    ppphysics.query("rho",rho);
+    if(rho > 0)
+    {
+        mu = rho * cs*cs;
+    }
+
     if(verbosity >= 1)
     {
            pout() << endl;

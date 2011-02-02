@@ -651,7 +651,7 @@ Real LinElastLevelGodunov::getMaxWaveSpeed(const LevelData<FArrayBox>& a_U)
     Real speed = 0.0;
 
     // This computation doesn't need involve a time but the time being set
-    // is checked by PatchGodunov::getMaxWaveSpeed so we have to set it
+    // is checked by LinElastPatchGodunov::getMaxWaveSpeed so we have to set it
     // to something...
     m_patchGodunov.setCurrentTime(0.0);
 
@@ -705,7 +705,7 @@ LinElastLevelGodunov::getGodunovPhysicsPtr()
 const GodunovPhysics*
 LinElastLevelGodunov::getGodunovPhysicsPtrConst() const
 {
-    return  ((PatchGodunov&)m_patchGodunov).getGodunovPhysicsPtr();
+    return  ((LinElastPatchGodunov&)m_patchGodunov).getGodunovPhysicsPtr();
 }
 
 

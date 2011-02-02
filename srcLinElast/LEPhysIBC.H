@@ -51,7 +51,7 @@ public:
     /// Store pointer to boundary data
     /**
     */
-    virtual void updateBoundary(const FArrayBox& a_WHalf,int dir,const Real& a_dt,const Real& a_time)
+    virtual void updateBoundary(const FArrayBox& a_WHalf,int dir,const Real& a_dt,const Real& a_time,const bool a_final)
     {
         // Default implementation is to do nothing
     }

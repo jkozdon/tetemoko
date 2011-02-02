@@ -70,6 +70,11 @@ public:
     */
     virtual bool hasBdryData();
 
+    /// Store pointer to boundary data
+    /**
+    */
+    virtual void setBdryData(FArrayBox* a_bdryData);
+
     /// Set boundary primitive values.
     /**
     */
@@ -105,7 +110,7 @@ public:
     /// Store pointer to boundary data
     /**
     */
-    virtual void updateBoundary(const FArrayBox& a_WHalf,int dir,const Real& a_dt,const Real& a_time);
+    virtual void updateBoundary(const FArrayBox& a_WHalf,int dir,const Real& a_dt,const Real& a_time,const bool a_final);
 
     /// Do the initial tagging of cells
     /**
@@ -122,7 +127,7 @@ public:
 
     virtual int numBdryVars()
     {
-        return 7;
+        return m_numBdryVars;
     }
 
     virtual Vector<string> bdryNames()
@@ -144,6 +149,7 @@ protected:
     bool m_isFortranCommonSet;
     Vector<int> m_boundaryType;
     bool m_isPatchBoxSet;
+    bool m_tmpBdryDataSet;
 
     int m_numPatches;
     Vector<Real> m_xcPatches;
@@ -158,6 +164,8 @@ protected:
     Vector<Real> m_fricBoxCenter;
     Vector<Real> m_fricBoxWidth;
     Vector<Box>  m_patchBoxes;
+
+    FArrayBox* m_tmpBdryData;
 private:
 };
 

@@ -23,7 +23,7 @@
 #include "Copier.H"
 #include "LevelGodunov.H"
 
-#include "PatchGodunov.H"
+#include "LinElastPatchGodunov.H"
 #include "NamespaceHeader.H"
 
 
@@ -133,10 +133,10 @@ public:
     */
     Real getMaxWaveSpeed(const LevelData<FArrayBox>& a_U);
 
-    /// get the godunovPhysics pointer from the PatchGodunov member
+    /// get the godunovPhysics pointer from the LinElastPatchGodunov member
     /**
       Returns the pointer to the GodunovPhysics object which is
-      used in the PatchGodunov class.
+      used in the LinElastPatchGodunov class.
       */
     GodunovPhysics* getGodunovPhysicsPtr();
 
@@ -153,7 +153,7 @@ protected:
     DisjointBoxLayout m_bdry;
 
     // Patch integrator
-    PatchGodunov    m_patchGodunov;
+    LinElastPatchGodunov    m_patchGodunov;
 
     // Number of ghost cells need locally for this level
     int m_numGhost;
