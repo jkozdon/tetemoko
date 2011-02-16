@@ -8,8 +8,8 @@
 */
 #endif
 
-#ifndef _AMRLEVELPOLYTROPICGASFACTORY_H_
-#define _AMRLEVELPOLYTROPICGASFACTORY_H_
+#ifndef _AMRLEVELLINELASTFACTORY_H_
+#define _AMRLEVELLINELASTFACTORY_H_
 
 #include "AMRLevelFactory.H"
 
@@ -50,7 +50,10 @@ public:
                       const Real&                 a_artificialViscosity,
                       const bool&                 a_useSourceTerm,
                       const Real&                 a_sourceTermScaling,
-                      const bool&                 a_highOrderLimiter);
+                      const bool&                 a_highOrderLimiter,
+                      const Vector<Real>&         a_xFaultStations,
+                      const Vector<Real>&         a_zFaultStations,
+                      const Vector<Real>&         a_domainCenter);
 
   /// Create a new AMRLevel (for polytropic gases)
   /**
@@ -62,10 +65,17 @@ public:
    */
   bool isDefined() const;
 
+  /// Set the prefix for output files
+  /**
+   */
+  void dataPrefix(const string& a_dataPrefix);
+
 
 protected:
   // CFL number
   Real m_cfl;
+
+  string m_dataPrefix;
 
   // Physical dimension of the longest side of the domain
   Real m_domainLength;
@@ -113,6 +123,10 @@ protected:
   // Has this object been defined
   bool m_isDefined;
 
+  // Save the fault stations we will need
+  Vector<Real> m_xFaultStations;
+  Vector<Real> m_zFaultStations;
+  Vector<Real> m_domainCenter;
 
 private:
   // Disallowed for all the usual reasons

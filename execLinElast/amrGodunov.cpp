@@ -333,8 +333,7 @@ void amrGodunov()
     // Apply artificial viscosity
     int inArtificialViscosity = 0;
     bool useArtificialViscosity;
-    //JK NOT CURRENTLY IMPLEMENTED
-    // ppcomp.get("use_artificial_viscosity",inArtificialViscosity);
+    ppcomp.get("use_artificial_viscosity",inArtificialViscosity);
     useArtificialViscosity = (inArtificialViscosity == 1);
 
     // Artificial viscosity coefficient/multiplier
@@ -354,6 +353,16 @@ void amrGodunov()
     // Set up plot file writing
     int plotInterval = 0;
     ppcomp.query("plot_interval",plotInterval);
+
+    int numFaultStation = 0;
+    std::vector<Real> xFaultStations;
+    std::vector<Real> zFaultStations;
+    ppcomp.query("num_fault_stations",numFaultStation);
+    ppcomp.getarr("x_fault_stations",xFaultStations,0,numFaultStation);
+    if(SpaceDim>2)
+    {
+        ppcomp.getarr("z_fault_stations",zFaultStations,0,numFaultStation);
+    }
 
     // CFL multiplier
     Real cfl = 0.8;
@@ -385,6 +394,13 @@ void amrGodunov()
     // Background Values
     vector<Real> backgroundVals(9,0);
     ppphysics.queryarr("background",backgroundVals,0,9);
+
+    // Domain Center
+    vector<Real> domainCenter(3,0);
+    domainCenter[0] = 0;
+    domainCenter[1] = 0;
+    domainCenter[2] = 0;
+
 
     if (ppphysics.contains("problem"))
     {
@@ -580,6 +596,8 @@ void amrGodunov()
             ppphysics.get("outside_f_static",outsideFriction);
             ppphysics.getarr("center_fric_box",fricBoxCenter,0,2);
             ppphysics.getarr("width_fric_box",fricBoxWidth,0,2);
+            domainCenter[0] = fricBoxCenter[0];
+            domainCenter[1] = fricBoxCenter[1];
 
             // Where is the nucleation patch
             int numPatches = 0;
@@ -926,7 +944,18 @@ void amrGodunov()
         artificialViscosity,
         useSourceTerm,
         sourceTermScaling,
-        highOrderLimiter);
+        highOrderLimiter,
+        xFaultStations,
+        zFaultStations,
+        domainCenter);
+
+    // Set up output files
+    if (ppcomp.contains("plot_prefix"))
+    {
+        std::string prefix;
+        ppcomp.query("plot_prefix",prefix);
+        amrGodFact.dataPrefix(prefix);
+    }
 
     AMR amr;
     

@@ -291,7 +291,7 @@ void SWIBC::artViscBC(FArrayBox&       a_F,
     const int&       a_dir,
     const Real&      a_time)
 {
-    pout() << "NOT SETUP :: SWIBC::artViscBC" << endl;
+    // pout() << "NOT SETUP :: SWIBC::artViscBC" << endl;
 }
 
 void SWIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,const Real& a_time,const bool a_final)
@@ -352,8 +352,8 @@ bool SWIBC::tagCellsInit(FArrayBox& markFAB)
             int offSet = 0;
             if(SpaceDim > 0)
             {
-                nucSm.setVal(0,floor((m_xcPatches[itor]-m_xwPatches[itor])/m_dx));
-                nucBg.setVal(0, ceil((m_xcPatches[itor]+m_xwPatches[itor])/m_dx));
+                nucSm.setVal(0,floor((m_fricBoxCenter[0]+m_xcPatches[itor]-m_xwPatches[itor])/m_dx));
+                nucBg.setVal(0, ceil((m_fricBoxCenter[0]+m_xcPatches[itor]+m_xwPatches[itor])/m_dx));
             }
             if(SpaceDim > 1)
             {
@@ -362,8 +362,8 @@ bool SWIBC::tagCellsInit(FArrayBox& markFAB)
             }
             if(SpaceDim > 2)
             {
-                nucSm.setVal(2,floor((m_zcPatches[itor]-m_zwPatches[itor])/m_dx));
-                nucBg.setVal(2, ceil((m_zcPatches[itor]+m_zwPatches[itor])/m_dx));
+                nucSm.setVal(2,floor((m_fricBoxCenter[1]+m_zcPatches[itor]-m_zwPatches[itor])/m_dx));
+                nucBg.setVal(2, ceil((m_fricBoxCenter[1]+m_zcPatches[itor]+m_zwPatches[itor])/m_dx));
             }
             m_patchBoxes[itor] = Box(nucSm,nucBg);
             m_smoothWidthNumCells = ceil(m_smoothValue / m_dx / 2);
@@ -371,7 +371,10 @@ bool SWIBC::tagCellsInit(FArrayBox& markFAB)
         }
     }
 
-    markFAB.setVal(1,m_patchBoxes[0] & markFAB.box(),0);
+    for(int itor = 0; itor < m_numPatches; itor ++)
+    {
+        markFAB.setVal(1,m_patchBoxes[itor] & markFAB.box(),0);
+    }
     // markFAB.setVal(1,markFAB.box(),0);
     // for(int itor = 0; itor < m_patchBoxes.capacity(); itor++)
     // {

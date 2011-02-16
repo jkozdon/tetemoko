@@ -369,12 +369,12 @@ void LinElastPhysics::postNormalPred(FArrayBox&       a_dWMinus,
 
 void LinElastPhysics::quasilinearBoundaryUpdate(
     const FArrayBox& a_wHalf,
-    const Real&      a_scale,
+    const Real&      a_dt,
     const int&       a_dir,
     const Box&       a_box,
-    const Real&      a_dt)
+    const Real&      a_currentTime)
 {
-    ((LEPhysIBC*)m_bc)->updateBoundary(a_wHalf,a_dir,a_scale*a_dt,0,false);
+    ((LEPhysIBC*)m_bc)->updateBoundary(a_wHalf,a_dir,a_dt,0,false);
 }
 
 /// Compute the quasilinear update A*dW/dx.
@@ -425,9 +425,9 @@ void LinElastPhysics::consToPrim(FArrayBox&       a_W,
   */
 Interval LinElastPhysics::velocityInterval()
 {
-    MayDay::Error("LinElastPhysics::velocityInterval - not defined");
+    // MayDay::Error("LinElastPhysics::velocityInterval - not defined");
 
-    Interval retval(-1,-1);
+    Interval retval(0,3);
     return retval;
 }
 
@@ -482,3 +482,40 @@ void LinElastPhysics::expressions(HDF5HeaderData& a_expressions) const
 }
 
 #endif
+void LinElastPhysics::artVisc(FArrayBox&       a_F,
+                             const FArrayBox& a_U,
+                             const Real&      a_artificialViscosity,
+                             const Real&      a_currentTime,
+                             const int&       a_dir,
+                             const Box&       a_box)
+{
+  CH_assert(a_U.box().contains(a_box));
+
+  // Take the cell centered box, a_box, and derive a face centered box in
+  // direction a_dir
+  Box faceBox = a_box;
+  faceBox &= m_domain;
+  faceBox.surroundingNodes(a_dir);
+
+  CH_assert(a_F.box().contains(faceBox));
+
+  // Note: a_box is face centered in the a_dir direction and is set up for
+  // updating a_F
+
+  // Remove any boundary faces in direction a_dir from a_box
+  Box noBoundaryBox = faceBox;
+  noBoundaryBox.enclosedCells(a_dir);
+  noBoundaryBox.grow(a_dir,1);
+  noBoundaryBox &= m_domain;
+  noBoundaryBox.grow(a_dir,-1);
+  noBoundaryBox.surroundingNodes(a_dir);
+
+  FORT_ARTDISP(CHF_FRA(a_F),
+                CHF_CONST_FRA(a_U),
+                CHF_CONST_REAL(a_artificialViscosity),
+                CHF_CONST_INT(a_dir),
+                CHF_BOX(noBoundaryBox));
+
+  // Change fluxes due to artificial viscosity on the boundary faces
+  // m_bc->artViscBC(a_F,a_U,divu,a_dir,a_currentTime);
+}

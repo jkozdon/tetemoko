@@ -80,7 +80,11 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
     const Real&                 a_artificialViscosity,
     const bool&                 a_useSourceTerm,
     const Real&                 a_sourceTermScaling,
-    const bool&                 a_highOrderLimiter)
+    const bool&                 a_highOrderLimiter,
+    const Vector<Real>&         a_xFaultStations,
+    const Vector<Real>&         a_zFaultStations,
+    const Vector<Real>&         a_domainCenter,
+    const string&               a_dataPrefix)
 {
     // Set the CFL number
     m_cfl = a_cfl;
@@ -129,6 +133,18 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
 
     // Use a high-order limiter?
     m_highOrderLimiter = a_highOrderLimiter;
+
+    // define the fault stations
+    m_xFaultStations   = a_xFaultStations;
+    m_zFaultStations   = a_zFaultStations;
+    for(int itor = 0; itor < m_xFaultStations.size(); itor++)
+    {
+    }
+
+    // Set the center of the domain
+    m_domainCenter = a_domainCenter;
+
+    m_dataPrefix = a_dataPrefix;
 
     m_paramsDefined = true;
 }
@@ -183,6 +199,36 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
 
     // Compute the grid spacing
     m_dx = m_domainLength / a_problemDomain.domainBox().size(0);
+
+    // We have to do this here becase m_dx isn't defined when defineParams is
+    // called
+    for(int itor = 0; itor < m_xFaultStations.size(); itor++)
+    {
+        // Define the station name for this level
+        char tmpName[128];
+        sprintf(tmpName,"%sBx%5.4fz%5.4f.L%d.dat",m_dataPrefix,m_xFaultStations[itor],m_zFaultStations[itor],m_level);
+         pout() << tmpName << endl;
+        m_stationNames.push_back(tmpName);
+        if(procID() == 0)
+        {
+            FILE * stationData;
+            stationData = fopen(m_stationNames[itor].c_str(),"w");
+            fclose(stationData);
+        }
+    }
+
+    for(int itor = 0; itor < m_xFaultStations.size(); itor++)
+    {
+        m_ivFaultStations.push_back(
+            BASISV(0)*round((m_xFaultStations[itor]+m_domainCenter[0])/m_dx-0.5)
+            +
+            BASISV(2)*round((m_zFaultStations[itor]+m_domainCenter[2])/m_dx-0.5));
+        // pout() << m_level
+        //     << "  " << m_dx
+        //     << "  " << m_zFaultStations[itor]
+        //     << "  " << m_xFaultStations[itor]+m_domainCenter[0]
+        //     << "  " << m_ivFaultStations[itor] << endl;
+    }
 
     // Nominally, one layer of ghost cells is maintained permanently and
     // individual computations may create local data with more
@@ -1274,7 +1320,7 @@ void AMRLevelLinElast::readCheckpointLevel(HDF5Handle& a_handle)
         }
         pout() << endl;
     }
-    
+
     // Reshape state with new grids
     m_UNew.define(m_grids,m_numStates);
     const int dataStatus = read<FArrayBox>(a_handle,
@@ -1431,114 +1477,142 @@ void AMRLevelLinElast::writeCustomPlotFile(const std::string& a_prefix,
     const int& a_cur_step,
     const Real& a_cur_time)
 {
-  CH_TIME("AMR::writePlotFile");
+    CH_TIME("AMR::writePlotFile");
 
-  CH_assert(m_isDefined);
+    CH_assert(m_isDefined);
 
-  if (s_verbosity >= 3)
-    {
-      pout() << "AMRLevelLinElast::writeCustomPlotFile" << endl;
-    }
-
-  char iter_str[80];
-
-  sprintf(iter_str,
-          "%sboundary.%06d.%dd.hdf5",
-          a_prefix.c_str(), a_cur_step, SpaceDim);
-
-  if (s_verbosity >= 2)
-    {
-      pout() << "plot file name = " << iter_str << endl;
-    }
-
-  HDF5Handle handle(iter_str, HDF5Handle::CREATE);
-
-  // write amr data
-  HDF5HeaderData header;
-  header.m_int ["max_level"]  = a_max_level;
-  header.m_int ["num_levels"] = a_finest_level + 1;
-  header.m_int ["iteration"]  = a_cur_step;
-  header.m_real["time"]       = a_cur_time;
-
-  // write the boundary physics class header data
-
-  // Setup the number of components
-  header.m_int["num_components"] = m_numBdryVars;
-
-  // Setup the component names
-  char compStr[30];
-  for (int comp = 0; comp < m_numBdryVars; ++comp)
-  {
-      sprintf(compStr,"component_%d",comp);
-      header.m_string[compStr] = m_bdryNames[comp];
-  }
-
-  if (s_verbosity >= 3)
-  {
-      pout() << header << endl;
-  }
-
-  header.writeToFile(handle);
-
-  // handle.setGroup("/Expressions");
-  // HDF5HeaderData expressions;
-  // m_LElevelGodunov.getGodunovPhysicsPtrConst()->expressions(expressions);
-  // expressions.writeToFile(handle);
-
-  if (s_verbosity >= 3)
-  {
-      pout() << header << endl;
-  }
-
-  // write physics class per-level data
-  writeThisBdryLevel(handle);
-
-  handle.close();
-}
-
-void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle)
-{
-    //JK Need to fix this so that it only puts data on the boundary
     if (s_verbosity >= 3)
     {
-        pout() << "AMRLevelLinElast::writeThisBdryLevel" << endl;
+        pout() << "AMRLevelLinElast::writeCustomPlotFile" << endl;
     }
-    if(m_BNew.boxLayout().numCells()==0) return;
 
-    // Setup the level string
-    char levelStr[20];
-    sprintf(levelStr,"%d",m_level);
-    const std::string label = std::string("level_") + levelStr;
+    char iter_str[80];
 
-    a_handle.setGroup(label);
+    sprintf(iter_str,
+        "%sboundary.%06d.%dd.hdf5",
+        a_prefix.c_str(), a_cur_step, SpaceDim);
 
-    // Setup the level header information
+    if (s_verbosity >= 2)
+    {
+        pout() << "plot file name = " << iter_str << endl;
+    }
+
+    HDF5Handle handle(iter_str, HDF5Handle::CREATE);
+
+    // write amr data
     HDF5HeaderData header;
+    header.m_int ["max_level"]  = a_max_level;
+    header.m_int ["num_levels"] = a_finest_level + 1;
+    header.m_int ["iteration"]  = a_cur_step;
+    header.m_real["time"]       = a_cur_time;
 
-    header.m_int ["ref_ratio"]   = m_ref_ratio;
-    header.m_real["dx"]          = m_dx;
-    header.m_real["dt"]          = m_dt;
-    header.m_real["time"]        = m_time;
-    //header.m_box ["prob_domain"] = m_problem_domain.domainBox();
-    header.m_box ["prob_domain"] = m_bdryFaceBox;
+    // write the boundary physics class header data
 
-    // Write the header for this level
-    header.writeToFile(a_handle);
+    // Setup the number of components
+    header.m_int["num_components"] = m_numBdryVars;
+
+    // Setup the component names
+    char compStr[30];
+    for (int comp = 0; comp < m_numBdryVars; ++comp)
+    {
+        sprintf(compStr,"component_%d",comp);
+        header.m_string[compStr] = m_bdryNames[comp];
+    }
 
     if (s_verbosity >= 3)
     {
         pout() << header << endl;
     }
 
-    // Write the data for this level
-    // write(a_handle,m_BNew_old.boxLayout());
-    // write(a_handle,m_BNew_old,"data", IntVect::Unit);
-    write(a_handle,m_BNew.boxLayout());
-    write(a_handle,m_BNew,"data", IntVect::Unit);
+    header.writeToFile(handle);
+
+    // handle.setGroup("/Expressions");
+    // HDF5HeaderData expressions;
+    // m_LElevelGodunov.getGodunovPhysicsPtrConst()->expressions(expressions);
+    // expressions.writeToFile(handle);
+
+    if (s_verbosity >= 3)
+    {
+        pout() << header << endl;
+    }
+
+    // write physics class per-level data
+    writeThisBdryLevel(handle,a_finest_level+1,467);
+
+    handle.close();
+}
+
+void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle, int a_num_levels, int value)
+{
+    //JK Need to fix this so that it only puts data on the boundary
+    if (s_verbosity >= 3)
+    {
+        pout() << "AMRLevelLinElast::writeThisBdryLevel" << endl;
+    }
+    if(m_BNew.boxLayout().numCells()>0)
+    {
+
+        // Setup the level string
+        char levelStr[20];
+        sprintf(levelStr,"%d",m_level);
+        const std::string label = std::string("level_") + levelStr;
+
+        a_handle.setGroup(label);
+
+        // Setup the level header information
+        HDF5HeaderData header;
+
+        header.m_int ["ref_ratio"]   = m_ref_ratio;
+        header.m_real["dx"]          = m_dx;
+        header.m_real["dt"]          = m_dt;
+        header.m_real["time"]        = m_time;
+        //header.m_box ["prob_domain"] = m_problem_domain.domainBox();
+        header.m_box ["prob_domain"] = m_bdryFaceBox;
+
+        // Write the header for this level
+        header.writeToFile(a_handle);
+
+        if (s_verbosity >= 3)
+        {
+            pout() << header << endl;
+        }
+
+        // Write the data for this level
+        // write(a_handle,m_BNew_old.boxLayout());
+        // write(a_handle,m_BNew_old,"data", IntVect::Unit);
+        // write(a_handle,m_BNew.boxLayout());
+        // write(a_handle,m_BNew,"data", IntVect::Unit);
+
+        for (DataIterator dit = m_BNew.dataIterator(); dit.ok(); ++dit)
+        {
+            for(int itor = 0; itor < m_ivFaultStations.size();itor++)
+            {
+                const Box tmpBndBox = m_BNew[dit()].box();
+                IntVect tmpLoc = m_ivFaultStations[itor];
+                if(tmpBndBox.contains(tmpLoc))
+                {
+                    FILE * stationData;
+                    stationData = fopen(m_stationNames[itor].c_str(),"a");
+
+                    fprintf(stationData,"%E %E %E %E %E %E %E %d %d\n",
+                        m_time,
+                        m_BNew[dit()].get(tmpLoc,5),
+                        m_BNew[dit()].get(tmpLoc,0),
+                        m_BNew[dit()].get(tmpLoc,2),
+                        m_BNew[dit()].get(tmpLoc,5),
+                        m_BNew[dit()].get(tmpLoc,1),
+                        m_BNew[dit()].get(tmpLoc,3),
+                        m_level,
+                        procID());
+                    fclose(stationData);
+                }
+            }
+        }
+    }
 
     if (m_hasFiner)
     {
-        getFinerLevel()->writeThisBdryLevel(a_handle);
+        getFinerLevel()->writeThisBdryLevel(a_handle,a_num_levels,m_ref_ratio*value);
     }
 }
 
@@ -1787,11 +1861,11 @@ void AMRLevelLinElast::setupRelateUB()
         {
             for (DataIterator bit = m_BNew.dataIterator(); bit.ok(); ++bit)
             {
-                 if(m_BNew[bit()].box().contains(tmpBndBox))
-                 {
-                     m_relateUB[dit()].setBdryIndex(bit());
-                     break;
-                 }
+                if(m_BNew[bit()].box().contains(tmpBndBox))
+                {
+                    m_relateUB[dit()].setBdryIndex(bit());
+                    break;
+                }
             }
         }
     }
@@ -1799,6 +1873,7 @@ void AMRLevelLinElast::setupRelateUB()
 
 void AMRLevelLinElast::dumpBdryData()
 {
+    return;
     if(m_level == 0)
     {
         char prefix[30];

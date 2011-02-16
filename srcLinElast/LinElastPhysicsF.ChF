@@ -944,3 +944,35 @@ c
         val = half * ( x + log(two * cosh(k * x)) / k)
 
         end
+
+        subroutine ARTDISP(
+     &    CHF_FRA[F],
+     &    CHF_CONST_FRA[U],
+     &    CHF_CONST_REAL[coeff],
+     &    CHF_CONST_INT[idir],
+     &    CHF_BOX[box])
+
+        integer CHF_DDECL[i   ; j   ; k   ]
+        integer CHF_DDECL[ioff; joff; koff]
+        integer iv
+
+        real_t fc,s1,s2
+
+        CHF_DTERM[
+        ioff = CHF_ID(0,idir);
+        joff = CHF_ID(1,idir);
+        koff = CHF_ID(2,idir)]
+
+        do iv = 0,CHF_NCOMP[U] - 1
+          CHF_MULTIDO[box;i;j;k]
+            fc = F   (CHF_IX[i     ;j     ;k     ],iv)
+            s1 = U   (CHF_IX[i     ;j     ;k     ],iv)
+            s2 = U   (CHF_IX[i-ioff;j-joff;k-koff],iv)
+
+            F(CHF_IX[i;j;k],iv) = fc - coeff*(s1-s2)
+          CHF_ENDDO
+        enddo
+
+        return
+        end
+

@@ -8,8 +8,8 @@
 */
 #endif
 
-#ifndef _AMRLEVELPOLYTROPICGAS_H_
-#define _AMRLEVELPOLYTROPICGAS_H_
+#ifndef _AMRLEVELLINELAST_H_
+#define _AMRLEVELLINELAST_H_
 
 #include "FArrayBox.H"
 #include "GridData.H"
@@ -68,7 +68,11 @@ public:
                     const Real&                 a_artificialViscosity,
                     const bool&                 a_useSourceTerm,
                     const Real&                 a_sourceTermScaling,
-                    const bool&                 a_highOrderLimiter);
+                    const bool&                 a_highOrderLimiter,
+                    const Vector<Real>&         a_xFaultStations,
+                    const Vector<Real>&         a_zFaultStations,
+                    const Vector<Real>&         a_domainCenter,
+                    const string&               a_dataPrefix);
 
   /// This instance should never get called - historical
   /**
@@ -317,6 +321,15 @@ protected:
   DisjointBoxLayout m_bdryGrids_old;
   DisjointBoxLayout m_bdryGrids;
 
+  // Save the fault stations we will need
+  Vector<Real> m_xFaultStations;
+  Vector<Real> m_zFaultStations;
+  Vector<string> m_stationNames;
+  Vector<Real> m_domainCenter;
+  Vector<IntVect> m_ivFaultStations;
+  string m_dataPrefix;
+
+
 private:
   // Disallowed for all the usual reasons
   void operator=(const AMRLevelLinElast& a_input)
@@ -330,7 +343,7 @@ private:
     MayDay::Error("invalid operator");
   }
 #ifdef CH_USE_HDF5
-  void writeThisBdryLevel(HDF5Handle& a_handle);
+  void writeThisBdryLevel(HDF5Handle& a_handle, int a_num_levels, int value);
 #endif
 };
 

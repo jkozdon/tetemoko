@@ -667,6 +667,37 @@ inline void FORTRAN_NAME(inlineSMOOTHRAMP, inlineSMOOTHRAMP)(
 }
 #endif  // GUARDSMOOTHRAMP 
 
+#ifndef GUARDARTDISP 
+#define GUARDARTDISP 
+// Prototype for Fortran procedure ARTDISP ...
+//
+void FORTRAN_NAME( ARTDISP ,artdisp )(
+      CHFp_FRA(F)
+      ,CHFp_CONST_FRA(U)
+      ,CHFp_CONST_REAL(coeff)
+      ,CHFp_CONST_INT(idir)
+      ,CHFp_BOX(box) );
+
+#define FORT_ARTDISP FORTRAN_NAME( inlineARTDISP, inlineARTDISP)
+#define FORTNT_ARTDISP FORTRAN_NAME( ARTDISP, artdisp)
+
+inline void FORTRAN_NAME(inlineARTDISP, inlineARTDISP)(
+      CHFp_FRA(F)
+      ,CHFp_CONST_FRA(U)
+      ,CHFp_CONST_REAL(coeff)
+      ,CHFp_CONST_INT(idir)
+      ,CHFp_BOX(box) )
+{
+ CH_TIMELEAF("FORT_ARTDISP");
+ FORTRAN_NAME( ARTDISP ,artdisp )(
+      CHFt_FRA(F)
+      ,CHFt_CONST_FRA(U)
+      ,CHFt_CONST_REAL(coeff)
+      ,CHFt_CONST_INT(idir)
+      ,CHFt_BOX(box) );
+}
+#endif  // GUARDARTDISP 
+
 }
 
 #endif

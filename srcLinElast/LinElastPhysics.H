@@ -191,10 +191,10 @@ public:
     */
     void quasilinearBoundaryUpdate(
         const FArrayBox& a_wHalf,
-        const Real&      a_scale,
+        const Real&      a_dt,
         const int&       a_dir,
         const Box&       a_box,
-        const Real&      a_dt);
+        const Real&      a_currentTime);
 
     /// Compute the quasilinear update A*dW/dx.
     /**
@@ -243,6 +243,18 @@ public:
       as a normalization to measure shock strength.
       */
     virtual int bulkModulusIndex();
+
+    /// Compute the artificial viscosity contribution to the flux
+    /**
+      Compute the artificial viscosity contribution to the flux.  This has
+      a default implementation but this can be overridded as needed.
+      */
+    virtual void artVisc(FArrayBox&       a_F,
+        const FArrayBox& a_U,
+        const Real&      a_artificialViscosity,
+        const Real&      a_currentTime,
+        const int&       a_dir,
+        const Box&       a_box);
 
 #ifdef CH_USE_HDF5
     virtual void expressions(HDF5HeaderData& a_holder) const;

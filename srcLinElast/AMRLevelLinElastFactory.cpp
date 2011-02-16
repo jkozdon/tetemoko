@@ -46,7 +46,10 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
     const Real&                 a_artificialViscosity,
     const bool&                 a_useSourceTerm,
     const Real&                 a_sourceTermScaling,
-    const bool&                 a_highOrderLimiter)
+    const bool&                 a_highOrderLimiter,
+    const Vector<Real>&         a_xFaultStations,
+    const Vector<Real>&         a_zFaultStations,
+    const Vector<Real>&         a_domainCenter)
 {
     // Store the CFL number
     m_cfl = a_cfl;
@@ -100,6 +103,22 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
     // Use a high-order limiter?
     m_highOrderLimiter = a_highOrderLimiter;
 
+    // define the fault stations
+    m_xFaultStations   = a_xFaultStations;
+    if(SpaceDim > 2)
+    {
+        m_zFaultStations   = a_zFaultStations;
+    }
+    else
+    {
+        m_zFaultStations   = a_xFaultStations;
+    }
+
+    // Set the center of the domain
+    m_domainCenter = a_domainCenter;
+
+    m_dataPrefix = "";
+
     // The object is defined
     m_isDefined = true;
 }
@@ -130,7 +149,11 @@ AMRLevel* AMRLevelLinElastFactory::new_amrlevel() const
         m_artificialViscosity,
         m_useSourceTerm,
         m_sourceTermScaling,
-        m_highOrderLimiter);
+        m_highOrderLimiter,
+        m_xFaultStations,
+        m_zFaultStations,
+        m_domainCenter,
+        m_dataPrefix);
 
     // Return it
     return (static_cast <AMRLevel*> (amrGodPtr));
@@ -140,4 +163,9 @@ AMRLevel* AMRLevelLinElastFactory::new_amrlevel() const
 bool AMRLevelLinElastFactory::isDefined() const
 {
     return m_isDefined;
+}
+
+void AMRLevelLinElastFactory::dataPrefix(const string& a_dataPrefix)
+{
+    m_dataPrefix = a_dataPrefix;
 }

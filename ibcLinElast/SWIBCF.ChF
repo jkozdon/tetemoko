@@ -192,14 +192,14 @@ C         set the perturbation
           do ip = 0,numPatches-1
             CHF_DTERM[
 c           call BOXCARFUNC(valx,xwPatches(ip), abs(x-xcPatches(ip)))
-            call SMOOTHBOXCAR(valx,xwPatches(ip),abs(x-xcPatches(ip)),smValue)
+c           call SMOOTHBOXCAR(valx,xwPatches(ip),abs(x-xcPatches(ip)),smValue)
 c           call GAUSSIANFUNC(valx,xwPatches(ip),abs(x-xcPatches(ip)))
-c           call SMOOTHBOXCAR(valx,xwPatches(ip),abs(x-xcPatches(ip)),one/smValue)
+            call SMOOTHFUNC(valx,smValue,abs(x-xcPatches(ip))-xwPatches(ip))
             ;;
 c           call BOXCARFUNC(valz,zwPatches(ip), abs(z-zcPatches(ip)))
-            call SMOOTHBOXCAR(valz,zwPatches(ip),abs(z-zcPatches(ip)),smValue)
+c           call SMOOTHBOXCAR(valz,zwPatches(ip),abs(z-zcPatches(ip)),smValue)
 c           call GAUSSIANFUNC(valz,zwPatches(ip),abs(z-zcPatches(ip)))
-c           call SMOOTHBOXCAR(valz,zwPatches(ip),abs(z-zcPatches(ip)),one/smValue)
+            call SMOOTHFUNC(valz,smValue,abs(z-zcPatches(ip))-zwPatches(ip))
             ]
             tau_0 = tau_0 + tauPatches(ip) * CHF_DTERM[valx;;*valz]
           enddo
@@ -213,9 +213,9 @@ C         find the normal stress
 
 C         figure out the static stress value
           CHF_DTERM[
-          call SMOOTHBOXCAR(valx,fricBoxWidth(0),abs(x),smValue)
+          call BOXCARFUNC(valx,fricBoxWidth(0),abs(x))
           ;;
-          call SMOOTHBOXCAR(valz,fricBoxWidth(1),abs(z),smValue)
+          call BOXCARFUNC(valz,fricBoxWidth(1),abs(z))
           ]
           fric  = fs*CHF_DTERM[valx;;*valz] + (1-CHF_DTERM[valx;;*valz])*outsideFriction
 
