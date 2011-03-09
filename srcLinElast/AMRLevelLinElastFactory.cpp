@@ -49,6 +49,9 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
     const bool&                 a_highOrderLimiter,
     const Vector<Real>&         a_xFaultStations,
     const Vector<Real>&         a_zFaultStations,
+    const Vector<Real>&         a_xBodyStations,
+    const Vector<Real>&         a_yBodyStations,
+    const Vector<Real>&         a_zBodyStations,
     const Vector<Real>&         a_domainCenter)
 {
     // Store the CFL number
@@ -114,10 +117,24 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
         m_zFaultStations   = a_xFaultStations;
     }
 
+    // define the body stations
+    m_xBodyStations   = a_xBodyStations;
+    m_yBodyStations   = a_yBodyStations;
+    if(SpaceDim > 2)
+    {
+        m_zBodyStations   = a_zBodyStations;
+    }
+    else
+    {
+        m_zBodyStations   = a_xBodyStations;
+    }
+
     // Set the center of the domain
     m_domainCenter = a_domainCenter;
 
     m_dataPrefix = "";
+
+    m_plotInterval = 0;
 
     // The object is defined
     m_isDefined = true;
@@ -152,8 +169,12 @@ AMRLevel* AMRLevelLinElastFactory::new_amrlevel() const
         m_highOrderLimiter,
         m_xFaultStations,
         m_zFaultStations,
+        m_xBodyStations,
+        m_yBodyStations,
+        m_zBodyStations,
         m_domainCenter,
-        m_dataPrefix);
+        m_dataPrefix,
+        m_plotInterval);
 
     // Return it
     return (static_cast <AMRLevel*> (amrGodPtr));
@@ -168,4 +189,9 @@ bool AMRLevelLinElastFactory::isDefined() const
 void AMRLevelLinElastFactory::dataPrefix(const string& a_dataPrefix)
 {
     m_dataPrefix = a_dataPrefix;
+}
+
+void AMRLevelLinElastFactory::plotInterval(const int& a_plotInterval)
+{
+    m_plotInterval = a_plotInterval;
 }

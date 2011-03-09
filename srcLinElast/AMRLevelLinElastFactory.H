@@ -53,6 +53,9 @@ public:
                       const bool&                 a_highOrderLimiter,
                       const Vector<Real>&         a_xFaultStations,
                       const Vector<Real>&         a_zFaultStations,
+                      const Vector<Real>&         a_xBodyStations,
+                      const Vector<Real>&         a_yBodyStations,
+                      const Vector<Real>&         a_zBodyStations,
                       const Vector<Real>&         a_domainCenter);
 
   /// Create a new AMRLevel (for polytropic gases)
@@ -69,6 +72,11 @@ public:
   /**
    */
   void dataPrefix(const string& a_dataPrefix);
+
+  /// Set the prefix for output files
+  /**
+   */
+  void plotInterval(const int& a_plotInterval);
 
 
 protected:
@@ -126,7 +134,17 @@ protected:
   // Save the fault stations we will need
   Vector<Real> m_xFaultStations;
   Vector<Real> m_zFaultStations;
+
+  // Save the body stations we will need
+  Vector<Real> m_xBodyStations;
+  Vector<Real> m_yBodyStations;
+  Vector<Real> m_zBodyStations;
+
+  // Where is the domain center
   Vector<Real> m_domainCenter;
+
+  // How often to make plots files
+  int m_plotInterval;
 
 private:
   // Disallowed for all the usual reasons

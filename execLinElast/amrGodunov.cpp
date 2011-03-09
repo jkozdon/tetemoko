@@ -180,6 +180,14 @@ void amrGodunov()
     // parameters of the simulation
     ParmParse ppcomp("comp");
 
+    // Set up output files
+    if (ppcomp.contains("pout_name"))
+    {
+        std::string poutName;
+        ppcomp.query("pout_name",poutName);
+        setPoutBaseName(poutName);
+    }
+
     // Set the verbosity, i.e. how much diagnostic output
     int verbosity = 0;
     ppcomp.query("verbosity",verbosity);
@@ -354,6 +362,13 @@ void amrGodunov()
     int plotInterval = 0;
     ppcomp.query("plot_interval",plotInterval);
 
+    // Set up plot file writing
+    int boundPlotInterval = plotInterval;
+    if (ppcomp.contains("bound_plot_interval"))
+    {
+        ppcomp.query("bound_plot_interval",boundPlotInterval);
+    }
+
     int numFaultStation = 0;
     std::vector<Real> xFaultStations;
     std::vector<Real> zFaultStations;
@@ -362,6 +377,18 @@ void amrGodunov()
     if(SpaceDim>2)
     {
         ppcomp.getarr("z_fault_stations",zFaultStations,0,numFaultStation);
+    }
+
+    int numBodyStation = 0;
+    std::vector<Real> xBodyStations;
+    std::vector<Real> yBodyStations;
+    std::vector<Real> zBodyStations;
+    ppcomp.query("num_body_stations",numBodyStation);
+    ppcomp.getarr("x_body_stations",xBodyStations,0,numBodyStation);
+    ppcomp.getarr("y_body_stations",yBodyStations,0,numBodyStation);
+    if(SpaceDim>2)
+    {
+        ppcomp.getarr("z_body_stations",zBodyStations,0,numBodyStation);
     }
 
     // CFL multiplier
@@ -597,7 +624,8 @@ void amrGodunov()
             ppphysics.getarr("center_fric_box",fricBoxCenter,0,2);
             ppphysics.getarr("width_fric_box",fricBoxWidth,0,2);
             domainCenter[0] = fricBoxCenter[0];
-            domainCenter[1] = fricBoxCenter[1];
+            domainCenter[1] = 0;
+            domainCenter[2] = fricBoxCenter[1];
 
             // Where is the nucleation patch
             int numPatches = 0;
@@ -904,6 +932,7 @@ void amrGodunov()
 
         pout() << "checkpoint_interval  = " << checkpointInterval << endl;
         pout() << "plot_interval        = " << plotInterval << endl;
+        pout() << "bound_plot_interval  = " << boundPlotInterval << endl;
 
         pout() << "CFL                  = " << cfl << endl;
         pout() << "initial_CFL          = " << initialCFL << endl;
@@ -947,6 +976,9 @@ void amrGodunov()
         highOrderLimiter,
         xFaultStations,
         zFaultStations,
+        xBodyStations,
+        yBodyStations,
+        zBodyStations,
         domainCenter);
 
     // Set up output files
@@ -956,6 +988,9 @@ void amrGodunov()
         ppcomp.query("plot_prefix",prefix);
         amrGodFact.dataPrefix(prefix);
     }
+
+    // set the plotting number
+    amrGodFact.plotInterval(boundPlotInterval);
 
     AMR amr;
     

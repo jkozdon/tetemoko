@@ -51,7 +51,7 @@ SWIBC::SWIBC(const Real& a_cs,
     m_fricBoxWidth    = a_fricBoxWidth; 
     m_outsideFriction = a_outsideFriction;
 
-    m_numBdryVars = 7;
+    m_numBdryVars = 9;
 }
 
 /// Destructor

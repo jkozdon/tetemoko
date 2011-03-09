@@ -87,11 +87,15 @@ C         syz
 C         V
           Bout(CHF_IX[i;j;k],4) = SQRT((Bout(CHF_IX[i;j;k],0)**2 + Bout(CHF_IX[i;j;k],1)**2))
 C         slip
-          Bout(CHF_IX[i;j;k],5) = Bin(CHF_IX[i;j;k],5) + dt*Bout(CHF_IX[i;j;k],4)
+          Bout(CHF_IX[i;j;k],5) = Bin(CHF_IX[i;j;k],5) + dt*Bout(CHF_IX[i;j;k],0)
+C         slip
+          Bout(CHF_IX[i;j;k],6) = Bin(CHF_IX[i;j;k],6) + dt*Bout(CHF_IX[i;j;k],1)
+C         slip
+          Bout(CHF_IX[i;j;k],7) = Bin(CHF_IX[i;j;k],7) + dt*Bout(CHF_IX[i;j;k],4)
 C         rupture
-          if (Bin(CHF_IX[i;j;k],6) .gt. time .and.
+          if (Bin(CHF_IX[i;j;k],8) .gt. time .and.
      &        Bin(CHF_IX[i;j;k],4) .gt. ruptureThreshold) then
-            Bout(CHF_IX[i;j;k],6) = time
+            Bout(CHF_IX[i;j;k],8) = time
           endif
 
         CHF_ENDDO
@@ -220,7 +224,7 @@ C         figure out the static stress value
           fric  = fs*CHF_DTERM[valx;;*valz] + (1-CHF_DTERM[valx;;*valz])*outsideFriction
 
 C         Apply slip weakening friction
-          fric  = fric-(fric-fd)*min(one,B(CHF_IX[i;j;k],5)/dw)
+          fric  = fric-(fric-fd)*min(one,B(CHF_IX[i;j;k],7)/dw)
 
 C         strengh is minimum of friction strength and forced strength
           tau = min(tau_lock,-syy1*fric)-tau_0

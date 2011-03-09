@@ -83,8 +83,12 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
     const bool&                 a_highOrderLimiter,
     const Vector<Real>&         a_xFaultStations,
     const Vector<Real>&         a_zFaultStations,
+    const Vector<Real>&         a_xBodyStations,
+    const Vector<Real>&         a_yBodyStations,
+    const Vector<Real>&         a_zBodyStations,
     const Vector<Real>&         a_domainCenter,
-    const string&               a_dataPrefix)
+    const string&               a_dataPrefix,
+    const int&                  a_plotInterval)
 {
     // Set the CFL number
     m_cfl = a_cfl;
@@ -137,14 +141,19 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
     // define the fault stations
     m_xFaultStations   = a_xFaultStations;
     m_zFaultStations   = a_zFaultStations;
-    for(int itor = 0; itor < m_xFaultStations.size(); itor++)
-    {
-    }
+
+
+    // define the body stations
+    m_xBodyStations   = a_xBodyStations;
+    m_yBodyStations   = a_yBodyStations;
+    m_zBodyStations   = a_zBodyStations;
 
     // Set the center of the domain
     m_domainCenter = a_domainCenter;
 
     m_dataPrefix = a_dataPrefix;
+
+    m_plotInterval = a_plotInterval;
 
     m_paramsDefined = true;
 }
@@ -200,36 +209,6 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     // Compute the grid spacing
     m_dx = m_domainLength / a_problemDomain.domainBox().size(0);
 
-    // We have to do this here becase m_dx isn't defined when defineParams is
-    // called
-    for(int itor = 0; itor < m_xFaultStations.size(); itor++)
-    {
-        // Define the station name for this level
-        char tmpName[128];
-        sprintf(tmpName,"%sBx%5.4fz%5.4f.L%d.dat",m_dataPrefix,m_xFaultStations[itor],m_zFaultStations[itor],m_level);
-         pout() << tmpName << endl;
-        m_stationNames.push_back(tmpName);
-        if(procID() == 0)
-        {
-            FILE * stationData;
-            stationData = fopen(m_stationNames[itor].c_str(),"w");
-            fclose(stationData);
-        }
-    }
-
-    for(int itor = 0; itor < m_xFaultStations.size(); itor++)
-    {
-        m_ivFaultStations.push_back(
-            BASISV(0)*round((m_xFaultStations[itor]+m_domainCenter[0])/m_dx-0.5)
-            +
-            BASISV(2)*round((m_zFaultStations[itor]+m_domainCenter[2])/m_dx-0.5));
-        // pout() << m_level
-        //     << "  " << m_dx
-        //     << "  " << m_zFaultStations[itor]
-        //     << "  " << m_xFaultStations[itor]+m_domainCenter[0]
-        //     << "  " << m_ivFaultStations[itor] << endl;
-    }
-
     // Nominally, one layer of ghost cells is maintained permanently and
     // individual computations may create local data with more
     m_numGhost = 1;
@@ -241,17 +220,123 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     // Number and names of conserved states
     m_numStates  = m_gdnvPhysics->numConserved();
     m_stateNames = m_gdnvPhysics->stateNames();
-    // use LEPhysIBC to get these values
-    // default is zero?
     m_numBdryVars = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->numBdryVars();
     m_bdryNames = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->bdryNames();
-    // m_numBdryVars = 3;
-    // m_bdryNames.push_back("V");
-    // m_bdryNames.push_back("tau");
-    // m_bdryNames.push_back("slip");
 
     // Setup the boundary Face box
     m_bdryFaceBox = bdryLo(a_problemDomain.domainBox(),1,1);
+
+    // have to do this here becase m_dx isn't defined earlier
+
+    // Define the fault stations
+
+    // Determine the station locations and interpolation parameters
+    for(int itor = 0; itor < m_xFaultStations.size(); itor++)
+    {
+        // find closest station below (will do intersection between this and
+        // nearst neighbor below)
+        IntVect tmpLoc = 
+            BASISV(0)*floor((m_xFaultStations[itor]+m_domainCenter[0])/m_dx-0.5)
+            +
+            BASISV(2)*floor((m_zFaultStations[itor]+m_domainCenter[2])/m_dx-0.5);
+        m_ivFaultStations.push_back(tmpLoc);
+        // distance to the station (for intepolation purposes)
+        m_dxFaultStation.push_back(-(tmpLoc[0]+0.5)*m_dx + (m_xFaultStations[itor]+m_domainCenter[0]));
+        if(SpaceDim > 2)
+        {
+            m_dzFaultStation.push_back(-(tmpLoc[2]+0.5)*m_dx + (m_zFaultStations[itor]+m_domainCenter[2]));
+        }
+        else
+        {
+            m_dzFaultStation.push_back(0);
+        }
+    }
+
+
+    // Define the station name for this level
+    for(int itor = 0; itor < m_xFaultStations.size(); itor++)
+    {
+        char tmpName[128];
+        sprintf(tmpName,"%sFx%5.4fz%5.4f.L%d.dat",m_dataPrefix.c_str(),m_xFaultStations[itor],m_zFaultStations[itor],m_level);
+         // pout() << tmpName << endl;
+        m_faultSationNames.push_back(tmpName);
+        if(procID() == 0)
+        {
+            FILE * stationData;
+            stationData = fopen(m_faultSationNames[itor].c_str(),"w");
+            // fprintf(stationData,"%% dx :: %E   IV :: (%d %d)  delta :: (%E %E)\n",
+            //     m_dx,
+            //     m_ivFaultStations[itor][0],
+            //     m_ivFaultStations[itor][2],
+            //     m_dxFaultStation[itor],
+            //     m_dzFaultStation[itor]);
+
+            fprintf(stationData,"time");
+            for(int i_c = 0; i_c < m_numBdryVars; i_c++)
+            {
+                fprintf(stationData," %s",m_bdryNames[i_c].c_str());
+            }
+            fprintf(stationData," level procID\n");
+            fclose(stationData);
+        }
+    }
+
+    // Define the Body stations
+
+    // Determine the station locations and interpolation parameters
+    for(int itor = 0; itor < m_xBodyStations.size(); itor++)
+    {
+        // find closest station above (will do intersection between this and
+        // nearst neighbor bellow)
+        IntVect tmpLoc = 
+            BASISV(0)*floor((m_xBodyStations[itor]+m_domainCenter[0])/m_dx-0.5)
+            +
+            BASISV(1)*floor((m_yBodyStations[itor]+m_domainCenter[1])/m_dx-0.5)
+            +
+            BASISV(2)*floor((m_zBodyStations[itor]+m_domainCenter[2])/m_dx-0.5);
+        m_ivBodyStations.push_back(tmpLoc);
+
+        // distance to the station (for intepolation purposes)
+        m_dxBodyStation.push_back(-(tmpLoc[0]+0.5)*m_dx + (m_xBodyStations[itor]+m_domainCenter[0]));
+        m_dyBodyStation.push_back(-(tmpLoc[1]+0.5)*m_dx + (m_yBodyStations[itor]+m_domainCenter[1]));
+        if(SpaceDim > 2)
+            m_dzBodyStation.push_back(-(tmpLoc[2]+0.5)*m_dx + (m_zBodyStations[itor]+m_domainCenter[2]));
+        else
+            m_dzBodyStation.push_back(0);
+    }
+
+
+    // Define the station name for this level
+    for(int itor = 0; itor < m_xBodyStations.size(); itor++)
+    {
+        char tmpName[128];
+        sprintf(tmpName,"%sBx%5.4fy%5.4fz%5.4f.L%d.dat",m_dataPrefix.c_str(),m_xBodyStations[itor],m_yBodyStations[itor],m_zBodyStations[itor],m_level);
+         // pout() << tmpName << endl;
+        m_bodySationNames.push_back(tmpName);
+        if(procID() == 0)
+        {
+            FILE * stationData;
+            stationData = fopen(m_bodySationNames[itor].c_str(),"w");
+            // fprintf(stationData,"%% dx :: %E   IV :: (%d %d %d)   delta :: (%E %E %E)\n",
+            //     m_dx,
+            //     m_ivBodyStations[itor][0],
+            //     m_ivBodyStations[itor][1],
+            //     m_ivBodyStations[itor][2],
+            //     m_dxBodyStation[itor],
+            //     m_dyBodyStation[itor],
+            //     m_dzBodyStation[itor]);
+
+            fprintf(stationData,"time");
+            for(int i_c = 0; i_c < m_numStates; i_c++)
+            {
+                fprintf(stationData," %s",m_stateNames[i_c].c_str());
+            }
+            fprintf(stationData," level procID\n");
+            fclose(stationData);
+        }
+    }
+
+
 }
 
 // Advance by one timestep
@@ -356,6 +441,8 @@ Real AMRLevelLinElast::advance()
     Real returnDt = m_cfl * newDt;
 
     m_dtNew = returnDt;
+
+    writeStationLevel();
 
     return returnDt;
 }
@@ -1475,74 +1562,84 @@ void AMRLevelLinElast::writeCustomPlotFile(const std::string& a_prefix,
     const int& a_max_level,
     const int& a_finest_level,
     const int& a_cur_step,
-    const Real& a_cur_time)
+    const Real& a_cur_time,
+    const bool& a_conclude)
 {
-    CH_TIME("AMR::writePlotFile");
+    CH_TIME("AMR::writeCustomPlotFile");
 
-    CH_assert(m_isDefined);
+    // writeStationLevel();
 
-    if (s_verbosity >= 3)
+    if(((m_plotInterval > 0)
+        && (a_cur_step % m_plotInterval == 0))
+        ||
+        ((m_plotInterval >= 0) && a_conclude))
     {
-        pout() << "AMRLevelLinElast::writeCustomPlotFile" << endl;
+
+        CH_assert(m_isDefined);
+
+        if (s_verbosity >= 3)
+        {
+            pout() << "AMRLevelLinElast::writeCustomPlotFile" << endl;
+        }
+
+        char iter_str[80];
+
+        sprintf(iter_str,
+            "%sboundary.%06d.%dd.hdf5",
+            a_prefix.c_str(), a_cur_step, SpaceDim);
+
+        if (s_verbosity >= 2)
+        {
+            pout() << "plot file name = " << iter_str << endl;
+        }
+
+        HDF5Handle handle(iter_str, HDF5Handle::CREATE);
+
+        // write amr data
+        HDF5HeaderData header;
+        header.m_int ["max_level"]  = a_max_level;
+        header.m_int ["num_levels"] = a_finest_level + 1;
+        header.m_int ["iteration"]  = a_cur_step;
+        header.m_real["time"]       = a_cur_time;
+
+        // write the boundary physics class header data
+
+        // Setup the number of components
+        header.m_int["num_components"] = m_numBdryVars;
+
+        // Setup the component names
+        char compStr[30];
+        for (int comp = 0; comp < m_numBdryVars; ++comp)
+        {
+            sprintf(compStr,"component_%d",comp);
+            header.m_string[compStr] = m_bdryNames[comp];
+        }
+
+        if (s_verbosity >= 3)
+        {
+            pout() << header << endl;
+        }
+
+        header.writeToFile(handle);
+
+        // handle.setGroup("/Expressions");
+        // HDF5HeaderData expressions;
+        // m_LElevelGodunov.getGodunovPhysicsPtrConst()->expressions(expressions);
+        // expressions.writeToFile(handle);
+
+        if (s_verbosity >= 3)
+        {
+            pout() << header << endl;
+        }
+
+        // write physics class per-level data
+        writeThisBdryLevel(handle);
+
+        handle.close();
     }
-
-    char iter_str[80];
-
-    sprintf(iter_str,
-        "%sboundary.%06d.%dd.hdf5",
-        a_prefix.c_str(), a_cur_step, SpaceDim);
-
-    if (s_verbosity >= 2)
-    {
-        pout() << "plot file name = " << iter_str << endl;
-    }
-
-    HDF5Handle handle(iter_str, HDF5Handle::CREATE);
-
-    // write amr data
-    HDF5HeaderData header;
-    header.m_int ["max_level"]  = a_max_level;
-    header.m_int ["num_levels"] = a_finest_level + 1;
-    header.m_int ["iteration"]  = a_cur_step;
-    header.m_real["time"]       = a_cur_time;
-
-    // write the boundary physics class header data
-
-    // Setup the number of components
-    header.m_int["num_components"] = m_numBdryVars;
-
-    // Setup the component names
-    char compStr[30];
-    for (int comp = 0; comp < m_numBdryVars; ++comp)
-    {
-        sprintf(compStr,"component_%d",comp);
-        header.m_string[compStr] = m_bdryNames[comp];
-    }
-
-    if (s_verbosity >= 3)
-    {
-        pout() << header << endl;
-    }
-
-    header.writeToFile(handle);
-
-    // handle.setGroup("/Expressions");
-    // HDF5HeaderData expressions;
-    // m_LElevelGodunov.getGodunovPhysicsPtrConst()->expressions(expressions);
-    // expressions.writeToFile(handle);
-
-    if (s_verbosity >= 3)
-    {
-        pout() << header << endl;
-    }
-
-    // write physics class per-level data
-    writeThisBdryLevel(handle,a_finest_level+1,467);
-
-    handle.close();
 }
 
-void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle, int a_num_levels, int value)
+void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle)
 {
     //JK Need to fix this so that it only puts data on the boundary
     if (s_verbosity >= 3)
@@ -1580,40 +1677,123 @@ void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle, int a_num_levels
         // Write the data for this level
         // write(a_handle,m_BNew_old.boxLayout());
         // write(a_handle,m_BNew_old,"data", IntVect::Unit);
-        // write(a_handle,m_BNew.boxLayout());
-        // write(a_handle,m_BNew,"data", IntVect::Unit);
+        write(a_handle,m_BNew.boxLayout());
+        write(a_handle,m_BNew,"data", IntVect::Unit);
+    }
 
+    if (m_hasFiner)
+    {
+        getFinerLevel()->writeThisBdryLevel(a_handle);
+    }
+}
+
+void AMRLevelLinElast::writeStationLevel()
+{
+    if (s_verbosity >= 3)
+    {
+        pout() << "AMRLevelLinElast::writeStationLevel" << endl;
+    }
+
+    // First we do that fault stations
+    if(m_BNew.boxLayout().numCells()>0)
+    {
         for (DataIterator dit = m_BNew.dataIterator(); dit.ok(); ++dit)
         {
             for(int itor = 0; itor < m_ivFaultStations.size();itor++)
             {
-                const Box tmpBndBox = m_BNew[dit()].box();
+                // We get the box from the disjoint box layout since the that
+                // data has a layer of ghost cells. Since we have one layer of
+                // ghost cells, we know that if we have the m_ivFaultStations
+                // data in the disjoint box we also have this plus  one in each
+                // direction (which might be needed for interpolation)
+                const Box tmpBndBox = m_bdryGrids[dit()];
                 IntVect tmpLoc = m_ivFaultStations[itor];
                 if(tmpBndBox.contains(tmpLoc))
                 {
                     FILE * stationData;
-                    stationData = fopen(m_stationNames[itor].c_str(),"a");
+                    stationData = fopen(m_faultSationNames[itor].c_str(),"a");
 
-                    fprintf(stationData,"%E %E %E %E %E %E %E %d %d\n",
-                        m_time,
-                        m_BNew[dit()].get(tmpLoc,5),
-                        m_BNew[dit()].get(tmpLoc,0),
-                        m_BNew[dit()].get(tmpLoc,2),
-                        m_BNew[dit()].get(tmpLoc,5),
-                        m_BNew[dit()].get(tmpLoc,1),
-                        m_BNew[dit()].get(tmpLoc,3),
-                        m_level,
-                        procID());
+                    fprintf(stationData,"%E",m_time);
+                    for(int i_c = 0; i_c < m_numBdryVars;i_c++)
+                    {
+                        if(SpaceDim < 3)
+                        {
+                            fprintf(stationData," %E",
+                                m_BNew[dit()].get(tmpLoc,i_c)*(1-m_dxFaultStation[itor])
+                                +m_BNew[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxFaultStation[itor]);
+                        }
+                        else
+                        {
+                            fprintf(stationData," %E",
+                                m_BNew[dit()].get(tmpLoc,i_c)*(1-m_dxFaultStation[itor])*(1-m_dzFaultStation[itor])
+                                +m_BNew[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxFaultStation[itor]*(1-m_dzFaultStation[itor])
+                                +m_BNew[dit()].get(tmpLoc+BASISV(2),i_c)*(1-m_dxFaultStation[itor])*m_dzFaultStation[itor]
+                                +m_BNew[dit()].get(tmpLoc+BASISV(0)+BASISV(2),i_c)*m_dxFaultStation[itor]*m_dzFaultStation[itor]);
+
+                        }
+                    }
+                    fprintf(stationData," %d %d\n",m_level,procID());
                     fclose(stationData);
                 }
             }
         }
     }
 
-    if (m_hasFiner)
+    // Now the Body stations
+    if(m_UNew.boxLayout().numCells()>0)
     {
-        getFinerLevel()->writeThisBdryLevel(a_handle,a_num_levels,m_ref_ratio*value);
+        for (DataIterator dit = m_UNew.dataIterator(); dit.ok(); ++dit)
+        {
+            for(int itor = 0; itor < m_ivBodyStations.size();itor++)
+            {
+                // We get the box from the disjoint box layout since the that
+                // data has a layer of ghost cells. Since we have one layer of
+                // ghost cells, we know that if we have the m_ivBodyStations
+                // data in the disjoint box we also have this plus  one in each
+                // direction (which might be needed for interpolation)
+                const Box tmpBndBox = m_grids[dit()];
+                IntVect tmpLoc = m_ivBodyStations[itor];
+                if(tmpBndBox.contains(tmpLoc))
+                {
+                    FILE * stationData;
+                    stationData = fopen(m_bodySationNames[itor].c_str(),"a");
+
+                    fprintf(stationData,"%E",m_time);
+                    for(int i_c = 0; i_c < m_numStates;i_c++)
+                    {
+                        if(SpaceDim < 3)
+                        {
+                            fprintf(stationData," %E",
+                                m_UNew[dit()].get(tmpLoc,i_c)*(1-m_dxBodyStation[itor])*(1-m_dyBodyStation[itor])
+                                +m_UNew[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxBodyStation[itor]*(1-m_dyBodyStation[itor])
+                                +m_UNew[dit()].get(tmpLoc+BASISV(1),i_c)*(1-m_dxBodyStation[itor])*m_dyBodyStation[itor]
+                                +m_UNew[dit()].get(tmpLoc+BASISV(0)+BASISV(1),i_c)*m_dxBodyStation[itor]*m_dyBodyStation[itor]);
+                        }
+                        else
+                        {
+                            fprintf(stationData," %E",
+                                m_UNew[dit()].get(tmpLoc,i_c)*(1-m_dxBodyStation[itor])*(1-m_dyBodyStation[itor])*(1-m_dzBodyStation[itor])
+                                +m_UNew[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxBodyStation[itor]*(1-m_dyBodyStation[itor])*(1-m_dzBodyStation[itor])
+                                +m_UNew[dit()].get(tmpLoc+BASISV(1),i_c)*(1-m_dxBodyStation[itor])*m_dyBodyStation[itor]*(1-m_dzBodyStation[itor])
+                                +m_UNew[dit()].get(tmpLoc+BASISV(0)+BASISV(1),i_c)*m_dxBodyStation[itor]*m_dyBodyStation[itor]*(1-m_dzBodyStation[itor])
+                                +m_UNew[dit()].get(tmpLoc+BASISV(2),i_c)*(1-m_dxBodyStation[itor])*(1-m_dyBodyStation[itor])*m_dzBodyStation[itor]
+                                +m_UNew[dit()].get(tmpLoc+BASISV(2)+BASISV(0),i_c)*m_dxBodyStation[itor]*(1-m_dyBodyStation[itor])*m_dzBodyStation[itor]
+                                +m_UNew[dit()].get(tmpLoc+BASISV(2)+BASISV(1),i_c)*(1-m_dxBodyStation[itor])*m_dyBodyStation[itor]*m_dzBodyStation[itor]
+                                +m_UNew[dit()].get(tmpLoc+BASISV(2)+BASISV(0)+BASISV(1),i_c)*m_dxBodyStation[itor]*m_dyBodyStation[itor]*m_dzBodyStation[itor]);
+
+                        }
+                    }
+                    fprintf(stationData," %d %d\n",m_level,procID());
+                    fclose(stationData);
+                }
+            }
+        }
     }
+
+    // if (m_hasFiner)
+    // {
+    //     getFinerLevel()->writeStationLevel();
+    // }
 }
 
 #endif

@@ -71,8 +71,12 @@ public:
                     const bool&                 a_highOrderLimiter,
                     const Vector<Real>&         a_xFaultStations,
                     const Vector<Real>&         a_zFaultStations,
+                    const Vector<Real>&         a_xBodyStations,
+                    const Vector<Real>&         a_yBodyStations,
+                    const Vector<Real>&         a_zBodyStations,
                     const Vector<Real>&         a_domainCenter,
-                    const string&               a_dataPrefix);
+                    const string&               a_dataPrefix,
+                    const int&                  a_plotInterval);
 
   /// This instance should never get called - historical
   /**
@@ -170,7 +174,8 @@ public:
       const int& a_max_level,
       const int& a_finest_level,
       const int& a_step,
-      const Real& a_time);
+      const Real& a_time,
+      const bool& a_conclude);
 
 #endif
 
@@ -318,16 +323,33 @@ protected:
   Box m_bdryFaceBox;
 
   // Boundary Grid Layout for this level
-  DisjointBoxLayout m_bdryGrids_old;
   DisjointBoxLayout m_bdryGrids;
 
   // Save the fault stations we will need
-  Vector<Real> m_xFaultStations;
-  Vector<Real> m_zFaultStations;
-  Vector<string> m_stationNames;
-  Vector<Real> m_domainCenter;
+  Vector<Real>     m_xFaultStations;
+  Vector<Real>     m_zFaultStations;
+  Vector<string>   m_faultSationNames;
   Vector<IntVect> m_ivFaultStations;
+  Vector<Real>    m_dxFaultStation;
+  Vector<Real>    m_dzFaultStation;
+
+  // Save the fault stations we will need
+  Vector<Real>    m_xBodyStations;
+  Vector<Real>    m_yBodyStations;
+  Vector<Real>    m_zBodyStations;
+  Vector<string>  m_bodySationNames;
+  Vector<IntVect> m_ivBodyStations;
+  Vector<Real>    m_dxBodyStation;
+  Vector<Real>    m_dyBodyStation;
+  Vector<Real>    m_dzBodyStation;
+
+  // Need to know where the center is for moving the stations
+  Vector<Real> m_domainCenter;
+
+  // Used for save the files
   string m_dataPrefix;
+
+  int m_plotInterval;
 
 
 private:
@@ -343,7 +365,8 @@ private:
     MayDay::Error("invalid operator");
   }
 #ifdef CH_USE_HDF5
-  void writeThisBdryLevel(HDF5Handle& a_handle, int a_num_levels, int value);
+  void writeThisBdryLevel(HDF5Handle& a_handle);
+  void writeStationLevel();
 #endif
 };
 
