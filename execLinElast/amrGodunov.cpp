@@ -38,11 +38,7 @@ using std::ios;
 
 #include "LinElastPhysics.H"
 
-#include "SimpleIBC.H"
-#include "LockSlideIBC.H"
-#include "VelSlideAsinh1sIBC.H"
 #include "SWIBC.H"
-#include "PseudoPulseIBC.H"
 
 #include "UsingNamespace.H"
 
@@ -373,10 +369,13 @@ void amrGodunov()
     std::vector<Real> xFaultStations;
     std::vector<Real> zFaultStations;
     ppcomp.query("num_fault_stations",numFaultStation);
-    ppcomp.getarr("x_fault_stations",xFaultStations,0,numFaultStation);
-    if(SpaceDim>2)
+    if(numFaultStation > 0)
     {
-        ppcomp.getarr("z_fault_stations",zFaultStations,0,numFaultStation);
+        ppcomp.getarr("x_fault_stations",xFaultStations,0,numFaultStation);
+        if(SpaceDim>2)
+        {
+            ppcomp.getarr("z_fault_stations",zFaultStations,0,numFaultStation);
+        }
     }
 
     int numBodyStation = 0;
@@ -384,11 +383,14 @@ void amrGodunov()
     std::vector<Real> yBodyStations;
     std::vector<Real> zBodyStations;
     ppcomp.query("num_body_stations",numBodyStation);
-    ppcomp.getarr("x_body_stations",xBodyStations,0,numBodyStation);
-    ppcomp.getarr("y_body_stations",yBodyStations,0,numBodyStation);
-    if(SpaceDim>2)
+    if(numBodyStation > 0)
     {
-        ppcomp.getarr("z_body_stations",zBodyStations,0,numBodyStation);
+        ppcomp.getarr("x_body_stations",xBodyStations,0,numBodyStation);
+        ppcomp.getarr("y_body_stations",yBodyStations,0,numBodyStation);
+        if(SpaceDim>2)
+        {
+            ppcomp.getarr("z_body_stations",zBodyStations,0,numBodyStation);
+        }
     }
 
     // CFL multiplier
@@ -419,8 +421,8 @@ void amrGodunov()
     PhysIBC* ibc;
 
     // Background Values
-    vector<Real> backgroundVals(9,0);
-    ppphysics.queryarr("background",backgroundVals,0,9);
+    vector<Real> backgroundVals(12,0);
+    ppphysics.queryarr("background",backgroundVals,0,12);
 
     // Domain Center
     vector<Real> domainCenter(3,0);
@@ -432,186 +434,7 @@ void amrGodunov()
     if (ppphysics.contains("problem"))
     {
         ppphysics.query("problem",problemString);
-        if (problemString == "simple")
-        {
-            // Pulse Location
-            Real r0 = 0.5;
-            ppphysics.query("r0",r0);
-            CH_assert(r0 >= 0);
-
-            // Pulse Magnitude
-            vector<Real> mag(9,0.0);
-            ppphysics.getarr("mag",mag,0,9);
-
-            // Pulse Width
-            Real sig = 10;
-            ppphysics.query("sig",sig);
-            CH_assert(sig >= 0);
-
-            // Determine which spatial directions are periodic
-            vector<int> isPeriodica(SpaceDim,0);
-
-            ppcomp.getarr("is_periodic",isPeriodica,0,SpaceDim);
-
-            vector<int> xBoudaryT(6,0);
-            ppcomp.queryarr("x_boundary",xBoudaryT,0,2);
-
-            vector<int> yBoudaryT(2,0);
-            ppcomp.queryarr("y_boundary",yBoudaryT,0,2);
-
-            vector<int> zBoudaryT(2,0);
-            ppcomp.queryarr("z_boundary",zBoudaryT,0,2);
-
-            std::vector<int> boundaryType(6,0);
-            boundaryType[0] = xBoudaryT[0];
-            boundaryType[1] = xBoudaryT[1];
-            boundaryType[2] = yBoudaryT[0];
-            boundaryType[3] = yBoudaryT[1];
-            boundaryType[4] = zBoudaryT[0];
-            boundaryType[5] = zBoudaryT[1];
-
-            // convert periodic from int->bool
-            for (int dim = 0; dim < SpaceDim; dim++)
-            {
-                isPeriodic[dim] = (isPeriodica[dim] == 1);
-                if (isPeriodic[dim] && verbosity >= 2 && procID() == 0)
-                {
-                    pout() << "Using Periodic BCs in direction: " << dim << endl;
-                }
-                else if(verbosity >= 2 && procID() == 0)
-                {
-                    pout() << "Using BCs " << boundaryType[dim*2] << " and " << boundaryType[dim*2+1] << " in direction: " << dim << endl;
-                }
-            }
-
-
-            SimpleIBC* simpleibc = new SimpleIBC(cs,cp,mu,backgroundVals,r0,mag,sig,boundaryType);
-            ibc = simpleibc;
-            if(verbosity >= 1)
-            {
-                pout() << "Pulse Location  = " << r0 << endl;
-                pout() << "Pulse Magnitude = " << 
-                    mag[0] << " " <<
-                    mag[1] << " " <<
-                    mag[2] << " " <<
-                    mag[3] << " " <<
-                    mag[4] << " " <<
-                    mag[5] << " " <<
-                    mag[6] << " " <<
-                    mag[7] << " " <<
-                    mag[8] << " " <<
-                    endl;
-                pout() << "Pulse Width     = " << sig << endl << endl;
-            }
-        }
-        else if (problemString == "lockSlide")
-        {
-
-            // where is the center of the slip region
-            Real center = 0.5;
-            ppphysics.query("center_scale",center);
-            // CH_assert(center >= 0);
-            if(center < 0)
-            {
-                center = -center;
-            }
-            else
-            {
-                center = center * domainLength;
-            }
-
-            // how big is the slip region
-            Real edge = 0.25;
-            ppphysics.query("edge_scale",edge);
-            // CH_assert(edge >= 0);
-            if(edge < 0)
-            {
-                edge = -edge;
-            }
-            else
-            {
-                edge = edge * domainLength;
-            }
-
-
-
-            // no dimensions are periodic with this problem
-            for (int dim = 0; dim < SpaceDim; dim++)
-            {
-                isPeriodic[dim] = false;
-            }
-
-
-            LockSlideIBC* lockSlideibc = 
-                new LockSlideIBC(cs,cp,mu,backgroundVals,center,edge);
-            ibc = lockSlideibc;
-            if(verbosity >= 1)
-            {
-                pout() << "Background Values = " << 
-                    backgroundVals[0] << " " <<
-                    backgroundVals[1] << " " <<
-                    backgroundVals[2] << " " <<
-                    backgroundVals[3] << " " <<
-                    backgroundVals[4] << " " <<
-                    backgroundVals[5] << " " <<
-                    backgroundVals[6] << " " <<
-                    backgroundVals[7] << " " <<
-                    backgroundVals[8] << " " <<
-                    endl << endl;
-            }
-        }
-        else if (problemString == "velslideasinh1s")
-        {
-
-            // where is the center of the slip region
-            Real center = 0.5;
-            ppphysics.query("center_scale",center);
-            // CH_assert(center >= 0);
-            if(center < 0)
-            {
-                center = -center;
-            }
-            else
-            {
-                center = center * domainLength;
-            }
-
-            // how big is the slip region
-            Real sigma = 10;
-            ppphysics.query("sigma",sigma);
-            CH_assert(sigma >= 0);
-
-            // how big is the slip region
-            Real ntime = 1;
-            ppphysics.query("nucleation_time",ntime);
-            CH_assert(ntime >= 0);
-
-            // no dimensions are periodic with this problem
-            for (int dim = 0; dim < SpaceDim; dim++)
-            {
-                isPeriodic[dim] = false;
-            }
-
-
-            VelSlideAsinh1sIBC* velSlideibc =
-                new VelSlideAsinh1sIBC(cs,cp,mu,backgroundVals,center,sigma,ntime);
-            ibc = velSlideibc;
-            if(verbosity >= 1)
-            {
-                pout() << "Background Values = " << 
-                    backgroundVals[0] << " " <<
-                    backgroundVals[1] << " " <<
-                    backgroundVals[2] << " " <<
-                    backgroundVals[3] << " " <<
-                    backgroundVals[4] << " " <<
-                    backgroundVals[5] << " " <<
-                    backgroundVals[6] << " " <<
-                    backgroundVals[7] << " " <<
-                    backgroundVals[8] << " " <<
-                    endl << endl;
-            }
-        }
-        else if (problemString == "slipweak")
+        if (problemString == "slipweak")
         {
             // This is a very slimple IBC loosely based on the SCEC problems
 
@@ -719,76 +542,6 @@ void amrGodunov()
                     pout() << " at " << "(" << xcPatches[itor] << ",0," << zcPatches[itor] << ")";
                     pout() << " +/- (" << xwPatches[itor] << ",0," << zwPatches[itor] << ")" << endl;
                 }
-                pout() << "Background Values = " << 
-                    backgroundVals[0] << " " <<
-                    backgroundVals[1] << " " <<
-                    backgroundVals[2] << " " <<
-                    backgroundVals[3] << " " <<
-                    backgroundVals[4] << " " <<
-                    backgroundVals[5] << " " <<
-                    backgroundVals[6] << " " <<
-                    backgroundVals[7] << " " <<
-                    backgroundVals[8] << " " <<
-                    endl << endl;
-            }
-        }
-        else if (problemString == "pseudopulse")
-        {
-
-            // where is the center of the slip region
-            Real center = 0.5;
-            ppphysics.query("center_scale",center);
-            // CH_assert(center >= 0);
-            if(center < 0)
-            {
-                center = -center;
-            }
-            else
-            {
-                center = center * domainLength;
-            }
-
-            // how big is the slip region
-            Real slope = 10;
-            ppphysics.query("slope",slope);
-            CH_assert(slope >= 0);
-
-            Real dTau = 1;
-            ppphysics.query("dTau",dTau);
-            CH_assert(dTau >= 0);
-
-            Real Vh = 1.2;
-            ppphysics.query("Vh",Vh);
-            CH_assert(Vh >= 0);
-
-            Real Vr = 1.6;
-            ppphysics.query("Vr",Vr);
-            CH_assert(Vr >= 0);
-
-            Real jumpTime = maxTime / 2.0;
-            ppphysics.query("jump_time",jumpTime);
-            CH_assert(jumpTime >= 0);
-
-            Real stopTime = maxTime;
-            ppphysics.query("stop_time",stopTime);
-            CH_assert(stopTime >= 0);
-
-
-            // no dimensions are periodic with this problem
-            for (int dim = 0; dim < SpaceDim; dim++)
-            {
-                isPeriodic[dim] = false;
-            }
-
-            PseudoPulseIBC* pseudopulseibc =
-                new PseudoPulseIBC(cs,cp,mu,backgroundVals,center,slope,dTau,Vh,Vr,stopTime,jumpTime);
-            ibc = pseudopulseibc;
-            if(verbosity >= 1)
-            {
-                pout() << "slope   = " << slope << endl;
-                pout() << "dTau    = " << dTau << endl;
-                pout() << "Vr / cs = " << Vr << endl;
-                pout() << "Vh / cs = " << Vh << endl;
                 pout() << "Background Values = " << 
                     backgroundVals[0] << " " <<
                     backgroundVals[1] << " " <<

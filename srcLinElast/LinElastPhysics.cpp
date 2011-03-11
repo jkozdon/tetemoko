@@ -68,7 +68,7 @@ int LinElastPhysics::numConserved()
 {
   CH_assert(isDefined());
 
-  return 9;
+  return 18;
 }
 
 /// Names of the conserved variables
@@ -81,15 +81,25 @@ Vector<string> LinElastPhysics::stateNames()
 
     Vector<string> retval;
 
-    retval.push_back("v_x");
-    retval.push_back("v_y");
-    retval.push_back("v_z");
-    retval.push_back("sig_xx");
-    retval.push_back("sig_yy");
-    retval.push_back("sig_zz");
-    retval.push_back("sig_xy");
-    retval.push_back("sig_xz");
-    retval.push_back("sig_yz");
+    retval.push_back("v_x^1");
+    retval.push_back("v_y^1");
+    retval.push_back("v_z^1");
+    retval.push_back("sig_xx^1");
+    retval.push_back("sig_yy^1");
+    retval.push_back("sig_zz^1");
+    retval.push_back("sig_xy^1");
+    retval.push_back("sig_xz^1");
+    retval.push_back("sig_yz^1");
+
+    retval.push_back("v_x^2");
+    retval.push_back("v_y^2");
+    retval.push_back("v_z^2");
+    retval.push_back("sig_xx^2");
+    retval.push_back("sig_yy^2");
+    retval.push_back("sig_zz^2");
+    retval.push_back("sig_xy^2");
+    retval.push_back("sig_xz^2");
+    retval.push_back("sig_yz^2");
 
     return retval;
 }

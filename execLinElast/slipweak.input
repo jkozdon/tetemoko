@@ -7,8 +7,8 @@ physics.cp = 6
 physics.mu = 32.0381203
 
 # Set the background values
-#                      vx   vy   vz  sxx   syy  szz  sxy  sxz  syz
-physics.background =    0    0   0     0  -120    0   70    0    0
+#                      vx1 vy1 vz1 sxx   syy  szz  sxy  sxz  syz vx2 vy2 vz2
+physics.background =     0   0   0   0  -120    0   70    0    0   0   0   0
 
 physics.f_static  = 0.677
 physics.f_dynamic = 0.525
@@ -31,12 +31,12 @@ physics.rupture_front_vel_thresh = 0.001
 physics.boxcar_smoothing_width = 12
 
 # Turn on some output
-# comp.verbosity = 10
-comp.verbosity = 1
+comp.verbosity = 10
+# comp.verbosity = 1
 
 # Number of steps, final time, and time step
 # comp.restart_file = slipweak/check.50.3d.hdf5
-comp.max_step = 10000
+comp.max_step = 50
 comp.max_time = 12
 # comp.fixed_dt = 0.002
 
@@ -88,7 +88,7 @@ comp.use_artificial_viscosity = 1
 comp.artificial_viscosity = 0.1
 
 # Plot file information
-comp.plot_interval = 5
+comp.plot_interval = 1
 # comp.plot_interval = 1
 comp.plot_prefix  = slipweak/slipweak.
 

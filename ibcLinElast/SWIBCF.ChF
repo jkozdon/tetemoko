@@ -40,8 +40,14 @@ C
 
         integer CHF_DDECL[i;j;k]
         real_t CHF_DDECL[x;y;z]
+        real_t rrs
 
         CHF_MULTIDO[box;i;j;k]
+          CHF_DTERM[
+          x = (i + half) * dx - 30.0d0;
+          y = (j + half) * dx - 30.0d0;
+          z = (k + half) * dx - 30.0d0]
+          rrs = (CHF_DTERM[x*x;+y*y;+z*z])
 
           U(CHF_IX[i;j;k],0) = background(0)
           U(CHF_IX[i;j;k],1) = background(1)
@@ -52,6 +58,16 @@ C
           U(CHF_IX[i;j;k],6) = background(6)
           U(CHF_IX[i;j;k],7) = background(7)
           U(CHF_IX[i;j;k],8) = background(8)
+
+          U(CHF_IX[i;j;k],9 + 0) = background(9 + 0)
+          U(CHF_IX[i;j;k],9 + 1) = background(9 + 1)
+          U(CHF_IX[i;j;k],9 + 2) = background(9 + 2)
+          U(CHF_IX[i;j;k],9 + 3) = background(9 + 3)
+          U(CHF_IX[i;j;k],9 + 4) = background(9 + 4)
+          U(CHF_IX[i;j;k],9 + 5) = background(9 + 5)
+          U(CHF_IX[i;j;k],9 + 6) = background(9 + 6)
+          U(CHF_IX[i;j;k],9 + 7) = background(9 + 7)
+          U(CHF_IX[i;j;k],9 + 8) = background(9 + 8)
 
         CHF_ENDDO
         
@@ -77,13 +93,13 @@ C
 
 C         Only south face slip velocity
 C         Vx
-          Bout(CHF_IX[i;j;k],0) = 2*U(CHF_IX[i;j;k],0)
+          Bout(CHF_IX[i;j;k],0) = U(CHF_IX[i;j;k],0) - U(CHF_IX[i;j;k],9)
 C         Vz
-          Bout(CHF_IX[i;j;k],1) = 2*U(CHF_IX[i;j;k],2)
+          Bout(CHF_IX[i;j;k],1) = U(CHF_IX[i;j;k],2) - U(CHF_IX[i;j;k],11)
 C         sxy
-          Bout(CHF_IX[i;j;k],2) =   U(CHF_IX[i;j;k],6)
+          Bout(CHF_IX[i;j;k],2) = U(CHF_IX[i;j;k],6)
 C         syz
-          Bout(CHF_IX[i;j;k],3) =   U(CHF_IX[i;j;k],8)
+          Bout(CHF_IX[i;j;k],3) = U(CHF_IX[i;j;k],8)
 C         V
           Bout(CHF_IX[i;j;k],4) = SQRT((Bout(CHF_IX[i;j;k],0)**2 + Bout(CHF_IX[i;j;k],1)**2))
 C         slip
@@ -173,13 +189,23 @@ C         Get the values on side 1
           sxz1 = WInside(CHF_IX[i;j;k],7)
           syz1 = WInside(CHF_IX[i;j;k],8)
 
-C         Set side 2 values by symmetry
-          vx2  = -vx1
-          vy2  =  vy1
-          vz2  = -vz1
-          syy2 = syy1
-          sxy2 = sxy1
-          syz2 = syz1
+C         Get the values on side 1
+          vx2  = WInside(CHF_IX[i;j;k],9 + 0)
+          vy2  = WInside(CHF_IX[i;j;k],9 + 1)
+          vz2  = WInside(CHF_IX[i;j;k],9 + 2)
+          sxx2 = WInside(CHF_IX[i;j;k],9 + 3)
+          syy2 = WInside(CHF_IX[i;j;k],9 + 4)
+          szz2 = WInside(CHF_IX[i;j;k],9 + 5)
+          sxy2 = WInside(CHF_IX[i;j;k],9 + 6)
+          sxz2 = WInside(CHF_IX[i;j;k],9 + 7)
+          syz2 = WInside(CHF_IX[i;j;k],9 + 8)
+
+          ! vx2  = -vx1
+          ! vy2  =  vy1
+          ! vz2  = -vz1
+          ! syy2 = syy1
+          ! sxy2 = sxy1
+          ! syz2 = syz1
 
 C         Get the characteristic propagating into the fault
 
@@ -211,9 +237,18 @@ c           call GAUSSIANFUNC(valz,zwPatches(ip),abs(z-zcPatches(ip)))
 C         Find tau_0
           tau_lock = sqrt((half*(wpxy2-wpxy1)+tau_0)**2 + (half*(wpyz2-wpyz1))**2)
 
+
+
 C         find the normal stress
-          syy1   = background(4)
-          syy2   = background(4)
+          syy1   = -(wpyy1-wpyy2)/2.0d0
+          syy2   = -(wpyy1-wpyy2)/2.0d0
+          ! syy1   = background(4)
+          ! syy2   = background(4)
+
+          vy1   = -(wpyy1+wpyy2)/2.0d0/Zp
+          vy2   = -(wpyy1+wpyy2)/2.0d0/Zp
+          ! vy1    = -(syy1 + wpyy1)/Zp
+          ! vy2    = -(syy1 + wpyy1)/Zp
 
 C         figure out the static stress value
           CHF_DTERM[
@@ -250,19 +285,36 @@ C         phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
 
           vx1    = -(sxy1 + wpxy1)/Zs
           vz1    = -(syz1 + wpyz1)/Zs
-          vy1    = -(syy1 + wpyy1)/Zp
 
           SHF = -(vy1 - syy1) * lam / (lam + 2.0d0 * mu)
 
           Wgdnv(CHF_IX[i;j;k],0) = vx1
           Wgdnv(CHF_IX[i;j;k],1) = vy1
           Wgdnv(CHF_IX[i;j;k],2) = vz1
-          Wgdnv(CHF_IX[i;j;k],3) = syy1 + SHF
+          Wgdnv(CHF_IX[i;j;k],3) = sxx1 + SHF
           Wgdnv(CHF_IX[i;j;k],4) = syy1
           Wgdnv(CHF_IX[i;j;k],5) = szz1 + SHF
           Wgdnv(CHF_IX[i;j;k],6) = sxy1
           Wgdnv(CHF_IX[i;j;k],7) = sxz1
           Wgdnv(CHF_IX[i;j;k],8) = syz1
+
+          sxy2   = (phi_xy/phi) * tau
+          syz2   = (phi_yz/phi) * tau
+
+          vx2    = (sxy2 - wpxy2)/Zs
+          vz2    = (syz2 - wpyz2)/Zs
+
+          SHF = -(vy2 - syy2) * lam / (lam + 2.0d0 * mu)
+
+          Wgdnv(CHF_IX[i;j;k],9 + 0) = vx2
+          Wgdnv(CHF_IX[i;j;k],9 + 1) = vy2
+          Wgdnv(CHF_IX[i;j;k],9 + 2) = vz2
+          Wgdnv(CHF_IX[i;j;k],9 + 3) = sxx2 + SHF
+          Wgdnv(CHF_IX[i;j;k],9 + 4) = syy2
+          Wgdnv(CHF_IX[i;j;k],9 + 5) = szz2 + SHF
+          Wgdnv(CHF_IX[i;j;k],9 + 6) = sxy2
+          Wgdnv(CHF_IX[i;j;k],9 + 7) = sxz2
+          Wgdnv(CHF_IX[i;j;k],9 + 8) = syz2
        CHF_ENDDO
 
         return
