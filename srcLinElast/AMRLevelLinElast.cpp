@@ -442,8 +442,6 @@ Real AMRLevelLinElast::advance()
 
     m_dtNew = returnDt;
 
-    writeStationLevel();
-
     return returnDt;
 }
 
@@ -526,6 +524,8 @@ void AMRLevelLinElast::postTimeStep()
             }
         }
     }
+
+    writeStationLevel();
 
     if (s_verbosity >= 3)
     {
