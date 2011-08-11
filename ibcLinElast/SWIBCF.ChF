@@ -75,7 +75,7 @@ C
         end
 
 C
-C This is a constant initial data
+C Set the data on the boundary
 C
         subroutine SWSETBND(
      &    CHF_FRA[Bout],
@@ -153,9 +153,6 @@ C
         real_t CHF_DDECL[xhi;yhi;zhi]
         real_t CHF_DDECL[ax;ay;az]
 
-        real_t wpxy,wpyy,wpyz
-        real_t wmxy,wmyy,wmyz
-
         real_t wpxy1,wpyy1,wpyz1
         real_t wmxy1,wmyy1,wmyz1
         real_t wpxy2,wpyy2,wpyz2
@@ -165,12 +162,9 @@ C
 
         real_t SHF, tau, fric, V, tau_0, beta, valx, valz
 
-        real_t tau_lock, tau_back
+        real_t tau_lock
         real_t phi_xy,phi_yz,phi
         real_t r
-
-C       background shear stress
-        tau_back = sqrt(background(6)**2+background(8)**2)
 
         CHF_MULTIDO[box;i;j;k]
           CHF_DTERM[

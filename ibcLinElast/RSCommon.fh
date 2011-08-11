@@ -1,5 +1,5 @@
 C
 C   Asinh 1s problem constants
 C
-        real_t r0, nucTime, sigma, rs_a, rs_b, rs_V0, rs_f0, rs_L, rs_fw, rs_Vw
-        common /rs/ r0, nucTime, sigma, rs_a, rs_b, rs_V0, rs_f0, rs_L, rs_fw, rs_Vw
+        real_t r0, nucTime, sigma, rs_a, rs_b, rs_V0, rs_f0, rs_L, rs_fw, rs_Vw, rs_fExp,x0,y0,ruptureThreshold
+        common /rs/ r0, nucTime, sigma, rs_a, rs_b, rs_V0, rs_f0, rs_L, rs_fw, rs_Vw, rs_fExp,x0,y0,ruptureThreshold

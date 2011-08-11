@@ -26,6 +26,8 @@ public:
         const Real& mu,
         const vector<Real> background,
         const Real& r0,
+        const Real& x0,
+        const Real& y0,
         const Real& sigma,
         const Real& ntime,
         const Real& psi,
@@ -35,7 +37,10 @@ public:
         const Real& f0,
         const Real& L,
         const Real& fw,
-        const Real& Vw);
+        const Real& Vw,
+        const Real& fExp,
+        const Real ruptureVelocityThreshold,
+        const Vector<int>& boundaryType);
 
     /// Destructor
     /**
@@ -69,15 +74,10 @@ public:
     */
     virtual bool hasBdryData();
 
-    /// Set boundary primitive values.
+    /// Store pointer to boundary data
     /**
     */
-    virtual void primBC(FArrayBox& a_WGdnv,
-        const FArrayBox&      a_WshiftInside,
-        const FArrayBox&      a_W,
-        const int&            a_dir,
-        const Side::LoHiSide& a_side,
-        const Real&           a_time);
+    virtual void setBdryData(FArrayBox* a_bdryData);
 
     /// Set boundary primitive values.
     /**
@@ -85,7 +85,6 @@ public:
     virtual void primBC(FArrayBox& a_WGdnv,
         const FArrayBox&      a_WshiftInside,
         const FArrayBox&      a_W,
-        const FArrayBox&      a_Psi,
         const int&            a_dir,
         const Side::LoHiSide& a_side,
         const Real&           a_time);
@@ -112,12 +111,53 @@ public:
             const int&       a_dir,
             const Real&      a_time);
 
+    /// Store pointer to boundary data
+    /**
+    */
+    virtual void updateBoundary(const FArrayBox& a_WHalf,int dir,const Real& a_dt,const Real& a_time,const bool a_final);
+
+    /// Do the initial tagging of cells
+    /**
+    */
+    virtual bool tagCellsInit(FArrayBox& markFAB);
+
+    /// Do the physics dependent tagging of cells
+    /**
+    */
+    virtual bool tagCells(FArrayBox& markFAB, Real& time)
+    {
+        return tagCellsInit(markFAB);
+    }
+
+    virtual int numBdryVars()
+    {
+        return m_numBdryVars;
+    }
+
+    virtual Vector<string> bdryNames()
+    {
+        Vector<string> bdryNames;
+        bdryNames.push_back("Vx");
+        bdryNames.push_back("Vz");
+        bdryNames.push_back("sxy");
+        bdryNames.push_back("syz");
+        bdryNames.push_back("V");
+        bdryNames.push_back("slip_x");
+        bdryNames.push_back("slip_z");
+        bdryNames.push_back("slip_total");
+        bdryNames.push_back("rupture");
+        bdryNames.push_back("syy");
+        bdryNames.push_back("psi");
+        return bdryNames;
+    }
 
 protected:
     bool m_isFortranCommonSet;
     Real m_psi;
-    // Vector<int> m_boundaryType;
+    Vector<int> m_boundaryType;
 
+    bool m_tmpBdryDataSet;
+    FArrayBox* m_tmpBdryData;
 private:
 };
 

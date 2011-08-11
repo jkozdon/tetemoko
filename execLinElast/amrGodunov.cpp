@@ -39,6 +39,7 @@ using std::ios;
 #include "LinElastPhysics.H"
 
 #include "SWIBC.H"
+#include "RSIBC.H"
 
 #include "UsingNamespace.H"
 
@@ -553,6 +554,105 @@ void amrGodunov()
                     backgroundVals[7] << " " <<
                     backgroundVals[8] << " " <<
                     endl << endl;
+            }
+        }
+        else if (problemString == "rateandstate")
+        {
+            // Get friction parameters
+            Real a; ppphysics.get("a",a);
+            Real b; ppphysics.get("b",b);
+            Real L; ppphysics.get("L",L);
+            Real V0; ppphysics.get("V0",V0);
+            Real f0; ppphysics.get("f0",f0);
+            Real Vw; ppphysics.get("Vw",Vw);
+            Real fw; ppphysics.get("fw",fw);
+            Real psi; ppphysics.get("psi",psi);
+
+            // Get friction parameters
+            Real nucR = 0.0; ppphysics.query("nuc_R",nucR);
+            Real nucT = 0.0; ppphysics.query("nuc_T",nucT);
+            Real nucx = 0.0; ppphysics.query("nuc_x",nucx);
+            Real nucy = 0.0; ppphysics.query("nuc_y",nucy);
+            Real nucS = 0.0; ppphysics.query("nuc_S",nucS);
+            Real nucN = 0.0; ppphysics.query("nuc_N",nucN);
+            Real fExp = 8.0; ppphysics.query("fric_exp",fExp);
+
+            Real ruptureVelocityThreshold = 0.001;
+            ppphysics.query("rupture_front_vel_thresh",ruptureVelocityThreshold);
+
+
+
+
+            // get the boundary conditiions
+            // 0 : Outflow
+            // 1 : Free surface
+            // 2 : Fault (must be y_bound 2 X)
+            vector<int> xBoudaryT(2,0);
+            ppcomp.queryarr("x_boundary",xBoudaryT,0,2);
+
+            vector<int> yBoudaryT(2,0);
+            ppcomp.queryarr("y_boundary",yBoudaryT,0,2);
+
+            vector<int> zBoudaryT(2,0);
+            ppcomp.queryarr("z_boundary",zBoudaryT,0,2);
+
+            std::vector<int> boundaryType(6,0);
+            boundaryType[0] = xBoudaryT[0];
+            boundaryType[1] = xBoudaryT[1];
+            boundaryType[2] = yBoudaryT[0];
+            boundaryType[3] = yBoudaryT[1];
+            boundaryType[4] = zBoudaryT[0];
+            boundaryType[5] = zBoudaryT[1];
+
+            // no dimensions are periodic with this problem
+            for (int dim = 0; dim < SpaceDim; dim++)
+            {
+                isPeriodic[dim] = false;
+                if(verbosity >= 2 && procID() == 0)
+                {
+                    pout() << "Using BCs " << boundaryType[dim*2] << " and " << boundaryType[dim*2+1] << " in direction: " << dim << endl;
+                }
+            }
+
+            // TODO: Need to modify RSIBC to have the friction law. Possibly
+            //       also bring in the extreme weakening exponent as well
+
+            RSIBC* rsibc =
+                new RSIBC(cs,cp,mu,backgroundVals,nucR,nucx,nucy,nucS,nucT,psi,
+                    a,b,V0,f0,L,fw,Vw,fExp,ruptureVelocityThreshold,boundaryType);
+            ibc = rsibc;
+            if(verbosity >= 1)
+            {
+                pout() << "frictional Parameters" << endl;
+                pout() << "  a   = " << a   << endl;
+                pout() << "  b   = " << b   << endl;
+                pout() << "  L   = " << L   << endl;
+                pout() << "  f0  = " << f0  << endl;
+                pout() << "  V0  = " << V0  << endl;
+                pout() << "  fw  = " << fw  << endl;
+                pout() << "  Vw  = " << Vw  << endl;
+                pout() << "  psi = " << psi << endl << endl;
+
+                pout() << "Nucleation Parameters" << endl;
+                pout() << "  R   = " << nucR << endl;
+                pout() << "  T   = " << nucT << endl;
+                pout() << "  x   = " << nucx << endl;
+                pout() << "  y   = " << nucy << endl;
+                pout() << "  S   = " << nucS << endl;
+                pout() << "  N   = " << nucN << endl << endl;
+
+                pout() << "Background Values = " << 
+                    backgroundVals[0] << " " <<
+                    backgroundVals[1] << " " <<
+                    backgroundVals[2] << " " <<
+                    backgroundVals[3] << " " <<
+                    backgroundVals[4] << " " <<
+                    backgroundVals[5] << " " <<
+                    backgroundVals[6] << " " <<
+                    backgroundVals[7] << " " <<
+                    backgroundVals[8] << " " <<
+                    endl << endl;
+                pout() << "Rupture Threshold = " << ruptureVelocityThreshold << endl << endl;
             }
         }
         else
