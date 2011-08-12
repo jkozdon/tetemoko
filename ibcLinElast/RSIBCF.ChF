@@ -44,36 +44,6 @@ c
         end
 
 
-
-C
-C This is a constant initial data
-C
-        subroutine RSINITF(
-     &    CHF_FRA[U],
-     &    CHF_CONST_REAL[dx],
-     &    CHF_BOX[box])
-
-#include "IBCCommon.fh"
-
-        integer CHF_DDECL[i;j;k]
-        real_t CHF_DDECL[x;y;z]
-
-        CHF_MULTIDO[box;i;j;k]
-
-          U(CHF_IX[i;j;k],0) = background(0)
-          U(CHF_IX[i;j;k],1) = background(1)
-          U(CHF_IX[i;j;k],2) = background(2)
-          U(CHF_IX[i;j;k],3) = background(3)
-          U(CHF_IX[i;j;k],4) = background(4)
-          U(CHF_IX[i;j;k],5) = background(5)
-          U(CHF_IX[i;j;k],6) = background(6)
-          U(CHF_IX[i;j;k],7) = background(7)
-          U(CHF_IX[i;j;k],8) = background(8)
-
-        CHF_ENDDO
-        
-        return
-        end
 C
 C Set the data on the boundary
 C
@@ -88,21 +58,27 @@ C
 #include "RSCommon.fh"
 
         integer CHF_DDECL[i;j;k]
+        real Vx, Vz, V, psi, fss, f
 
         CHF_MULTIDO[box;i;j;k]
 
+
 C         Only south face slip velocity
+          Vx = U(CHF_IX[i;j;k],0) - U(CHF_IX[i;j;k],9)
+          Vz = U(CHF_IX[i;j;k],2) - U(CHF_IX[i;j;k],11)
+          V  = SQRT(Vx**2 + Vz**2)
+
 C         ORDER MUST MATCH WHAT IN RSIBC.CPP!!!!
 C         Vx
-          Bout(CHF_IX[i;j;k],0) = U(CHF_IX[i;j;k],0) - U(CHF_IX[i;j;k],9)
+          Bout(CHF_IX[i;j;k],0) = Vx
 C         Vz
-          Bout(CHF_IX[i;j;k],1) = U(CHF_IX[i;j;k],2) - U(CHF_IX[i;j;k],11)
+          Bout(CHF_IX[i;j;k],1) = Vz
 C         sxy
           Bout(CHF_IX[i;j;k],2) = U(CHF_IX[i;j;k],6)
 C         syz
           Bout(CHF_IX[i;j;k],3) = U(CHF_IX[i;j;k],8)
 C         V
-          Bout(CHF_IX[i;j;k],4) = SQRT((Bout(CHF_IX[i;j;k],0)**2 + Bout(CHF_IX[i;j;k],1)**2))
+          Bout(CHF_IX[i;j;k],4) = V
 C         slip
           Bout(CHF_IX[i;j;k],5) = Bin(CHF_IX[i;j;k],5) + dt*Bout(CHF_IX[i;j;k],0)
 C         slip
@@ -115,8 +91,17 @@ C         rupture
             Bout(CHF_IX[i;j;k],8) = time
           endif
 C         syy
-          Bout(CHF_IX[i;j;k],9) = U(CHF_IX[i;j;k],4)
+          Bout(CHF_IX[i;j;k],9)  = U(CHF_IX[i;j;k],4)
 C         psi
+          psi = Bout(CHF_IX[i;j;k],10)
+          f   = rs_a*log(V*exp(psi/rs_a)/(2.0d0*rs_V0))
+          fss = rs_f0 - (rs_b - rs_a)*log(V / rs_V0)
+          if(rs_fExp > 0d0) then
+              fss = rs_fw + (fss - rs_fw)*(1 + (V/rs_Vw)**rs_fExp)**(1/rs_fExp)
+          endif
+          ! Something is wrong with the state evolution equation not
+          ! sure what 
+          Bout(CHF_IX[i;j;k],10) = psi - dt * (V / rs_L)*(f - fss)
 
         CHF_ENDDO
         

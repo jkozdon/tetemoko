@@ -1122,6 +1122,48 @@ C       Currently the difference is only in velocity
 C
 C This is a constant initial data
 C
+        subroutine LEINITF(
+     &    CHF_FRA[U],
+     &    CHF_CONST_REAL[dx],
+     &    CHF_BOX[box])
+
+#include "IBCCommon.fh"
+
+        integer CHF_DDECL[i;j;k]
+        real_t CHF_DDECL[x;y;z]
+
+        CHF_MULTIDO[box;i;j;k]
+
+          U(CHF_IX[i;j;k],0) = background(0)
+          U(CHF_IX[i;j;k],1) = background(1)
+          U(CHF_IX[i;j;k],2) = background(2)
+          U(CHF_IX[i;j;k],3) = background(3)
+          U(CHF_IX[i;j;k],4) = background(4)
+          U(CHF_IX[i;j;k],5) = background(5)
+          U(CHF_IX[i;j;k],6) = background(6)
+          U(CHF_IX[i;j;k],7) = background(7)
+          U(CHF_IX[i;j;k],8) = background(8)
+
+          U(CHF_IX[i;j;k],9 + 0) = background(9 + 0)
+          U(CHF_IX[i;j;k],9 + 1) = background(9 + 1)
+          U(CHF_IX[i;j;k],9 + 2) = background(9 + 2)
+          U(CHF_IX[i;j;k],9 + 3) = background(9 + 3)
+          U(CHF_IX[i;j;k],9 + 4) = background(9 + 4)
+          U(CHF_IX[i;j;k],9 + 5) = background(9 + 5)
+          U(CHF_IX[i;j;k],9 + 6) = background(9 + 6)
+          U(CHF_IX[i;j;k],9 + 7) = background(9 + 7)
+          U(CHF_IX[i;j;k],9 + 8) = background(9 + 8)
+
+        CHF_ENDDO
+        
+        return
+        end
+
+
+
+C
+C This is a constant initial data
+C
         subroutine LINELASTSETFAB(
      &    CHF_FRA1[U],
      &    CHF_BOX[box],

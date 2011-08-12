@@ -575,7 +575,7 @@ void amrGodunov()
             Real nucy = 0.0; ppphysics.query("nuc_y",nucy);
             Real nucS = 0.0; ppphysics.query("nuc_S",nucS);
             Real nucN = 0.0; ppphysics.query("nuc_N",nucN);
-            Real fExp = 8.0; ppphysics.query("fric_exp",fExp);
+            Real fExp =-1.0; ppphysics.query("fric_exp",fExp);
 
             Real ruptureVelocityThreshold = 0.001;
             ppphysics.query("rupture_front_vel_thresh",ruptureVelocityThreshold);

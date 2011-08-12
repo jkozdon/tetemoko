@@ -489,6 +489,31 @@ inline void FORTRAN_NAME(inlineLINELASTSETF, inlineLINELASTSETF)(
 }
 #endif  // GUARDLINELASTSETF 
 
+#ifndef GUARDLEINITF 
+#define GUARDLEINITF 
+// Prototype for Fortran procedure LEINITF ...
+//
+void FORTRAN_NAME( LEINITF ,leinitf )(
+      CHFp_FRA(U)
+      ,CHFp_CONST_REAL(dx)
+      ,CHFp_BOX(box) );
+
+#define FORT_LEINITF FORTRAN_NAME( inlineLEINITF, inlineLEINITF)
+#define FORTNT_LEINITF FORTRAN_NAME( LEINITF, leinitf)
+
+inline void FORTRAN_NAME(inlineLEINITF, inlineLEINITF)(
+      CHFp_FRA(U)
+      ,CHFp_CONST_REAL(dx)
+      ,CHFp_BOX(box) )
+{
+ CH_TIMELEAF("FORT_LEINITF");
+ FORTRAN_NAME( LEINITF ,leinitf )(
+      CHFt_FRA(U)
+      ,CHFt_CONST_REAL(dx)
+      ,CHFt_BOX(box) );
+}
+#endif  // GUARDLEINITF 
+
 #ifndef GUARDLINELASTSETFAB 
 #define GUARDLINELASTSETFAB 
 // Prototype for Fortran procedure LINELASTSETFAB ...

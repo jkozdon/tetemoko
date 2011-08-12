@@ -116,7 +116,7 @@ void SWIBC::initialize(LevelData<FArrayBox>& a_U)
         uBox &= m_domain;
 
         // Set up initial condition in this grid
-        FORT_SWINITF(CHF_FRA(U),
+        FORT_LEINITF(CHF_FRA(U),
             CHF_CONST_REAL(m_dx),
             CHF_BOX(uBox));
     }

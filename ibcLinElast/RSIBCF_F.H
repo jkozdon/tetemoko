@@ -66,31 +66,6 @@ inline void FORTRAN_NAME(inlineRSSETF, inlineRSSETF)(
 }
 #endif  // GUARDRSSETF 
 
-#ifndef GUARDRSINITF 
-#define GUARDRSINITF 
-// Prototype for Fortran procedure RSINITF ...
-//
-void FORTRAN_NAME( RSINITF ,rsinitf )(
-      CHFp_FRA(U)
-      ,CHFp_CONST_REAL(dx)
-      ,CHFp_BOX(box) );
-
-#define FORT_RSINITF FORTRAN_NAME( inlineRSINITF, inlineRSINITF)
-#define FORTNT_RSINITF FORTRAN_NAME( RSINITF, rsinitf)
-
-inline void FORTRAN_NAME(inlineRSINITF, inlineRSINITF)(
-      CHFp_FRA(U)
-      ,CHFp_CONST_REAL(dx)
-      ,CHFp_BOX(box) )
-{
- CH_TIMELEAF("FORT_RSINITF");
- FORTRAN_NAME( RSINITF ,rsinitf )(
-      CHFt_FRA(U)
-      ,CHFt_CONST_REAL(dx)
-      ,CHFt_BOX(box) );
-}
-#endif  // GUARDRSINITF 
-
 #ifndef GUARDRSSETBND 
 #define GUARDRSSETBND 
 // Prototype for Fortran procedure RSSETBND ...
