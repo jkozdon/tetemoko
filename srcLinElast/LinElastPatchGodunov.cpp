@@ -469,7 +469,6 @@ void LinElastPatchGodunov::CTUNormalPred(FArrayBox&       a_WMinus,
     // for CTU, increments are 0 -- straight copy from cells to faces
     a_WMinus.copy(a_W);
     a_WPlus.copy(a_W);
-
 }
 
 

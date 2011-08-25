@@ -7,7 +7,7 @@ C
      &    CHF_CONST_REAL[ar0],
      &    CHF_CONST_REAL[ax0],
      &    CHF_CONST_REAL[ay0],
-     &    CHF_CONST_REAL[asigma],
+     &    CHF_CONST_REAL[ansig],
      &    CHF_CONST_REAL[antime],
      &    CHF_CONST_REAL[aRSa],
      &    CHF_CONST_REAL[aRSb],
@@ -28,7 +28,7 @@ c
         r0      = ar0
         x0      = ax0
         y0      = ay0
-        sigma   = asigma
+        nsig    = ansig
         nucTime = antime
         rs_a    = aRSa
         rs_b    = aRSb
@@ -93,15 +93,14 @@ C         rupture
 C         syy
           Bout(CHF_IX[i;j;k],9)  = U(CHF_IX[i;j;k],4)
 C         psi
-          psi = Bout(CHF_IX[i;j;k],10)
+          psi = Bin(CHF_IX[i;j;k],10)
           f   = rs_a*log(V*exp(psi/rs_a)/(2.0d0*rs_V0))
           fss = rs_f0 - (rs_b - rs_a)*log(V / rs_V0)
-          if(rs_fExp > 0d0) then
-              fss = rs_fw + (fss - rs_fw)*(1 + (V/rs_Vw)**rs_fExp)**(1/rs_fExp)
-          endif
-          ! Something is wrong with the state evolution equation not
-          ! sure what 
+          ! if(rs_fExp > 0d0) then
+          !     fss = rs_fw + (fss - rs_fw)*(1 + (V/rs_Vw)**rs_fExp)**(1/rs_fExp)
+          ! endif
           Bout(CHF_IX[i;j;k],10) = psi - dt * (V / rs_L)*(f - fss)
+          ! print *,i,psi,V,f,fss
 
         CHF_ENDDO
         
@@ -140,9 +139,8 @@ C
         real_t vx1,vy1,vz1,sxx1,syy1,szz1,sxy1,sxz1,syz1
         real_t vx2,vy2,vz2,sxx2,syy2,szz2,sxy2,sxz2,syz2
 
-        real_t SHF, tau, fric, V, tau_0, psi
+        real_t SHF, tau, fric, V, tau_xy_0, tau_yz_0, psi,Vx,Vz
 
-        real_t tau_lock
         real_t phi_xy,phi_yz,phi
 
         CHF_MULTIDO[box;i;j;k]
@@ -185,12 +183,17 @@ C         Get the characteristic propagating into the fault
           wpyy2 =  syy2 - Zp * vy2
           wpyz2 =  syz2 - Zs * vz2
 
-C         set the perturbation due to nucleation
-          tau_0 = 0
-C         STILL NEED TO DO THIS
+          wpyz1 = 0d0
+          wpyz2 = 0d0
 
-C         Find tau_0
-          tau_lock = sqrt((half*(wpxy2-wpxy1)+tau_0)**2 + (half*(wpyz2-wpyz1))**2)
+C         set the perturbation due to nucleation
+          call GAUSSIANFUNC(tau_xy_0,r0,x)
+          tau_xy_0 = nsig*tau_xy_0
+          tau_yz_0 = 0d0
+          phi_xy   = half*(wpxy2-wpxy1) + tau_xy_0
+          phi_yz   = half*(wpyz2-wpyz1) + tau_yz_0
+          ! print *,i,phi_yz,syz1,vz1,syz2,vz2
+          phi      = sqrt(phi_xy**2 + phi_yz**2)
 
 
 
@@ -210,22 +213,21 @@ C         We use the fact that
 C            \vec{\tau} = \vec{phi} - \frac{\tilde{Z}_{S} \vec{V}
 C         which since \vec{\tau} = \alpha \vec{V} implies they are
 C         parallel with \vec{phi} as well. So we can use this to split
-C         tau (magnitude) into tau_xy and tau_y
+C         tau (magnitude) into tau_xy and tau_yz
 C 
 C         phi_xy = (wpxy2*Zs1-wpxy1*Zs2)/(Zs1+Zs2)
 C         phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
 
-          phi_xy = half*(wpxy2-wpxy1)
-          phi_yz = half*(wpyz2-wpyz1)
-          phi    = sqrt(phi_xy**2 + phi_yz**2)
-
           V = sqrt((vx1-vx2)**2 + (vz1-vz2)**2)
 
-          CALL RSNEWTON(phi,psi,-syy1,V,tau)
-          tau = tau_lock
+          ! CALL RSNEWTON(phi,psi,-syy1,V,tau)
+          tau = phi
+          ! print *,i,phi,psi,-syy1,tau,V
 
-          sxy1   = (phi_xy/phi) * tau
-          syz1   = (phi_yz/phi) * tau
+          sxy1   = (phi_xy/phi) * tau - tau_xy_0
+          syz1   = (phi_yz/phi) * tau - tau_yz_0
+          Vx     = (phi_xy/phi) * V
+          Vz     = (phi_yz/phi) * V
 
           vx1    = -(sxy1 + wpxy1)/Zs
           vz1    = -(syz1 + wpyz1)/Zs
@@ -247,6 +249,8 @@ C         phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
 
           vx2    = (sxy2 - wpxy2)/Zs
           vz2    = (syz2 - wpyz2)/Zs
+          ! vx2    = vx1 - Vx
+          ! vz2    = vz1 - Vz
 
           SHF = -(vy2 - syy2) * lam / (lam + 2.0d0 * mu)
 
@@ -259,67 +263,8 @@ C         phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
           Wgdnv(CHF_IX[i;j;k],9 + 6) = sxy2
           Wgdnv(CHF_IX[i;j;k],9 + 7) = sxz2
           Wgdnv(CHF_IX[i;j;k],9 + 8) = syz2
+
        CHF_ENDDO
-
-C            CHF_MULTIDO[box;i;j;k]
-C              CHF_DTERM[x = (abs((i + half) * dx-r0)-t*cs);
-C              y = 0;
-C              z = (abs((k + half) * dx-r0)-t*cs)]
-C              R = (sqrt(CHF_DTERM[x*x;+y*y;+z*z]))/sigma
-C    
-C    C          rat = 1.0d0
-C    C          rat = 1 - exp( -R * R)
-C    C          rat = 1 - exp( -R * R) * exp(-2.0d0 * (t - 2.0d0) * (t - 2.0d0))
-C    
-C    
-C              vx  = WInside(CHF_IX[i;j;k],0)
-C              vy  = WInside(CHF_IX[i;j;k],1)
-C              vz  = WInside(CHF_IX[i;j;k],2)
-C              sxx = WInside(CHF_IX[i;j;k],3)
-C              syy = WInside(CHF_IX[i;j;k],4)
-C              szz = WInside(CHF_IX[i;j;k],5)
-C              sxy = WInside(CHF_IX[i;j;k],6)
-C              sxz = WInside(CHF_IX[i;j;k],7)
-C              syz = WInside(CHF_IX[i;j;k],8)
-C              psi = GPsi(CHF_IX[i;j;k])
-C    
-C              CALL RSNEWTON(psi,vx,vy,vz,sxy,syy,syz)
-C    
-C    C         We assume that the boundary is on the bottom
-C    
-C              wmxy = sxy + Zs * vx
-C              wmyy = syy + Zp * vy
-C              wmyz = syz + Zs * vz
-C    
-C              wpxy = sxy - Zs * vx
-C              wpyy = syy - Zp * vy
-C              wpyz = syz - Zs * vz
-C    
-C              syy = (wmyy + wpyy) / (2.0d0)
-C              vy  = (wmyy - wpyy) / (2.0d0 * Zp)
-C              SHF = -(vy - syy) * lam / (lam + 2.0d0 * mu)
-C              Wgdnv(CHF_IX[i;j;k],0) = (wmxy - wpxy) / (2.0d0 * Zs)
-C              Wgdnv(CHF_IX[i;j;k],1) = vy
-C              Wgdnv(CHF_IX[i;j;k],2) = (wmyz - wpyz) / (2.0d0 * Zs)
-C              Wgdnv(CHF_IX[i;j;k],3) = syy + SHF
-C              Wgdnv(CHF_IX[i;j;k],4) = syy
-C              Wgdnv(CHF_IX[i;j;k],5) = szz + SHF
-C              Wgdnv(CHF_IX[i;j;k],6) = (wmxy + wpxy) / (2.0d0)
-C              Wgdnv(CHF_IX[i;j;k],7) = sxz
-C              Wgdnv(CHF_IX[i;j;k],8) = (wmyz + wpyz) / (2.0d0)
-C    C          Wgdnv(CHF_IX[i;j;k],0) = background(0)
-C    C          Wgdnv(CHF_IX[i;j;k],1) = background(1)
-C    C          Wgdnv(CHF_IX[i;j;k],2) = background(2)
-C    C          Wgdnv(CHF_IX[i;j;k],3) = background(3)
-C    C          Wgdnv(CHF_IX[i;j;k],4) = background(4)
-C    C          Wgdnv(CHF_IX[i;j;k],5) = background(5)
-C    C          Wgdnv(CHF_IX[i;j;k],6) = background(6)
-C    C          Wgdnv(CHF_IX[i;j;k],7) = background(7)
-C    C          Wgdnv(CHF_IX[i;j;k],8) = background(8)
-C    
-C            CHF_ENDDO
-
-        
 
         return
         end
@@ -348,11 +293,13 @@ C
         real_t alpha, beta
         real_t Vmin,Vmax,dV
         real_t dg,g
-        real_t atol
+        real_t atolG,atolV,rtolV,eta
         integer i,IMAX
+        rtolV=0d0
+        atolV=0d0
+        atolG=epsilon(1d0)*1d4
 
         IMAX = 100
-        atol = 1E-6
 
         Vmin = 0
         Vmax = phi / Zs
@@ -363,7 +310,8 @@ C
         alpha = rs_a
         beta  = (1 / (2.0d0 * rs_V0)) * exp(psi / rs_a)
 
-        g  = sn * alpha * asinh(beta * V) + Zs * V - phi
+        eta = 0.5d0*Zs
+        g  = sn * alpha * asinh(beta * V) + eta * V - phi
 
         do i = 1,IMAX
             if ( g .lt. 0) then
@@ -373,7 +321,7 @@ C
             endif
 
 C           evaluate the functions
-            dg = sn * alpha * beta / sqrt(beta*beta * V*V + 1) + Zs
+            dg = sn * alpha * beta / sqrt(beta**2 * V**2 + 1) + eta
 
 C           Guess the change
             dV = -g / dg
@@ -384,11 +332,13 @@ C           Verify that we satisfy the bracket
                 V = (Vmin + Vmax) / 2.0d0
             endif
 
-            g  = sn * alpha * asinh(beta * V) + Zs * V - phi
-            if ( abs(g) .lt. atol .or. abs(dV) .lt. atol) then
-                exit
-            endif
+            g  = sn * alpha * asinh(beta * V) + eta * V - phi
+            ! if ( abs(g) .lt. atol .or. abs(dV) .lt. atol) then
+            if (abs(g)<=atolG) exit
+
+            if (abs(dV)<=atolV+rtolV*(abs(V)+abs(dV))) exit
         enddo
+
 
         tau = sn * alpha * asinh(beta * V)
 

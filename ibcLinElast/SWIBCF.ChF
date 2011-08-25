@@ -217,7 +217,7 @@ C         We use the fact that
 C            \vec{\tau} = \vec{phi} - \frac{\tilde{Z}_{S} \vec{V}
 C         which since \vec{\tau} = \alpha \vec{V} implies they are
 C         parallel with \vec{phi} as well. So we can use this to split
-C         tau (magnitude) into tau_xy and tau_y
+C         tau (magnitude) into tau_xy and tau_yz
 
 C         phi_xy = (wpxy2*Zs1-wpxy1*Zs2)/(Zs1+Zs2)
 C         phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)

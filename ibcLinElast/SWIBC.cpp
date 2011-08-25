@@ -122,6 +122,7 @@ void SWIBC::initialize(LevelData<FArrayBox>& a_U)
     }
 }
 
+/// Set up initial conditions
 void SWIBC::initializeBdry(LevelData<FArrayBox>& a_B)
 {
     const Real tmpVal  =  0.0;
@@ -158,7 +159,7 @@ void SWIBC::setBdryData(FArrayBox* a_bdryData)
 
 bool SWIBC::hasBdryData()
 {
-    return false;
+    return true;
 }
 
 /// Set boundary primitive values.
@@ -291,7 +292,7 @@ void SWIBC::artViscBC(FArrayBox&       a_F,
     const int&       a_dir,
     const Real&      a_time)
 {
-    // pout() << "NOT SETUP :: SWIBC::artViscBC" << endl;
+    pout() << "NOT SETUP :: SWIBC::artViscBC" << endl;
 }
 
 void SWIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,const Real& a_time,const bool a_final)

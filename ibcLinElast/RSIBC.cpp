@@ -31,7 +31,7 @@ RSIBC::RSIBC(const Real& a_cs,
     const Real& a_r0,
     const Real& a_x0,
     const Real& a_y0,
-    const Real& a_sigma,
+    const Real& a_nsig,
     const Real& a_ntime,
     const Real& a_psi,
     const Real& a_a,
@@ -46,7 +46,7 @@ RSIBC::RSIBC(const Real& a_cs,
     const Vector<int>& a_boundaryType)
 {
     FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
-    FORT_RSSETF(CHF_CONST_REAL(a_r0),CHF_CONST_REAL(a_x0),CHF_CONST_REAL(a_y0),CHF_CONST_REAL(a_sigma),
+    FORT_RSSETF(CHF_CONST_REAL(a_r0),CHF_CONST_REAL(a_x0),CHF_CONST_REAL(a_y0),CHF_CONST_REAL(a_nsig),
         CHF_CONST_REAL(a_ntime),CHF_CONST_REAL(a_a),CHF_CONST_REAL(a_b),CHF_CONST_REAL(a_V0),CHF_CONST_REAL(a_f0),
         CHF_CONST_REAL(a_L),CHF_CONST_REAL(a_fw),CHF_CONST_REAL(a_Vw),CHF_CONST_REAL(a_fExp),CHF_CONST_REAL(a_ruptureVelocityThreshold));
     m_boundaryType       = a_boundaryType;
@@ -81,7 +81,6 @@ PhysIBC* RSIBC::new_physIBC()
     retval->m_boundaryType = m_boundaryType;
     retval->m_psi          = m_psi;
     retval->m_numBdryVars  = m_numBdryVars;
-
     return static_cast<PhysIBC*>(retval);
 }
 
@@ -269,7 +268,6 @@ void RSIBC::primBC(FArrayBox&            a_WGdnv,
     }
 }
 
-
 /// Set boundary slopes
 //   The boundary slopes in a_dW are already set to one sided difference
 //   approximations.  If this function doesn't change them they will be
@@ -289,7 +287,6 @@ void RSIBC::artViscBC(FArrayBox&       a_F,
 {
     pout() << "NOT SETUP :: RSIBC::artViscBC" << endl;
 }
-
 
 void RSIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,const Real& a_time,const bool a_final)
 {

@@ -760,7 +760,7 @@ void amrGodunov()
             pout() << "Unknown (" << normalPredOrder << ")" << endl;
         }
 
-        pout() << "slope_order     = "
+        pout() << "slope_order      = "
             << (useFourthOrderSlopes ? "2nd" : "4th") << endl;
         pout() << "use_primitive_slope_limiting      = "
             << (usePrimLimiting ? "yes" : "no") << endl;
