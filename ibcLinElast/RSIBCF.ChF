@@ -220,8 +220,8 @@ C         phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
 
           V = sqrt((vx1-vx2)**2 + (vz1-vz2)**2)
 
-          ! CALL RSNEWTON(phi,psi,-syy1,V,tau)
-          tau = phi
+          CALL RSNEWTON(phi,psi,-syy1,V,tau)
+          ! tau = phi
           ! print *,i,phi,psi,-syy1,tau,V
 
           sxy1   = (phi_xy/phi) * tau - tau_xy_0
@@ -244,8 +244,8 @@ C         phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
           Wgdnv(CHF_IX[i;j;k],7) = sxz1
           Wgdnv(CHF_IX[i;j;k],8) = syz1
 
-          sxy2   = (phi_xy/phi) * tau
-          syz2   = (phi_yz/phi) * tau
+          sxy2   = (phi_xy/phi) * tau - tau_xy_0
+          syz2   = (phi_yz/phi) * tau - tau_yz_0
 
           vx2    = (sxy2 - wpxy2)/Zs
           vz2    = (syz2 - wpyz2)/Zs
