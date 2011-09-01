@@ -4,7 +4,7 @@ physics.problem = rateandstate
 # Physical parameters: S- and P- wave speed, shear modulus
 physics.cs = 3.464
 physics.cp = 6
-# physics.mu = 32.0381203
+# physics.G = 32.0381203
 physics.rho = 2.670
 
 # Set the background values
@@ -27,6 +27,12 @@ physics.nuc_S = 45
 physics.nuc_N = 0
 
 physics.rupture_front_vel_thresh = 0.001
+
+# define plasticity
+physics.plas      = 0
+physics.plas_mu   = 0.5735
+physics.plas_beta = 0.2867
+physics.plas_eta  = 0.2775
 
 # Turn on some output
 # comp.verbosity = 10
@@ -59,7 +65,7 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 0
+comp.max_level = 2
 # For 2D
 comp.ref_ratio = 4 4 4 4 4 4
 # For 3D

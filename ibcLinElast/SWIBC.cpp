@@ -12,11 +12,7 @@ SWIBC::SWIBC()
 }
 
 /// Constructor which defines parameters used by Fortran routines
-SWIBC::SWIBC(const Real& a_cs,
-    const Real& a_cp,
-    const Real& a_mu,
-    const vector<Real> a_back,
-    const Real& a_fricS,
+SWIBC::SWIBC(const Real& a_fricS,
     const Real& a_fricD,
     const Real& a_weakD,
     const Real& a_smoothValue,
@@ -32,7 +28,6 @@ SWIBC::SWIBC(const Real& a_cs,
     const Real a_ruptureVelocityThreshold,
     const Vector<int>& a_boundaryType)
 {
-    FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
     FORT_SWSETF(CHF_CONST_REAL(a_fricS),CHF_CONST_REAL(a_fricD),CHF_CONST_REAL(a_weakD),
         CHF_CONST_REAL(a_smoothValue), CHF_CONST_REAL(a_ruptureVelocityThreshold));
     m_boundaryType       = a_boundaryType;

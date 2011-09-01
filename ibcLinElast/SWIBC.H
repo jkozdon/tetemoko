@@ -21,11 +21,7 @@ public:
     /// Constructor which defines parameters used by Fortran routines
     /**
     */
-    SWIBC(const Real& cs,
-        const Real& cp,
-        const Real& mu,
-        const vector<Real> background,
-        const Real& fricS,
+    SWIBC(const Real& fricS,
         const Real& fricD,
         const Real& weakD,
         const Real& smoothValue,

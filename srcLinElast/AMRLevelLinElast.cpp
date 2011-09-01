@@ -88,7 +88,8 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
     const Vector<Real>&         a_zBodyStations,
     const Vector<Real>&         a_domainCenter,
     const string&               a_dataPrefix,
-    const int&                  a_plotInterval)
+    const int&                  a_plotInterval,
+    const bool&                 a_usePlasticity)
 {
     // Set the CFL number
     m_cfl = a_cfl;
@@ -154,6 +155,8 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
     m_dataPrefix = a_dataPrefix;
 
     m_plotInterval = a_plotInterval;
+
+    m_usePlasticity = a_usePlasticity;
 
     m_paramsDefined = true;
 }
@@ -435,6 +438,8 @@ Real AMRLevelLinElast::advance()
         tCoarserNew,
         m_time,
         m_dt);
+
+    // if(m_usePlasticity) m_LElevelGodunov.plasticUpdate(m_UNew,m_dt)
 
     // Update the time and store the new timestep
     m_time += m_dt;

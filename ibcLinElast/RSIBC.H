@@ -21,11 +21,7 @@ public:
     /// Constructor which defines parameters used by Fortran routines
     /**
     */
-    RSIBC(const Real& cs,
-        const Real& cp,
-        const Real& mu,
-        const vector<Real> background,
-        const Real& r0,
+    RSIBC(const Real& r0,
         const Real& x0,
         const Real& y0,
         const Real& sigma,

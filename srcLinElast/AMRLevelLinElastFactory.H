@@ -147,6 +147,8 @@ protected:
   int m_plotInterval;
 
 private:
+  bool m_usePlasticity;
+
   // Disallowed for all the usual reasons
   void operator=(const AMRLevelLinElastFactory& a_input)
   {

@@ -419,7 +419,7 @@ void amrGodunov()
     TimeReadInput.stop();
 
     // Create and define IBC (initial and boundary condition) object
-    PhysIBC* ibc;
+    LEPhysIBC* leibc;
 
     // Background Values
     vector<Real> backgroundVals(12,0);
@@ -431,6 +431,19 @@ void amrGodunov()
     domainCenter[1] = 0;
     domainCenter[2] = 0;
 
+    // Determine whether using plasticity
+    int inUsePlasticity = 0;
+    ppphysics.query("plasticity", inUsePlasticity);
+    bool usePlasticity = (inUsePlasticity == 1);
+    Real plasBeta = 0.5735;
+    Real plasMu = plasBeta/2;
+    Real plasEta = 0.2775;
+    if(usePlasticity)
+    {
+        ppphysics.query("plas_beta",plasBeta);
+        ppphysics.query("plas_beta",plasMu);
+        ppphysics.query("plas_eta",plasEta);
+    }
 
     if (ppphysics.contains("problem"))
     {
@@ -527,10 +540,10 @@ void amrGodunov()
             // smoothValue = smoothValue * dx;
 
             SWIBC* swibc =
-                new SWIBC(cs,cp,mu,backgroundVals,fricS,fricD,weakDist,smoothValue,
+                new SWIBC(fricS,fricD,weakDist,smoothValue,
                     numPatches,xcPatches,xwPatches,zcPatches,zwPatches,tauPatches,
                     fricBoxCenter, fricBoxWidth, outsideFriction, ruptureVelocityThreshold, boundaryType);
-            ibc = swibc;
+            leibc = swibc;
             if(verbosity >= 1)
             {
                 pout() << "Static Friction    = " << fricS << endl;
@@ -618,9 +631,9 @@ void amrGodunov()
             //       also bring in the extreme weakening exponent as well
 
             RSIBC* rsibc =
-                new RSIBC(cs,cp,mu,backgroundVals,nucR,nucx,nucy,nucS,nucT,psi,
+                new RSIBC(nucR,nucx,nucy,nucS,nucT,psi,
                     a,b,V0,f0,L,fw,Vw,fExp,ruptureVelocityThreshold,boundaryType);
-            ibc = rsibc;
+            leibc = rsibc;
             if(verbosity >= 1)
             {
                 pout() << "frictional Parameters" << endl;
@@ -668,6 +681,10 @@ void amrGodunov()
         pout() << "\"godunov.problem\" not specified in input file" << endl << endl;
         return;
     }
+
+    leibc->setFortranCommonLE(cs,cp,mu,backgroundVals);
+    if(usePlasticity)
+        leibc->setFortranCommonPlastic(plasMu,plasBeta,plasEta);
 
 
 #ifndef CH_NTIMER
@@ -802,7 +819,7 @@ void amrGodunov()
     
     // Set up the physics for linear elasticitiy
     LinElastPhysics linElastPhysics(0 /*JUNK*/);
-    linElastPhysics.setPhysIBC(ibc);
+    linElastPhysics.setPhysIBC(leibc);
 
     // Cast to physics base class pointer for technical reasons
     GodunovPhysics* godunovPhysics = static_cast<GodunovPhysics*> (&linElastPhysics);
@@ -844,6 +861,12 @@ void amrGodunov()
 
     // set the plotting number
     amrGodFact.plotInterval(boundPlotInterval);
+
+    // Set up plasticity
+    if(usePlasticity)
+    {
+        // amrGodFact.plasticity(plasMu,plasBeta,plasEta);
+    }
 
     AMR amr;
     

@@ -76,7 +76,8 @@ public:
                     const Vector<Real>&         a_zBodyStations,
                     const Vector<Real>&         a_domainCenter,
                     const string&               a_dataPrefix,
-                    const int&                  a_plotInterval);
+                    const int&                  a_plotInterval,
+                    const bool&                  a_usePlasticity);
 
   /// This instance should never get called - historical
   /**
@@ -353,6 +354,8 @@ protected:
 
 
 private:
+  bool m_usePlasticity;
+
   // Disallowed for all the usual reasons
   void operator=(const AMRLevelLinElast& a_input)
   {

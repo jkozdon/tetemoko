@@ -136,6 +136,8 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
 
     m_plotInterval = 0;
 
+    m_usePlasticity = false;
+
     // The object is defined
     m_isDefined = true;
 }
@@ -174,7 +176,8 @@ AMRLevel* AMRLevelLinElastFactory::new_amrlevel() const
         m_zBodyStations,
         m_domainCenter,
         m_dataPrefix,
-        m_plotInterval);
+        m_plotInterval,
+        m_usePlasticity);
 
     // Return it
     return (static_cast <AMRLevel*> (amrGodPtr));

@@ -24,11 +24,7 @@ RSIBC::RSIBC()
 }
 
 /// Constructor which defines parameters used by Fortran routines
-RSIBC::RSIBC(const Real& a_cs,
-    const Real& a_cp,
-    const Real& a_mu,
-    const vector<Real> a_back,
-    const Real& a_r0,
+RSIBC::RSIBC(const Real& a_r0,
     const Real& a_x0,
     const Real& a_y0,
     const Real& a_nsig,
@@ -45,7 +41,6 @@ RSIBC::RSIBC(const Real& a_cs,
     const Real a_ruptureVelocityThreshold,
     const Vector<int>& a_boundaryType)
 {
-    FORT_LINELASTSETF(CHF_CONST_REAL(a_cs),CHF_CONST_REAL(a_cp),CHF_CONST_REAL(a_mu),CHF_CONST_VR(a_back));
     FORT_RSSETF(CHF_CONST_REAL(a_r0),CHF_CONST_REAL(a_x0),CHF_CONST_REAL(a_y0),CHF_CONST_REAL(a_nsig),
         CHF_CONST_REAL(a_ntime),CHF_CONST_REAL(a_a),CHF_CONST_REAL(a_b),CHF_CONST_REAL(a_V0),CHF_CONST_REAL(a_f0),
         CHF_CONST_REAL(a_L),CHF_CONST_REAL(a_fw),CHF_CONST_REAL(a_Vw),CHF_CONST_REAL(a_fExp),CHF_CONST_REAL(a_ruptureVelocityThreshold));
@@ -89,6 +84,8 @@ void RSIBC::initialize(LevelData<FArrayBox>& a_U)
 {
     // pout() << "RSIBC::initialize" << endl;
     CH_assert(m_isFortranCommonSet == true);
+    CH_assert(m_isFortranCommonLESet == true);
+    CH_assert(m_isFortranCommonPlasticSet == true);
     CH_assert(m_isDefined == true);
 
     // Iterator of all grids in this level
@@ -182,6 +179,8 @@ void RSIBC::primBC(FArrayBox&            a_WGdnv,
     const Real&           a_time)
 {
     CH_assert(m_isFortranCommonSet == true);
+    CH_assert(m_isFortranCommonLESet == true);
+    CH_assert(m_isFortranCommonPlasticSet == true);
     CH_assert(m_isDefined == true);
     Box boundaryBox;
     getBoundaryFaces(boundaryBox, a_WGdnv.box(), a_dir, a_side);

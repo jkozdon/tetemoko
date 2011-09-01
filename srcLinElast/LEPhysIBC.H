@@ -89,9 +89,14 @@ public:
     {
     }
 
+    void setFortranCommonLE(const Real& a_cs, const Real& a_cp, const Real& a_mu, const vector<Real> a_back);
+    void setFortranCommonPlastic(const Real& a_mu, const Real& a_beta, const Real& a_eta);
+
 protected:
     FArrayBox* m_bdryData;
     int        m_numBdryVars;
+    bool       m_isFortranCommonLESet;
+    bool       m_isFortranCommonPlasticSet;
 private:
 };
 
