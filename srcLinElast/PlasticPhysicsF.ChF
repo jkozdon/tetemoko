@@ -1,0 +1,19 @@
+C
+C Set the physical constant parameters
+C
+        subroutine PLASTICSETF(
+     &    CHF_CONST_REAL[amu],
+     &    CHF_CONST_REAL[abeta],
+     &    CHF_CONST_REAL[aeta])
+
+#include "PlasticCommon.fh"
+
+c
+c       parameters
+c
+        p_mu   = amu
+        p_beta = abeta
+        p_eta  = aeta
+
+        return
+        end
