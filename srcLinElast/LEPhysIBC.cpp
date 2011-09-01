@@ -2,6 +2,13 @@
 #include "LinElastPhysicsF_F.H"
 #include "PlasticPhysicsF_F.H"
 
+/// Null Constructor
+LEPhysIBC::LEPhysIBC()
+{
+    m_isFortranCommonLESet = false;
+    m_isFortranCommonPlasticSet = false;
+}
+
 /// Set the fortran parameters for linear elasticity
 void LEPhysIBC::setFortranCommonLE(const Real& a_cs,
     const Real& a_cp,

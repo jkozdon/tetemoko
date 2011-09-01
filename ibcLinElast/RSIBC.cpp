@@ -21,6 +21,7 @@
 /// Null Constructor
 RSIBC::RSIBC()
 {
+    m_isFortranCommonSet = false;
 }
 
 /// Constructor which defines parameters used by Fortran routines
@@ -84,8 +85,7 @@ void RSIBC::initialize(LevelData<FArrayBox>& a_U)
 {
     // pout() << "RSIBC::initialize" << endl;
     CH_assert(m_isFortranCommonSet == true);
-    CH_assert(m_isFortranCommonLESet == true);
-    CH_assert(m_isFortranCommonPlasticSet == true);
+    // CH_assert(m_isFortranCommonLESet == true);
     CH_assert(m_isDefined == true);
 
     // Iterator of all grids in this level
@@ -179,9 +179,9 @@ void RSIBC::primBC(FArrayBox&            a_WGdnv,
     const Real&           a_time)
 {
     CH_assert(m_isFortranCommonSet == true);
-    CH_assert(m_isFortranCommonLESet == true);
-    CH_assert(m_isFortranCommonPlasticSet == true);
+    // CH_assert(m_isFortranCommonLESet == true);
     CH_assert(m_isDefined == true);
+
     Box boundaryBox;
     getBoundaryFaces(boundaryBox, a_WGdnv.box(), a_dir, a_side);
 

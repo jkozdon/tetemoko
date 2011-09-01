@@ -68,7 +68,7 @@ int LinElastPhysics::numConserved()
 {
   CH_assert(isDefined());
 
-  return 18;
+  return 22;
 }
 
 /// Names of the conserved variables
@@ -90,6 +90,8 @@ Vector<string> LinElastPhysics::stateNames()
     retval.push_back("sig_xy^1");
     retval.push_back("sig_xz^1");
     retval.push_back("sig_yz^1");
+    retval.push_back("lambda^1");
+    retval.push_back("gamma^1");
 
     retval.push_back("v_x^2");
     retval.push_back("v_y^2");
@@ -100,6 +102,8 @@ Vector<string> LinElastPhysics::stateNames()
     retval.push_back("sig_xy^2");
     retval.push_back("sig_xz^2");
     retval.push_back("sig_yz^2");
+    retval.push_back("lambda^2");
+    retval.push_back("gamma^2");
 
     return retval;
 }
@@ -499,6 +503,7 @@ void LinElastPhysics::artVisc(FArrayBox&       a_F,
                              const int&       a_dir,
                              const Box&       a_box)
 {
+    MayDay::Error("artVisc needs to be thought through more!");
   CH_assert(a_U.box().contains(a_box));
 
   // Take the cell centered box, a_box, and derive a face centered box in

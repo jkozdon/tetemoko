@@ -23,6 +23,10 @@ class LEPhysIBC: public PhysIBC
 {
 public:
 
+    /// Null Constructor
+    /**
+    */
+    LEPhysIBC();
 
     /// Set up initial conditions for the boundary data
     /**

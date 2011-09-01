@@ -10,10 +10,10 @@ ebase = amrGodunov
 
 # the location of Chombo lib dir
 HOSTNAME:=$(shell hostname)
-ifeq ($(HOSTNAME), rubberducky.stanford.edu)
-	CHOMBO_HOME = /Users/jkozdon/apps/Chombo/lib
-else
+ifeq ($(findstring cees,$(HOSTNAME)),cees)
 	CHOMBO_HOME = /home/jkozdon/packages/Chombo/lib
+else
+	CHOMBO_HOME = /Users/jkozdon/apps/Chombo/lib
 endif
 
 # names of Chombo libraries needed by this program, in order of search.
@@ -31,7 +31,7 @@ include $(CHOMBO_HOME)/mk/Make.example
 
 # application-specific variables
 
-# Note: tell Make.rules to not use -q for 'run' target
+# Note: tell Make.rules to not use -q for 'run' targe20044t
 _space = # # NOTE: keep the space after the "=" or bad things happen
 VERBOSE = $(_space)
 
