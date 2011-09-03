@@ -1,4 +1,10 @@
 C
+C Set the constant parameters
+C
+#include "CONSTANTS.H"
+#include "LEINDEX.H"
+
+C
 C       Return the maximum wave speed, which is just the max of cs and cp
 C
         subroutine MAXWAVESPEEDF(
@@ -299,27 +305,27 @@ C
           F(CHF_IX[i;j;k],10    ) =  0d0
 
         ! Side 2
-          vx  = Wgdnv(CHF_IX[i;j;k],11 + cx    )
-          vy  = Wgdnv(CHF_IX[i;j;k],11 + cy    )
-          vz  = Wgdnv(CHF_IX[i;j;k],11 + cz    )
-          sxx = Wgdnv(CHF_IX[i;j;k],11 + cx + 3)
-          syy = Wgdnv(CHF_IX[i;j;k],11 + cy + 3)
-          szz = Wgdnv(CHF_IX[i;j;k],11 + cz + 3)
-          sxy = Wgdnv(CHF_IX[i;j;k],11 + cxy   )
-          sxz = Wgdnv(CHF_IX[i;j;k],11 + cxz   )
-          syz = Wgdnv(CHF_IX[i;j;k],11 + cyz   )
+          vx  = Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cx    )
+          vy  = Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy    )
+          vz  = Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz    )
+          sxx = Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cx + 3)
+          syy = Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy + 3)
+          szz = Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz + 3)
+          sxy = Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cxy   )
+          sxz = Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cxz   )
+          syz = Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cyz   )
 
-          F(CHF_IX[i;j;k],11 + cx    ) = - rv * sxx / rho
-          F(CHF_IX[i;j;k],11 + cy    ) = - rv * sxy / rho
-          F(CHF_IX[i;j;k],11 + cz    ) = - rv * sxz / rho
-          F(CHF_IX[i;j;k],11 + cx + 3) = - rv * vx * (lam + two * mu)
-          F(CHF_IX[i;j;k],11 + cy + 3) = - rv * vx * lam
-          F(CHF_IX[i;j;k],11 + cz + 3) = - rv * vx * lam
-          F(CHF_IX[i;j;k],11 + cxy   ) = - rv * vy * mu
-          F(CHF_IX[i;j;k],11 + cxz   ) = - rv * vz * mu
-          F(CHF_IX[i;j;k],11 + cyz   ) =  0d0
-          F(CHF_IX[i;j;k],11 +  9    ) =  0d0
-          F(CHF_IX[i;j;k],11 + 10    ) =  0d0
+          F(CHF_IX[i;j;k],IX_OFFSET + cx    ) = - rv * sxx / rho
+          F(CHF_IX[i;j;k],IX_OFFSET + cy    ) = - rv * sxy / rho
+          F(CHF_IX[i;j;k],IX_OFFSET + cz    ) = - rv * sxz / rho
+          F(CHF_IX[i;j;k],IX_OFFSET + cx + 3) = - rv * vx * (lam + two * mu)
+          F(CHF_IX[i;j;k],IX_OFFSET + cy + 3) = - rv * vx * lam
+          F(CHF_IX[i;j;k],IX_OFFSET + cz + 3) = - rv * vx * lam
+          F(CHF_IX[i;j;k],IX_OFFSET + cxy   ) = - rv * vy * mu
+          F(CHF_IX[i;j;k],IX_OFFSET + cxz   ) = - rv * vz * mu
+          F(CHF_IX[i;j;k],IX_OFFSET + cyz   ) =  0d0
+          F(CHF_IX[i;j;k],IX_OFFSET +  9    ) =  0d0
+          F(CHF_IX[i;j;k],IX_OFFSET + 10    ) =  0d0
 
         CHF_ENDDO
 
@@ -382,17 +388,17 @@ C
           gam1 = dW(CHF_IX[i;j;k],10    )
 
           ! Side 2
-          vx2  = rv*dW(CHF_IX[i;j;k],11 + cx    )
-          vy2  = rv*dW(CHF_IX[i;j;k],11 + cy    )
-          vz2  = rv*dW(CHF_IX[i;j;k],11 + cz    )
-          sxx2 =    dW(CHF_IX[i;j;k],11 + cx + 3)
-          syy2 =    dW(CHF_IX[i;j;k],11 + cy + 3)
-          szz2 =    dW(CHF_IX[i;j;k],11 + cz + 3)
-          sxy2 =    dW(CHF_IX[i;j;k],11 + cxy   )
-          sxz2 =    dW(CHF_IX[i;j;k],11 + cxz   )
-          syz2 =    dW(CHF_IX[i;j;k],11 + cyz   )
-          lam2 =    dW(CHF_IX[i;j;k],11 +  9    )
-          gam2 =    dW(CHF_IX[i;j;k],11 + 10    )
+          vx2  = rv*dW(CHF_IX[i;j;k],IX_OFFSET + cx    )
+          vy2  = rv*dW(CHF_IX[i;j;k],IX_OFFSET + cy    )
+          vz2  = rv*dW(CHF_IX[i;j;k],IX_OFFSET + cz    )
+          sxx2 =    dW(CHF_IX[i;j;k],IX_OFFSET + cx + 3)
+          syy2 =    dW(CHF_IX[i;j;k],IX_OFFSET + cy + 3)
+          szz2 =    dW(CHF_IX[i;j;k],IX_OFFSET + cz + 3)
+          sxy2 =    dW(CHF_IX[i;j;k],IX_OFFSET + cxy   )
+          sxz2 =    dW(CHF_IX[i;j;k],IX_OFFSET + cxz   )
+          syz2 =    dW(CHF_IX[i;j;k],IX_OFFSET + cyz   )
+          lam2 =    dW(CHF_IX[i;j;k],IX_OFFSET +  9    )
+          gam2 =    dW(CHF_IX[i;j;k],IX_OFFSET + 10    )
 
           ! Side 2
           dW(CHF_IX[i;j;k],2* 0) = sxx1 + vx1  * Zp
@@ -511,17 +517,17 @@ C
           dW(CHF_IX[i;j;k],10    ) =  gam1
 
           ! Side 2
-          dW(CHF_IX[i;j;k],11 + cx    ) = rv * (wxxm2 - wxxp2) / 2.0d0 / Zp
-          dW(CHF_IX[i;j;k],11 + cy    ) = rv * (wxym2 - wxyp2) / 2.0d0 / Zs
-          dW(CHF_IX[i;j;k],11 + cz    ) = rv * (wxzm2 - wxzp2) / 2.0d0 / Zs
-          dW(CHF_IX[i;j;k],11 + cx + 3) =  sxx2
-          dW(CHF_IX[i;j;k],11 + cy + 3) =  wyy2  + sxx2 * lam / (2.0d0 * mu + lam)
-          dW(CHF_IX[i;j;k],11 + cz + 3) =  wzz2  + sxx2 * lam / (2.0d0 * mu + lam)
-          dW(CHF_IX[i;j;k],11 + cxy   ) = (wxym2 + wxyp2) / 2.0d0
-          dW(CHF_IX[i;j;k],11 + cxz   ) = (wxzm2 + wxzp2) / 2.0d0
-          dW(CHF_IX[i;j;k],11 + cyz   ) =  wyz2
-          dW(CHF_IX[i;j;k],11 +  9    ) =  lam2
-          dW(CHF_IX[i;j;k],11 + 10    ) =  gam2
+          dW(CHF_IX[i;j;k],IX_OFFSET + cx    ) = rv * (wxxm2 - wxxp2) / 2.0d0 / Zp
+          dW(CHF_IX[i;j;k],IX_OFFSET + cy    ) = rv * (wxym2 - wxyp2) / 2.0d0 / Zs
+          dW(CHF_IX[i;j;k],IX_OFFSET + cz    ) = rv * (wxzm2 - wxzp2) / 2.0d0 / Zs
+          dW(CHF_IX[i;j;k],IX_OFFSET + cx + 3) =  sxx2
+          dW(CHF_IX[i;j;k],IX_OFFSET + cy + 3) =  wyy2  + sxx2 * lam / (2.0d0 * mu + lam)
+          dW(CHF_IX[i;j;k],IX_OFFSET + cz + 3) =  wzz2  + sxx2 * lam / (2.0d0 * mu + lam)
+          dW(CHF_IX[i;j;k],IX_OFFSET + cxy   ) = (wxym2 + wxyp2) / 2.0d0
+          dW(CHF_IX[i;j;k],IX_OFFSET + cxz   ) = (wxzm2 + wxzp2) / 2.0d0
+          dW(CHF_IX[i;j;k],IX_OFFSET + cyz   ) =  wyz2
+          dW(CHF_IX[i;j;k],IX_OFFSET +  9    ) =  lam2
+          dW(CHF_IX[i;j;k],IX_OFFSET + 10    ) =  gam2
         CHF_ENDDO
 
 
@@ -541,25 +547,6 @@ C
         integer CHF_DDECL[i;j;k]
 
         CHF_MULTIDO[box;i;j;k]
-          ! lambda(CHF_IX[i;j;k],2*0) = -cp
-          ! lambda(CHF_IX[i;j;k],2*1) = -cs
-          ! lambda(CHF_IX[i;j;k],2*2) = -cs
-          ! lambda(CHF_IX[i;j;k],2*3) =   0
-          ! lambda(CHF_IX[i;j;k],2*4) =   0
-          ! lambda(CHF_IX[i;j;k],2*5) =   0
-          ! lambda(CHF_IX[i;j;k],2*6) =  cs
-          ! lambda(CHF_IX[i;j;k],2*7) =  cs
-          ! lambda(CHF_IX[i;j;k],2*8) =  cp
-
-          ! lambda(CHF_IX[i;j;k],1+2*0) = -cp
-          ! lambda(CHF_IX[i;j;k],1+2*1) = -cs
-          ! lambda(CHF_IX[i;j;k],1+2*2) = -cs
-          ! lambda(CHF_IX[i;j;k],1+2*3) =   0
-          ! lambda(CHF_IX[i;j;k],1+2*4) =   0
-          ! lambda(CHF_IX[i;j;k],1+2*5) =   0
-          ! lambda(CHF_IX[i;j;k],1+2*6) =  cs
-          ! lambda(CHF_IX[i;j;k],1+2*7) =  cs
-          ! lambda(CHF_IX[i;j;k],1+2*8) =  cp
           lambda(CHF_IX[i;j;k], 0) = -cp
           lambda(CHF_IX[i;j;k], 1) = -cp
           lambda(CHF_IX[i;j;k], 2) = -cs
@@ -698,30 +685,30 @@ C         Set the left state variables
 
           ! Side 2
 C         Set the right state variables
-          Rvx  = WRight(CHF_IX[i;j;k],11 + cx    )
-          Rvy  = WRight(CHF_IX[i;j;k],11 + cy    )
-          Rvz  = WRight(CHF_IX[i;j;k],11 + cz    )
-          Rsxx = WRight(CHF_IX[i;j;k],11 + cx + 3)
-          Rsyy = WRight(CHF_IX[i;j;k],11 + cy + 3)
-          Rszz = WRight(CHF_IX[i;j;k],11 + cz + 3)
-          Rsxy = WRight(CHF_IX[i;j;k],11 + cxy   )
-          Rsxz = WRight(CHF_IX[i;j;k],11 + cxz   )
-          Rsyz = WRight(CHF_IX[i;j;k],11 + cyz   )
-          Rlam = WRight(CHF_IX[i;j;k],11 +  9    )
-          Rgam = WRight(CHF_IX[i;j;k],11 + 10    )
+          Rvx  = WRight(CHF_IX[i;j;k],IX_OFFSET + cx    )
+          Rvy  = WRight(CHF_IX[i;j;k],IX_OFFSET + cy    )
+          Rvz  = WRight(CHF_IX[i;j;k],IX_OFFSET + cz    )
+          Rsxx = WRight(CHF_IX[i;j;k],IX_OFFSET + cx + 3)
+          Rsyy = WRight(CHF_IX[i;j;k],IX_OFFSET + cy + 3)
+          Rszz = WRight(CHF_IX[i;j;k],IX_OFFSET + cz + 3)
+          Rsxy = WRight(CHF_IX[i;j;k],IX_OFFSET + cxy   )
+          Rsxz = WRight(CHF_IX[i;j;k],IX_OFFSET + cxz   )
+          Rsyz = WRight(CHF_IX[i;j;k],IX_OFFSET + cyz   )
+          Rlam = WRight(CHF_IX[i;j;k],IX_OFFSET +  9    )
+          Rgam = WRight(CHF_IX[i;j;k],IX_OFFSET + 10    )
 
 C         Set the left state variables
-          Lvx  = WLeft(CHF_IX[i;j;k],11 + cx    )
-          Lvy  = WLeft(CHF_IX[i;j;k],11 + cy    )
-          Lvz  = WLeft(CHF_IX[i;j;k],11 + cz    )
-          Lsxx = WLeft(CHF_IX[i;j;k],11 + cx + 3)
-          Lsyy = WLeft(CHF_IX[i;j;k],11 + cy + 3)
-          Lszz = WLeft(CHF_IX[i;j;k],11 + cz + 3)
-          Lsxy = WLeft(CHF_IX[i;j;k],11 + cxy   )
-          Lsxz = WLeft(CHF_IX[i;j;k],11 + cxz   )
-          Lsyz = WLeft(CHF_IX[i;j;k],11 + cyz   )
-          Llam = WLeft(CHF_IX[i;j;k],11 +  9    )
-          Lgam = WLeft(CHF_IX[i;j;k],11 + 10    )
+          Lvx  = WLeft(CHF_IX[i;j;k],IX_OFFSET + cx    )
+          Lvy  = WLeft(CHF_IX[i;j;k],IX_OFFSET + cy    )
+          Lvz  = WLeft(CHF_IX[i;j;k],IX_OFFSET + cz    )
+          Lsxx = WLeft(CHF_IX[i;j;k],IX_OFFSET + cx + 3)
+          Lsyy = WLeft(CHF_IX[i;j;k],IX_OFFSET + cy + 3)
+          Lszz = WLeft(CHF_IX[i;j;k],IX_OFFSET + cz + 3)
+          Lsxy = WLeft(CHF_IX[i;j;k],IX_OFFSET + cxy   )
+          Lsxz = WLeft(CHF_IX[i;j;k],IX_OFFSET + cxz   )
+          Lsyz = WLeft(CHF_IX[i;j;k],IX_OFFSET + cyz   )
+          Llam = WLeft(CHF_IX[i;j;k],IX_OFFSET +  9    )
+          Lgam = WLeft(CHF_IX[i;j;k],IX_OFFSET + 10    )
 
           wxxp = Lsxx - rv*Zp * Lvx
           wxyp = Lsxy - rv*Zs * Lvy
@@ -741,17 +728,17 @@ C         Set the left state variables
           wyz  = (wyz + Lsyz) / 2.0d0
 
           sxx = (wxxm + wxxp) / 2.0d0
-          Wgdnv(CHF_IX[i;j;k],11 + cx    ) = rv*(wxxm - wxxp) / 2.0d0 / Zp
-          Wgdnv(CHF_IX[i;j;k],11 + cy    ) = rv*(wxym - wxyp) / 2.0d0 / Zs
-          Wgdnv(CHF_IX[i;j;k],11 + cz    ) = rv*(wxzm - wxzp) / 2.0d0 / Zs
-          Wgdnv(CHF_IX[i;j;k],11 + cx + 3) = (wxxm + wxxp) / 2.0d0
-          Wgdnv(CHF_IX[i;j;k],11 + cy + 3) =  wyy + sxx * lam / (2.0d0 * mu + lam)
-          Wgdnv(CHF_IX[i;j;k],11 + cz + 3) =  wzz + sxx * lam / (2.0d0 * mu + lam)
-          Wgdnv(CHF_IX[i;j;k],11 + cxy   ) = (wxym + wxyp) / 2.0d0
-          Wgdnv(CHF_IX[i;j;k],11 + cxz   ) = (wxzm + wxzp) / 2.0d0
-          Wgdnv(CHF_IX[i;j;k],11 + cyz   ) = wyz
-          Wgdnv(CHF_IX[i;j;k],11 +  9    ) = (Rlam + Llam) / 2.0d0
-          Wgdnv(CHF_IX[i;j;k],11 + 10    ) = (Rgam + Lgam) / 2.0d0
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cx    ) = rv*(wxxm - wxxp) / 2.0d0 / Zp
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy    ) = rv*(wxym - wxyp) / 2.0d0 / Zs
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz    ) = rv*(wxzm - wxzp) / 2.0d0 / Zs
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cx + 3) = (wxxm + wxxp) / 2.0d0
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy + 3) =  wyy + sxx * lam / (2.0d0 * mu + lam)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz + 3) =  wzz + sxx * lam / (2.0d0 * mu + lam)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cxy   ) = (wxym + wxyp) / 2.0d0
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cxz   ) = (wxzm + wxzp) / 2.0d0
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cyz   ) = wyz
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET +  9    ) = (Rlam + Llam) / 2.0d0
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + 10    ) = (Rgam + Lgam) / 2.0d0
         CHF_ENDDO
 
         return
@@ -859,36 +846,36 @@ C
           AdWdx(CHF_IX[i;j;k],10    ) = -scale * 0d0
 
           ! Side 2
-          vx  = WHalf(CHF_IX[i+ioff;j+joff;k+koff],11 + cx    )
-     &        - WHalf(CHF_IX[i     ;j     ;k     ],11 + cx    )
-          vy  = WHalf(CHF_IX[i+ioff;j+joff;k+koff],11 + cy    )
-     &        - WHalf(CHF_IX[i     ;j     ;k     ],11 + cy    )
-          vz  = WHalf(CHF_IX[i+ioff;j+joff;k+koff],11 + cz    )
-     &        - WHalf(CHF_IX[i     ;j     ;k     ],11 + cz    )
-          sxx = WHalf(CHF_IX[i+ioff;j+joff;k+koff],11 + cx + 3) 
-     &        - WHalf(CHF_IX[i     ;j     ;k     ],11 + cx + 3)
-          syy = WHalf(CHF_IX[i+ioff;j+joff;k+koff],11 + cy + 3)
-     &        - WHalf(CHF_IX[i     ;j     ;k     ],11 + cy + 3)
-          szz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],11 + cz + 3)
-     &        - WHalf(CHF_IX[i     ;j     ;k     ],11 + cz + 3)
-          sxy = WHalf(CHF_IX[i+ioff;j+joff;k+koff],11 + cxy   )
-     &        - WHalf(CHF_IX[i     ;j     ;k     ],11 + cxy   )
-          sxz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],11 + cxz   )
-     &        - WHalf(CHF_IX[i     ;j     ;k     ],11 + cxz   )
-          syz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],11 + cyz   )
-     &        - WHalf(CHF_IX[i     ;j     ;k     ],11 + cyz   )
+          vx  = WHalf(CHF_IX[i+ioff;j+joff;k+koff],IX_OFFSET + cx    )
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],IX_OFFSET + cx    )
+          vy  = WHalf(CHF_IX[i+ioff;j+joff;k+koff],IX_OFFSET + cy    )
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],IX_OFFSET + cy    )
+          vz  = WHalf(CHF_IX[i+ioff;j+joff;k+koff],IX_OFFSET + cz    )
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],IX_OFFSET + cz    )
+          sxx = WHalf(CHF_IX[i+ioff;j+joff;k+koff],IX_OFFSET + cx + 3) 
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],IX_OFFSET + cx + 3)
+          syy = WHalf(CHF_IX[i+ioff;j+joff;k+koff],IX_OFFSET + cy + 3)
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],IX_OFFSET + cy + 3)
+          szz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],IX_OFFSET + cz + 3)
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],IX_OFFSET + cz + 3)
+          sxy = WHalf(CHF_IX[i+ioff;j+joff;k+koff],IX_OFFSET + cxy   )
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],IX_OFFSET + cxy   )
+          sxz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],IX_OFFSET + cxz   )
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],IX_OFFSET + cxz   )
+          syz = WHalf(CHF_IX[i+ioff;j+joff;k+koff],IX_OFFSET + cyz   )
+     &        - WHalf(CHF_IX[i     ;j     ;k     ],IX_OFFSET + cyz   )
 
-          AdWdx(CHF_IX[i;j;k],11 + cx    ) = -rv * scale * sxx / rho
-          AdWdx(CHF_IX[i;j;k],11 + cy    ) = -rv * scale * sxy / rho
-          AdWdx(CHF_IX[i;j;k],11 + cz    ) = -rv * scale * sxz / rho
-          AdWdx(CHF_IX[i;j;k],11 + cx + 3) = -rv * scale * vx  * (lam + 2.0d0 * mu)
-          AdWdx(CHF_IX[i;j;k],11 + cy + 3) = -rv * scale * vx  * lam
-          AdWdx(CHF_IX[i;j;k],11 + cz + 3) = -rv * scale * vx  * lam
-          AdWdx(CHF_IX[i;j;k],11 + cxy   ) = -rv * scale * vy  * mu
-          AdWdx(CHF_IX[i;j;k],11 + cxz   ) = -rv * scale * vz  * mu
-          AdWdx(CHF_IX[i;j;k],11 + cyz   ) = -rv * scale * 0d0
-          AdWdx(CHF_IX[i;j;k],11 +  9    ) = -rv * scale * 0d0
-          AdWdx(CHF_IX[i;j;k],11 + 10    ) = -rv * scale * 0d0
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cx    ) = -rv * scale * sxx / rho
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cy    ) = -rv * scale * sxy / rho
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cz    ) = -rv * scale * sxz / rho
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cx + 3) = -rv * scale * vx  * (lam + 2.0d0 * mu)
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cy + 3) = -rv * scale * vx  * lam
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cz + 3) = -rv * scale * vx  * lam
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cxy   ) = -rv * scale * vy  * mu
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cxz   ) = -rv * scale * vz  * mu
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cyz   ) = -rv * scale * 0d0
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET +  9    ) = -rv * scale * 0d0
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + 10    ) = -rv * scale * 0d0
         CHF_ENDDO
         return
         end
@@ -976,35 +963,35 @@ C         so we set w- = -w+
 C         This is a left boundary
 C         so we set w+ = -w-
           if (lohisign .eq. -1) then
-            wmx = (WInside(CHF_IX[i;j;k],11 + cx + 3) + rv*Zp * WInside(CHF_IX[i;j;k],11 + cx))
-            wmy = (WInside(CHF_IX[i;j;k],11 + cxy   ) + rv*Zs * WInside(CHF_IX[i;j;k],11 + cy))
-            wmz = (WInside(CHF_IX[i;j;k],11 + cxz   ) + rv*Zs * WInside(CHF_IX[i;j;k],11 + cz))
+            wmx = (WInside(CHF_IX[i;j;k],IX_OFFSET + cx + 3) + rv*Zp * WInside(CHF_IX[i;j;k],IX_OFFSET + cx))
+            wmy = (WInside(CHF_IX[i;j;k],IX_OFFSET + cxy   ) + rv*Zs * WInside(CHF_IX[i;j;k],IX_OFFSET + cy))
+            wmz = (WInside(CHF_IX[i;j;k],IX_OFFSET + cxz   ) + rv*Zs * WInside(CHF_IX[i;j;k],IX_OFFSET + cz))
             wpx = -wmx
             wpy = -wmy
             wpz = -wmz
 C         This is a right boundary
 C         so we set w- = -w+
           else
-            wpx = (WInside(CHF_IX[i;j;k],11 + cx + 3) - rv*Zp * WInside(CHF_IX[i;j;k],11 + cx))
-            wpy = (WInside(CHF_IX[i;j;k],11 + cxy   ) - rv*Zs * WInside(CHF_IX[i;j;k],11 + cy))
-            wpz = (WInside(CHF_IX[i;j;k],11 + cxz   ) - rv*Zs * WInside(CHF_IX[i;j;k],11 + cz))
+            wpx = (WInside(CHF_IX[i;j;k],IX_OFFSET + cx + 3) - rv*Zp * WInside(CHF_IX[i;j;k],IX_OFFSET + cx))
+            wpy = (WInside(CHF_IX[i;j;k],IX_OFFSET + cxy   ) - rv*Zs * WInside(CHF_IX[i;j;k],IX_OFFSET + cy))
+            wpz = (WInside(CHF_IX[i;j;k],IX_OFFSET + cxz   ) - rv*Zs * WInside(CHF_IX[i;j;k],IX_OFFSET + cz))
             wmx = -wpx
             wmy = -wpy
             wmz = -wpz
           endif
           sxx = (wmx + wpx) / (2.0d0)
-          SHF = -(WInside(CHF_IX[i;j;k],11 + cx) - sxx) * lam / (lam + 2.0d0 * mu)
-          Wgdnv(CHF_IX[i;j;k],11 + cx    ) = rv*(wmx - wpx) / (2.0d0 * Zp)
-          Wgdnv(CHF_IX[i;j;k],11 + cy    ) = rv*(wmy - wpy) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],11 + cz    ) = rv*(wmz - wpz) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],11 + cx + 3) = sxx
-          Wgdnv(CHF_IX[i;j;k],11 + cy + 3) = WInside(CHF_IX[i;j;k],11 + cy + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],11 + cz + 3) = WInside(CHF_IX[i;j;k],11 + cz + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],11 + cxy   ) = (wmy + wpy) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],11 + cxz   ) = (wmz + wpz) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],11 + cyz   ) = WInside(CHF_IX[i;j;k],11 + cyz  )
-          Wgdnv(CHF_IX[i;j;k],11 +  9    ) = WInside(CHF_IX[i;j;k],11 +  9   )
-          Wgdnv(CHF_IX[i;j;k],11 + 10    ) = WInside(CHF_IX[i;j;k],11 + 10   )
+          SHF = -(WInside(CHF_IX[i;j;k],IX_OFFSET + cx) - sxx) * lam / (lam + 2.0d0 * mu)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cx    ) = rv*(wmx - wpx) / (2.0d0 * Zp)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy    ) = rv*(wmy - wpy) / (2.0d0 * Zs)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz    ) = rv*(wmz - wpz) / (2.0d0 * Zs)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cx + 3) = sxx
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy + 3) = WInside(CHF_IX[i;j;k],IX_OFFSET + cy + 3) + SHF
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz + 3) = WInside(CHF_IX[i;j;k],IX_OFFSET + cz + 3) + SHF
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cxy   ) = (wmy + wpy) / (2.0d0)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cxz   ) = (wmz + wpz) / (2.0d0)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cyz   ) = WInside(CHF_IX[i;j;k],IX_OFFSET + cyz  )
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET +  9    ) = WInside(CHF_IX[i;j;k],IX_OFFSET +  9   )
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + 10    ) = WInside(CHF_IX[i;j;k],IX_OFFSET + 10   )
         CHF_ENDDO
 
         
@@ -1068,13 +1055,13 @@ C
         wmz_1 = background(cxz   ) + Zs * background(cz)
 
         ! Side 2
-        wpx_2 = background(11 + cx + 3) - rv*Zp * background(11 + cx)
-        wpy_2 = background(11 + cxy   ) - rv*Zs * background(11 + cy)
-        wpz_2 = background(11 + cxz   ) - rv*Zs * background(11 + cz)
+        wpx_2 = background(IX_OFFSET + cx + 3) - rv*Zp * background(IX_OFFSET + cx)
+        wpy_2 = background(IX_OFFSET + cxy   ) - rv*Zs * background(IX_OFFSET + cy)
+        wpz_2 = background(IX_OFFSET + cxz   ) - rv*Zs * background(IX_OFFSET + cz)
 
-        wmx_2 = background(11 + cx + 3) + rv*Zp * background(11 + cx)
-        wmy_2 = background(11 + cxy   ) + rv*Zs * background(11 + cy)
-        wmz_2 = background(11 + cxz   ) + rv*Zs * background(11 + cz)
+        wmx_2 = background(IX_OFFSET + cx + 3) + rv*Zp * background(IX_OFFSET + cx)
+        wmy_2 = background(IX_OFFSET + cxy   ) + rv*Zs * background(IX_OFFSET + cy)
+        wmz_2 = background(IX_OFFSET + cxz   ) + rv*Zs * background(IX_OFFSET + cz)
 
 
         CHF_MULTIDO[box;i;j;k]
@@ -1108,29 +1095,29 @@ C         This is a right boundary
           ! Side 2
 C         This is a left boundary
           if (lohisign .eq. -1) then
-            wmx_2 = (WInside(CHF_IX[i;j;k],11 + cx + 3) + rv*Zp * WInside(CHF_IX[i;j;k],11 + cx))
-            wmy_2 = (WInside(CHF_IX[i;j;k],11 + cxy   ) + rv*Zs * WInside(CHF_IX[i;j;k],11 + cy))
-            wmz_2 = (WInside(CHF_IX[i;j;k],11 + cxz   ) + rv*Zs * WInside(CHF_IX[i;j;k],11 + cz))
+            wmx_2 = (WInside(CHF_IX[i;j;k],IX_OFFSET + cx + 3) + rv*Zp * WInside(CHF_IX[i;j;k],IX_OFFSET + cx))
+            wmy_2 = (WInside(CHF_IX[i;j;k],IX_OFFSET + cxy   ) + rv*Zs * WInside(CHF_IX[i;j;k],IX_OFFSET + cy))
+            wmz_2 = (WInside(CHF_IX[i;j;k],IX_OFFSET + cxz   ) + rv*Zs * WInside(CHF_IX[i;j;k],IX_OFFSET + cz))
 C         This is a right boundary
           else
-            wpx_2 = (WInside(CHF_IX[i;j;k],11 + cx + 3) - rv*Zp * WInside(CHF_IX[i;j;k],11 + cx))
-            wpy_2 = (WInside(CHF_IX[i;j;k],11 + cxy   ) - rv*Zs * WInside(CHF_IX[i;j;k],11 + cy))
-            wpz_2 = (WInside(CHF_IX[i;j;k],11 + cxz   ) - rv*Zs * WInside(CHF_IX[i;j;k],11 + cz))
+            wpx_2 = (WInside(CHF_IX[i;j;k],IX_OFFSET + cx + 3) - rv*Zp * WInside(CHF_IX[i;j;k],IX_OFFSET + cx))
+            wpy_2 = (WInside(CHF_IX[i;j;k],IX_OFFSET + cxy   ) - rv*Zs * WInside(CHF_IX[i;j;k],IX_OFFSET + cy))
+            wpz_2 = (WInside(CHF_IX[i;j;k],IX_OFFSET + cxz   ) - rv*Zs * WInside(CHF_IX[i;j;k],IX_OFFSET + cz))
           endif
 
           sxx = (wmx_2 + wpx_2) / (2.0d0)
-          SHF = -(WInside(CHF_IX[i;j;k],11 + cx) - sxx) * lam / (lam + 2.0d0 * mu)
-          Wgdnv(CHF_IX[i;j;k],11 + cx    ) = rv*(wmx_2 - wpx_2) / (2.0d0 * Zp)
-          Wgdnv(CHF_IX[i;j;k],11 + cy    ) = rv*(wmy_2 - wpy_2) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],11 + cz    ) = rv*(wmz_2 - wpz_2) / (2.0d0 * Zs)
-          Wgdnv(CHF_IX[i;j;k],11 + cx + 3) = sxx
-          Wgdnv(CHF_IX[i;j;k],11 + cy + 3) = WInside(CHF_IX[i;j;k],11 + cy + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],11 + cz + 3) = WInside(CHF_IX[i;j;k],11 + cz + 3) + SHF
-          Wgdnv(CHF_IX[i;j;k],11 + cxy   ) = (wmy_2 + wpy_2) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],11 + cxz   ) = (wmz_2 + wpz_2) / (2.0d0)
-          Wgdnv(CHF_IX[i;j;k],11 + cyz   ) = WInside(CHF_IX[i;j;k],11 + cyz  )
-          Wgdnv(CHF_IX[i;j;k],11 +  9    ) = WInside(CHF_IX[i;j;k],11 +  9   )
-          Wgdnv(CHF_IX[i;j;k],11 + 10    ) = WInside(CHF_IX[i;j;k],11 + 10   )
+          SHF = -(WInside(CHF_IX[i;j;k],IX_OFFSET + cx) - sxx) * lam / (lam + 2.0d0 * mu)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cx    ) = rv*(wmx_2 - wpx_2) / (2.0d0 * Zp)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy    ) = rv*(wmy_2 - wpy_2) / (2.0d0 * Zs)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz    ) = rv*(wmz_2 - wpz_2) / (2.0d0 * Zs)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cx + 3) = sxx
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy + 3) = WInside(CHF_IX[i;j;k],IX_OFFSET + cy + 3) + SHF
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz + 3) = WInside(CHF_IX[i;j;k],IX_OFFSET + cz + 3) + SHF
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cxy   ) = (wmy_2 + wpy_2) / (2.0d0)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cxz   ) = (wmz_2 + wpz_2) / (2.0d0)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cyz   ) = WInside(CHF_IX[i;j;k],IX_OFFSET + cyz  )
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET +  9    ) = WInside(CHF_IX[i;j;k],IX_OFFSET +  9   )
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + 10    ) = WInside(CHF_IX[i;j;k],IX_OFFSET + 10   )
         CHF_ENDDO
 
         return
@@ -1167,31 +1154,31 @@ c       Set the background values
 c
 
 C       first on side 1
-        background( 0) = aback(0)
-        background( 1) = aback(1)
-        background( 2) = aback(2)
-        background( 3) = aback(3)
-        background( 4) = aback(4)
-        background( 5) = aback(5)
-        background( 6) = aback(6)
-        background( 7) = aback(7)
-        background( 8) = aback(8)
-        background( 9) = 0d0
-        background(10) = 0d0
+        background(IX1_VX ) = aback(0)
+        background(IX1_VY ) = aback(1)
+        background(IX1_VZ ) = aback(2)
+        background(IX1_SXX) = aback(3)
+        background(IX1_SYY) = aback(4)
+        background(IX1_SZZ) = aback(5)
+        background(IX1_SXY) = aback(6)
+        background(IX1_SXZ) = aback(7)
+        background(IX1_SYZ) = aback(8)
+        background(IX1_LAM) = 0d0
+        background(IX1_GAM) = 0d0
 
 C       now on side 2 (it is only the velocities that differ)
 C       Currently the difference is only in velocity
-        background(11+ 0) = aback(11)
-        background(11+ 1) = aback(10)
-        background(11+ 2) = aback(11)
-        background(11+ 3) = aback(3)
-        background(11+ 4) = aback(4)
-        background(11+ 5) = aback(5)
-        background(11+ 6) = aback(6)
-        background(11+ 7) = aback(7)
-        background(11+ 8) = aback(8)
-        background(11+ 9) = 0d0
-        background(11+10) = 0d0
+        background(IX2_VX ) = aback( 9)
+        background(IX2_VY ) = aback(10)
+        background(IX2_VZ ) = aback(11)
+        background(IX2_SXX) = aback( 3)
+        background(IX2_SYY) = aback( 4)
+        background(IX2_SZZ) = aback( 5)
+        background(IX2_SXY) = aback( 6)
+        background(IX2_SXZ) = aback( 7)
+        background(IX2_SYZ) = aback( 8)
+        background(IX2_LAM) = 0d0
+        background(IX2_GAM) = 0d0
 
         return
         end
@@ -1232,17 +1219,17 @@ C
            U(CHF_IX[i;j;k], 9) = 0d0
            U(CHF_IX[i;j;k],10) = 0d0
 
-           U(CHF_IX[i;j;k],11 +  0) = background(11 + 0)
-           U(CHF_IX[i;j;k],11 +  1) = background(11 + 1)
-           U(CHF_IX[i;j;k],11 +  2) = background(11 + 2)
-           U(CHF_IX[i;j;k],11 +  3) = background(11 + 3)
-           U(CHF_IX[i;j;k],11 +  4) = background(11 + 4)
-           U(CHF_IX[i;j;k],11 +  5) = background(11 + 5)
-           U(CHF_IX[i;j;k],11 +  6) = background(11 + 6)
-           U(CHF_IX[i;j;k],11 +  7) = background(11 + 7)
-           U(CHF_IX[i;j;k],11 +  8) = background(11 + 8)
-           U(CHF_IX[i;j;k],11 +  9) = 0d0
-           U(CHF_IX[i;j;k],11 + 10) = 0d0
+           U(CHF_IX[i;j;k],IX_OFFSET +  0) = background(IX_OFFSET + 0)
+           U(CHF_IX[i;j;k],IX_OFFSET +  1) = background(IX_OFFSET + 1)
+           U(CHF_IX[i;j;k],IX_OFFSET +  2) = background(IX_OFFSET + 2)
+           U(CHF_IX[i;j;k],IX_OFFSET +  3) = background(IX_OFFSET + 3)
+           U(CHF_IX[i;j;k],IX_OFFSET +  4) = background(IX_OFFSET + 4)
+           U(CHF_IX[i;j;k],IX_OFFSET +  5) = background(IX_OFFSET + 5)
+           U(CHF_IX[i;j;k],IX_OFFSET +  6) = background(IX_OFFSET + 6)
+           U(CHF_IX[i;j;k],IX_OFFSET +  7) = background(IX_OFFSET + 7)
+           U(CHF_IX[i;j;k],IX_OFFSET +  8) = background(IX_OFFSET + 8)
+           U(CHF_IX[i;j;k],IX_OFFSET +  9) = 0d0
+           U(CHF_IX[i;j;k],IX_OFFSET + 10) = 0d0
 
         CHF_ENDDO
         

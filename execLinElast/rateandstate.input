@@ -65,7 +65,7 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 2
+comp.max_level = 1
 # For 2D
 comp.ref_ratio = 4 4 4 4 4 4
 # For 3D
@@ -98,7 +98,7 @@ comp.use_artificial_viscosity = 0
 comp.artificial_viscosity = 0.1
 
 # Plot file information
-comp.plot_interval = 10
+comp.plot_interval = 1
 # comp.plot_interval = 1
 comp.plot_prefix  = rs_hdf5/rs_r1.
 comp.pout_name  = pout/rs_r1

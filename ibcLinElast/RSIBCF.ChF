@@ -2,6 +2,8 @@ C
 C Set the constant parameters
 C
 #include "CONSTANTS.H"
+#include "LEINDEX.H"
+#include "RSINDEX.H"
 
         subroutine RSSETF(
      &    CHF_CONST_REAL[ar0],
@@ -64,42 +66,43 @@ C
 
 
 C         Only south face slip velocity
-          Vx = U(CHF_IX[i;j;k],0) - U(CHF_IX[i;j;k],9)
-          Vz = U(CHF_IX[i;j;k],2) - U(CHF_IX[i;j;k],11)
+          Vx = U(CHF_IX[i;j;k],IX1_VX) - U(CHF_IX[i;j;k],IX2_VX)
+          Vz = U(CHF_IX[i;j;k],IX1_VZ) - U(CHF_IX[i;j;k],IX2_VZ)
           V  = SQRT(Vx**2 + Vz**2)
 
 C         ORDER MUST MATCH WHAT IN RSIBC.CPP!!!!
 C         Vx
-          Bout(CHF_IX[i;j;k],0) = Vx
+          Bout(CHF_IX[i;j;k],RX_VX) = Vx
 C         Vz
-          Bout(CHF_IX[i;j;k],1) = Vz
-C         sxy
-          Bout(CHF_IX[i;j;k],2) = U(CHF_IX[i;j;k],6)
-C         syz
-          Bout(CHF_IX[i;j;k],3) = U(CHF_IX[i;j;k],8)
+          Bout(CHF_IX[i;j;k],RX_VZ) = Vz
 C         V
-          Bout(CHF_IX[i;j;k],4) = V
-C         slip
-          Bout(CHF_IX[i;j;k],5) = Bin(CHF_IX[i;j;k],5) + dt*Bout(CHF_IX[i;j;k],0)
-C         slip
-          Bout(CHF_IX[i;j;k],6) = Bin(CHF_IX[i;j;k],6) + dt*Bout(CHF_IX[i;j;k],1)
-C         slip
-          Bout(CHF_IX[i;j;k],7) = Bin(CHF_IX[i;j;k],7) + dt*Bout(CHF_IX[i;j;k],4)
+          Bout(CHF_IX[i;j;k],RX_V) = V
+C         sxy
+          Bout(CHF_IX[i;j;k],RX_SXY) = U(CHF_IX[i;j;k],IX_SXY)
+C         syz
+          Bout(CHF_IX[i;j;k],RX_SYZ) = U(CHF_IX[i;j;k],IX_SYZ)
+C         slip_x
+          Bout(CHF_IX[i;j;k],RX_DX) = Bin(CHF_IX[i;j;k],RX_DX) + dt*Vx
+C         slip_z
+          Bout(CHF_IX[i;j;k],RX_DZ) = Bin(CHF_IX[i;j;k],RX_DZ) + dt*Vz
+C         slip_total
+          Bout(CHF_IX[i;j;k],RX_DT) = Bin(CHF_IX[i;j;k],RX_DT) + dt*V
 C         rupture
-          if (Bin(CHF_IX[i;j;k],8) .gt. time .and.
-     &        Bin(CHF_IX[i;j;k],4) .gt. ruptureThreshold) then
-            Bout(CHF_IX[i;j;k],8) = time
+          if (Bin(CHF_IX[i;j;k],RX_RT) .gt. time .and.
+     &                               V .gt. ruptureThreshold) then
+            Bout(CHF_IX[i;j;k],RX_RT) = time
           endif
 C         syy
-          Bout(CHF_IX[i;j;k],9)  = U(CHF_IX[i;j;k],4)
+          Bout(CHF_IX[i;j;k],RX_SYY)  = U(CHF_IX[i;j;k],IX_SYY)
 C         psi
-          psi = Bin(CHF_IX[i;j;k],10)
+          psi = Bin(CHF_IX[i;j;k],RX_PSI)
           f   = rs_a*log(V*exp(psi/rs_a)/(2.0d0*rs_V0))
           fss = rs_f0 - (rs_b - rs_a)*log(V / rs_V0)
           ! if(rs_fExp > 0d0) then
           !     fss = rs_fw + (fss - rs_fw)*(1 + (V/rs_Vw)**rs_fExp)**(1/rs_fExp)
           ! endif
-          Bout(CHF_IX[i;j;k],10) = psi - dt * (V / rs_L)*(f - fss)
+          Bout(CHF_IX[i;j;k],RX_PSI) = psi - dt * (V / rs_L)*(f - fss)
+          ! print*,psi,Bout(CHF_IX[i;j;k],RX_PSI),V,IX1_VX,IX2_VX
           ! print *,i,psi,V,f,fss
 
         CHF_ENDDO
@@ -149,120 +152,127 @@ C
            y   = (j + half) * dx - y0;
            z   = (k + half) * dx - z0]
  
-C         Get psi
-          psi = GPsi(CHF_IX[i;j;k])
+C          Get psi
+           psi = GPsi(CHF_IX[i;j;k])
 
-C         Get the values on side 1
-          vx1  = WInside(CHF_IX[i;j;k],0)
-          vy1  = WInside(CHF_IX[i;j;k],1)
-          vz1  = WInside(CHF_IX[i;j;k],2)
-          sxx1 = WInside(CHF_IX[i;j;k],3)
-          syy1 = WInside(CHF_IX[i;j;k],4)
-          szz1 = WInside(CHF_IX[i;j;k],5)
-          sxy1 = WInside(CHF_IX[i;j;k],6)
-          sxz1 = WInside(CHF_IX[i;j;k],7)
-          syz1 = WInside(CHF_IX[i;j;k],8)
+C          Get the values on side 1
+           vx1  = WInside(CHF_IX[i;j;k],IX1_VX )
+           vy1  = WInside(CHF_IX[i;j;k],IX1_VY )
+           vz1  = WInside(CHF_IX[i;j;k],IX1_VZ )
+           sxx1 = WInside(CHF_IX[i;j;k],IX1_SXX)
+           syy1 = WInside(CHF_IX[i;j;k],IX1_SYY)
+           szz1 = WInside(CHF_IX[i;j;k],IX1_SZZ)
+           sxy1 = WInside(CHF_IX[i;j;k],IX1_SXY)
+           sxz1 = WInside(CHF_IX[i;j;k],IX1_SXZ)
+           syz1 = WInside(CHF_IX[i;j;k],IX1_SYZ)
 
-C         Get the values on side 1
-          vx2  = WInside(CHF_IX[i;j;k],9 + 0)
-          vy2  = WInside(CHF_IX[i;j;k],9 + 1)
-          vz2  = WInside(CHF_IX[i;j;k],9 + 2)
-          sxx2 = WInside(CHF_IX[i;j;k],9 + 3)
-          syy2 = WInside(CHF_IX[i;j;k],9 + 4)
-          szz2 = WInside(CHF_IX[i;j;k],9 + 5)
-          sxy2 = WInside(CHF_IX[i;j;k],9 + 6)
-          sxz2 = WInside(CHF_IX[i;j;k],9 + 7)
-          syz2 = WInside(CHF_IX[i;j;k],9 + 8)
-C         Get the characteristic propagating into the fault
+C          Get the values on side 2
+           vx2  = WInside(CHF_IX[i;j;k],IX2_VX )
+           vy2  = WInside(CHF_IX[i;j;k],IX2_VY )
+           vz2  = WInside(CHF_IX[i;j;k],IX2_VZ )
+           sxx2 = WInside(CHF_IX[i;j;k],IX2_SXX)
+           syy2 = WInside(CHF_IX[i;j;k],IX2_SYY)
+           szz2 = WInside(CHF_IX[i;j;k],IX2_SZZ)
+           sxy2 = WInside(CHF_IX[i;j;k],IX2_SXY)
+           sxz2 = WInside(CHF_IX[i;j;k],IX2_SXZ)
+           syz2 = WInside(CHF_IX[i;j;k],IX2_SYZ)
 
-          wpxy1 = -sxy1 - Zs * vx1
-          wpyy1 = -syy1 - Zp * vy1
-          wpyz1 = -syz1 - Zs * vz1
+C          Get the characteristic propagating into the fault
 
-          wpxy2 =  sxy2 - Zs * vx2
-          wpyy2 =  syy2 - Zp * vy2
-          wpyz2 =  syz2 - Zs * vz2
+           wpxy1 = -sxy1 - Zs * vx1
+           wpyy1 = -syy1 - Zp * vy1
+           wpyz1 = -syz1 - Zs * vz1
 
-          wpyz1 = 0d0
-          wpyz2 = 0d0
+           wpxy2 =  sxy2 - Zs * vx2
+           wpyy2 =  syy2 - Zp * vy2
+           wpyz2 =  syz2 - Zs * vz2
 
-C         set the perturbation due to nucleation
-          call GAUSSIANFUNC(tau_xy_0,r0,x)
-          tau_xy_0 = nsig*tau_xy_0
-          tau_yz_0 = 0d0
-          phi_xy   = half*(wpxy2-wpxy1) + tau_xy_0
-          phi_yz   = half*(wpyz2-wpyz1) + tau_yz_0
-          ! print *,i,phi_yz,syz1,vz1,syz2,vz2
-          phi      = sqrt(phi_xy**2 + phi_yz**2)
+           wpyz1 = 0d0
+           wpyz2 = 0d0
+
+C          set the perturbation due to nucleation
+           call GAUSSIANFUNC(tau_xy_0,r0,x)
+           tau_xy_0 = nsig*tau_xy_0
+           ! tau_xy_0 = 0d0
+           tau_yz_0 = 0d0
+           phi_xy   = half*(wpxy2-wpxy1) + tau_xy_0
+           phi_yz   = half*(wpyz2-wpyz1) + tau_yz_0
+           ! print *,i,phi_yz,syz1,vz1,syz2,vz2
+           phi      = sqrt(phi_xy**2 + phi_yz**2)
 
 
 
-C         find the normal stress
-          syy1   = -(wpyy1-wpyy2)/2.0d0
-          syy2   = -(wpyy1-wpyy2)/2.0d0
+C          find the normal stress
+           syy1   = -(wpyy1-wpyy2)/2.0d0
+           syy2   = -(wpyy1-wpyy2)/2.0d0
 
-          vy1   = -(wpyy1+wpyy2)/2.0d0/Zp
-          vy2   = -(wpyy1+wpyy2)/2.0d0/Zp
-          ! vy1    = -(syy1 + wpyy1)/Zp
-          ! vy2    = -(syy1 + wpyy1)/Zp
+           vy1   = -(wpyy1+wpyy2)/2.0d0/Zp
+           vy2   = -(wpyy1+wpyy2)/2.0d0/Zp
+           ! vy1    = -(syy1 + wpyy1)/Zp
+           ! vy2    = -(syy1 + wpyy1)/Zp
 
-C         Use the newton solver to find the slip velocity and shear
-C         strength
+C          Use the newton solver to find the slip velocity and shear
+C          strength
 
-C         We use the fact that 
-C            \vec{\tau} = \vec{phi} - \frac{\tilde{Z}_{S} \vec{V}
-C         which since \vec{\tau} = \alpha \vec{V} implies they are
-C         parallel with \vec{phi} as well. So we can use this to split
-C         tau (magnitude) into tau_xy and tau_yz
+C          We use the fact that 
+C             \vec{\tau} = \vec{phi} - \frac{\tilde{Z}_{S} \vec{V}
+C          which since \vec{\tau} = \alpha \vec{V} implies they are
+C          parallel with \vec{phi} as well. So we can use this to split
+C          tau (magnitude) into tau_xy and tau_yz
 C 
-C         phi_xy = (wpxy2*Zs1-wpxy1*Zs2)/(Zs1+Zs2)
-C         phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
+C          phi_xy = (wpxy2*Zs1-wpxy1*Zs2)/(Zs1+Zs2)
+C          phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
 
-          V = sqrt((vx1-vx2)**2 + (vz1-vz2)**2)
+           V = sqrt((vx1-vx2)**2 + (vz1-vz2)**2)
 
-          CALL RSNEWTON(phi,psi,-syy1,V,tau)
-          ! tau = phi
-          ! print *,i,phi,psi,-syy1,tau,V
+           CALL RSNEWTON(phi,psi,-syy1,V,tau)
+           ! tau = phi
+           ! print *,i,phi,psi,-syy1,tau,V
 
-          sxy1   = (phi_xy/phi) * tau - tau_xy_0
-          syz1   = (phi_yz/phi) * tau - tau_yz_0
-          Vx     = (phi_xy/phi) * V
-          Vz     = (phi_yz/phi) * V
+           sxy1   = (phi_xy/phi) * tau - tau_xy_0
+           syz1   = (phi_yz/phi) * tau - tau_yz_0
+           ! Vx     = (phi_xy/phi) * V
+           ! Vz     = (phi_yz/phi) * V
 
-          vx1    = -(sxy1 + wpxy1)/Zs
-          vz1    = -(syz1 + wpyz1)/Zs
+           vx1    = -(sxy1 + wpxy1)/Zs
+           vz1    = -(syz1 + wpyz1)/Zs
 
-          SHF = -(vy1 - syy1) * lam / (lam + 2.0d0 * mu)
+           SHF = -(vy1 - syy1) * lam / (lam + 2.0d0 * mu)
 
-          Wgdnv(CHF_IX[i;j;k],0) = vx1
-          Wgdnv(CHF_IX[i;j;k],1) = vy1
-          Wgdnv(CHF_IX[i;j;k],2) = vz1
-          Wgdnv(CHF_IX[i;j;k],3) = sxx1 + SHF
-          Wgdnv(CHF_IX[i;j;k],4) = syy1
-          Wgdnv(CHF_IX[i;j;k],5) = szz1 + SHF
-          Wgdnv(CHF_IX[i;j;k],6) = sxy1
-          Wgdnv(CHF_IX[i;j;k],7) = sxz1
-          Wgdnv(CHF_IX[i;j;k],8) = syz1
+           Wgdnv(CHF_IX[i;j;k],IX1_VX ) = vx1
+           Wgdnv(CHF_IX[i;j;k],IX1_VY ) = vy1
+           Wgdnv(CHF_IX[i;j;k],IX1_VZ ) = vz1
+           Wgdnv(CHF_IX[i;j;k],IX1_SXX) = sxx1 + SHF
+           Wgdnv(CHF_IX[i;j;k],IX1_SYY) = syy1
+           Wgdnv(CHF_IX[i;j;k],IX1_SZZ) = szz1 + SHF
+           Wgdnv(CHF_IX[i;j;k],IX1_SXY) = sxy1
+           Wgdnv(CHF_IX[i;j;k],IX1_SXZ) = sxz1
+           Wgdnv(CHF_IX[i;j;k],IX1_SYZ) = syz1
+           Wgdnv(CHF_IX[i;j;k],IX1_GAM) = 0d0
+           Wgdnv(CHF_IX[i;j;k],IX1_LAM) = 0d0
 
-          sxy2   = (phi_xy/phi) * tau - tau_xy_0
-          syz2   = (phi_yz/phi) * tau - tau_yz_0
+           sxy2   = (phi_xy/phi) * tau - tau_xy_0
+           syz2   = (phi_yz/phi) * tau - tau_yz_0
 
-          vx2    = (sxy2 - wpxy2)/Zs
-          vz2    = (syz2 - wpyz2)/Zs
-          ! vx2    = vx1 - Vx
-          ! vz2    = vz1 - Vz
+           vx2    = (sxy2 - wpxy2)/Zs
+           vz2    = (syz2 - wpyz2)/Zs
+           ! vx2    = vx1 - Vx
+           ! vz2    = vz1 - Vz
 
-          SHF = -(vy2 - syy2) * lam / (lam + 2.0d0 * mu)
+           SHF = -(vy2 - syy2) * lam / (lam + 2.0d0 * mu)
 
-          Wgdnv(CHF_IX[i;j;k],9 + 0) = vx2
-          Wgdnv(CHF_IX[i;j;k],9 + 1) = vy2
-          Wgdnv(CHF_IX[i;j;k],9 + 2) = vz2
-          Wgdnv(CHF_IX[i;j;k],9 + 3) = sxx2 + SHF
-          Wgdnv(CHF_IX[i;j;k],9 + 4) = syy2
-          Wgdnv(CHF_IX[i;j;k],9 + 5) = szz2 + SHF
-          Wgdnv(CHF_IX[i;j;k],9 + 6) = sxy2
-          Wgdnv(CHF_IX[i;j;k],9 + 7) = sxz2
-          Wgdnv(CHF_IX[i;j;k],9 + 8) = syz2
+           Wgdnv(CHF_IX[i;j;k],IX2_VX ) = vx2
+           Wgdnv(CHF_IX[i;j;k],IX2_VY ) = vy2
+           Wgdnv(CHF_IX[i;j;k],IX2_VZ ) = vz2
+           Wgdnv(CHF_IX[i;j;k],IX2_SXX) = sxx2 + SHF
+           Wgdnv(CHF_IX[i;j;k],IX2_SYY) = syy2
+           Wgdnv(CHF_IX[i;j;k],IX2_SZZ) = szz2 + SHF
+           Wgdnv(CHF_IX[i;j;k],IX2_SXY) = sxy2
+           Wgdnv(CHF_IX[i;j;k],IX2_SXZ) = sxz2
+           Wgdnv(CHF_IX[i;j;k],IX2_SYZ) = syz2
+           Wgdnv(CHF_IX[i;j;k],IX2_GAM) = 0d0
+           Wgdnv(CHF_IX[i;j;k],IX2_LAM) = 0d0
+           ! print*,vx1,vx2
 
        CHF_ENDDO
 

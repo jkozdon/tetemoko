@@ -1,5 +1,5 @@
-#ifndef _RSIBC_H_
-#define _RSIBC_H_
+#ifndef _FrictionalIBC_H_
+#define _FrictionalIBC_H_
 
 #include "FArrayBox.H"
 #include "REAL.H"
@@ -10,38 +10,27 @@
 
 #include "UsingNamespace.H"
 
-class RSIBC: public LEPhysIBC
+class FrictionalIBC: public LEPhysIBC
 {
 public:
     /// Null Constructor
     /**
     */
-    RSIBC();
+    FrictionalIBC();
 
     /// Constructor which defines parameters used by Fortran routines
     /**
     */
-    RSIBC(const Real& r0,
-        const Real& x0,
-        const Real& y0,
-        const Real& sigma,
-        const Real& ntime,
-        const Real& psi,
-        const Real& a,
-        const Real& b,
-        const Real& V0,
-        const Real& f0,
-        const Real& L,
-        const Real& fw,
-        const Real& Vw,
-        const Real& fExp,
-        const Real ruptureVelocityThreshold,
+    FrictionalIBC(const Real& cs,
+        const Real& cp,
+        const Real& mu,
+        const vector<Real> background,
         const Vector<int>& boundaryType);
 
     /// Destructor
     /**
     */
-    virtual ~RSIBC();
+    virtual ~FrictionalIBC();
 
     /// Define ?
 
@@ -60,10 +49,7 @@ public:
     */
     virtual void initialize(LevelData<FArrayBox>& a_U);
 
-    /// Set up initial boundary data
-    /**
-    */
-    virtual void initializeBdry(LevelData<FArrayBox>& a_U);
+    virtual void initializeBdry(LevelData<FArrayBox>& a_B);
 
     /// Set up initial boundary data
     /**
@@ -130,14 +116,43 @@ public:
         return m_numBdryVars;
     }
 
-    virtual Vector<string> bdryNames();
+    virtual Vector<string> bdryNames()
+    {
+        Vector<string> bdryNames;
+        bdryNames.push_back("Vx");
+        bdryNames.push_back("Vz");
+        bdryNames.push_back("sxy");
+        bdryNames.push_back("syz");
+        bdryNames.push_back("V");
+        bdryNames.push_back("slip_x");
+        bdryNames.push_back("slip_z");
+        bdryNames.push_back("slip_total");
+        bdryNames.push_back("rupture");
+        return bdryNames;
+    }
+
+    virtual void dumpBdryData(FILE * a_boundaryDataFile);
 
 protected:
     bool m_isFortranCommonSet;
-    Real m_psi;
     Vector<int> m_boundaryType;
-
+    bool m_isPatchBoxSet;
     bool m_tmpBdryDataSet;
+
+    int m_numPatches;
+    Vector<Real> m_xcPatches;
+    Vector<Real> m_xwPatches;
+    Vector<Real> m_zcPatches;
+    Vector<Real> m_zwPatches;
+    Vector<Real> m_tauPatches;
+
+    Real m_outsideFriction;
+    Real m_smoothValue;
+    int  m_smoothWidthNumCells;
+    Vector<Real> m_fricBoxCenter;
+    Vector<Real> m_fricBoxWidth;
+    Vector<Box>  m_patchBoxes;
+
     FArrayBox* m_tmpBdryData;
 private:
 };

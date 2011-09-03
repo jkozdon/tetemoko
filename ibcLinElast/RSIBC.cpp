@@ -2,21 +2,10 @@
 #include "LoHiCenter.H"
 
 #include "RSIBC.H"
+#include "RSINDEX.H"
 #include "RSIBCF_F.H"
 #include "LinElastPhysicsF_F.H"
 #include "BoxIterator.H"
-
-#define IX_VX          (0)
-#define IX_VZ          (1)
-#define IX_SXY         (2)
-#define IX_SYZ         (3)
-#define IX_V           (4)
-#define IX_SLIP_X      (5)
-#define IX_SLIP_Z      (6)
-#define IX_SLIP_T      (7)
-#define IX_RT          (8)
-#define IX_SYY         (9)
-#define IX_PSI         (10)
 
 /// Null Constructor
 RSIBC::RSIBC()
@@ -121,37 +110,37 @@ void RSIBC::initializeBdry(LevelData<FArrayBox>& a_B)
         bBox &= m_domain;
 
         // Set up initial condition in this grid
-        FORT_LINELASTSETFAB(CHF_FRA1(B,IX_VX),
+        FORT_LINELASTSETFAB(CHF_FRA1(B,RX_VX),
             CHF_BOX(bBox),
             CHF_CONST_REAL(tmpVal));
-        FORT_LINELASTSETFAB(CHF_FRA1(B,IX_VZ),
+        FORT_LINELASTSETFAB(CHF_FRA1(B,RX_VZ),
             CHF_BOX(bBox),
             CHF_CONST_REAL(tmpVal));
-        FORT_LINELASTSETFAB(CHF_FRA1(B,IX_SXY),
+        FORT_LINELASTSETFAB(CHF_FRA1(B,RX_SXY),
             CHF_BOX(bBox),
             CHF_CONST_REAL(tmpVal));
-        FORT_LINELASTSETFAB(CHF_FRA1(B,IX_SYZ),
+        FORT_LINELASTSETFAB(CHF_FRA1(B,RX_SYZ),
             CHF_BOX(bBox),
             CHF_CONST_REAL(tmpVal));
-        FORT_LINELASTSETFAB(CHF_FRA1(B,IX_V),
+        FORT_LINELASTSETFAB(CHF_FRA1(B,RX_V),
             CHF_BOX(bBox),
             CHF_CONST_REAL(tmpVal));
-        FORT_LINELASTSETFAB(CHF_FRA1(B,IX_SLIP_X),
+        FORT_LINELASTSETFAB(CHF_FRA1(B,RX_DX),
             CHF_BOX(bBox),
             CHF_CONST_REAL(tmpVal));
-        FORT_LINELASTSETFAB(CHF_FRA1(B,IX_SLIP_Z),
+        FORT_LINELASTSETFAB(CHF_FRA1(B,RX_DZ),
             CHF_BOX(bBox),
             CHF_CONST_REAL(tmpVal));
-        FORT_LINELASTSETFAB(CHF_FRA1(B,IX_SLIP_T),
+        FORT_LINELASTSETFAB(CHF_FRA1(B,RX_DT),
             CHF_BOX(bBox),
             CHF_CONST_REAL(tmpVal));
-        FORT_LINELASTSETFAB(CHF_FRA1(B,IX_RT),
+        FORT_LINELASTSETFAB(CHF_FRA1(B,RX_RT),
             CHF_BOX(bBox),
             CHF_CONST_REAL(tmpVal2));
-        FORT_LINELASTSETFAB(CHF_FRA1(B,IX_SYY),
+        FORT_LINELASTSETFAB(CHF_FRA1(B,RX_SYY),
             CHF_BOX(bBox),
             CHF_CONST_REAL(tmpVal));
-        FORT_LINELASTSETFAB(CHF_FRA1(B,IX_PSI),
+        FORT_LINELASTSETFAB(CHF_FRA1(B,RX_PSI),
             CHF_BOX(bBox),
             CHF_CONST_REAL(m_psi));
     }
@@ -219,7 +208,7 @@ void RSIBC::primBC(FArrayBox&            a_WGdnv,
                     FORT_RSFAULTBCF(CHF_FRA(a_WGdnv),
                         CHF_CONST_FRA(a_WShiftInside),
                         CHF_CONST_FRA(a_W),
-                        CHF_CONST_FRA1((*m_tmpBdryData),IX_PSI),
+                        CHF_CONST_FRA1((*m_tmpBdryData),RX_PSI),
                         CHF_CONST_INT(lohisign),
                         CHF_CONST_REAL(m_dx),
                         CHF_CONST_REAL(a_time),
@@ -231,7 +220,7 @@ void RSIBC::primBC(FArrayBox&            a_WGdnv,
                     FORT_RSFAULTBCF(CHF_FRA(a_WGdnv),
                         CHF_CONST_FRA(a_WShiftInside),
                         CHF_CONST_FRA(a_W),
-                        CHF_CONST_FRA1((*m_bdryData),IX_PSI),
+                        CHF_CONST_FRA1((*m_bdryData),RX_PSI),
                         CHF_CONST_INT(lohisign),
                         CHF_CONST_REAL(m_dx),
                         CHF_CONST_REAL(a_time),
@@ -334,4 +323,23 @@ bool RSIBC::tagCellsInit(FArrayBox& markFAB)
 {
     // markFAB.setVal(1,m_patchBoxes[itor] & markFAB.box(),0);
     return true;
+}
+
+// Names for the boundary data
+Vector<string> RSIBC::bdryNames()
+{
+    // MUST MATCH RSINDEX.H ORDER!!!
+    Vector<string> bdryNames;
+    bdryNames.push_back("Vx");
+    bdryNames.push_back("Vz");
+    bdryNames.push_back("V");
+    bdryNames.push_back("sxy");
+    bdryNames.push_back("syz");
+    bdryNames.push_back("syy");
+    bdryNames.push_back("slip x");
+    bdryNames.push_back("slip z");
+    bdryNames.push_back("slip total");
+    bdryNames.push_back("rupture time");
+    bdryNames.push_back("psi");
+    return bdryNames;
 }
