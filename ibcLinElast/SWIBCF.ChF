@@ -232,7 +232,7 @@ C         phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
           vx1    = -(sxy1 + wpxy1)/Zs
           vz1    = -(syz1 + wpyz1)/Zs
 
-          SHF = -(vy1 - syy1) * lam / (lam + 2.0d0 * mu)
+          SHF = -(vy1 - syy1) * lam / (lam + 2.0d0 * G)
 
           Wgdnv(CHF_IX[i;j;k],0) = vx1
           Wgdnv(CHF_IX[i;j;k],1) = vy1
@@ -250,7 +250,7 @@ C         phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
           vx2    = (sxy2 - wpxy2)/Zs
           vz2    = (syz2 - wpyz2)/Zs
 
-          SHF = -(vy2 - syy2) * lam / (lam + 2.0d0 * mu)
+          SHF = -(vy2 - syy2) * lam / (lam + 2.0d0 * G)
 
           Wgdnv(CHF_IX[i;j;k],9 + 0) = vx2
           Wgdnv(CHF_IX[i;j;k],9 + 1) = vy2

@@ -1,6 +1,6 @@
 C
 C   wave propagation constants
 C
-        real_t cs,cp,mu,rho,lam,Zp,Zs
+        real_t cs,cp,G ,rho,lam,Zp,Zs,K
         real_t background(0:21)
-        common /IBC/ cs,cp,mu,rho,lam,Zp,Zs,background
+        common /IBC/ cs,cp,G ,rho,lam,K,Zp,Zs,background

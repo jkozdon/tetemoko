@@ -124,7 +124,7 @@ C         We assume that the boundary is on the bottom
 
           syy = (wmyy + wpyy) / (2.0d0)
           vy  = (wmyy - wpyy) / (2.0d0 * Zp)
-          SHF = -(vy - syy) * lam / (lam + 2.0d0 * mu)
+          SHF = -(vy - syy) * lam / (lam + 2.0d0 * G)
           Wgdnv(CHF_IX[i;j;k],0) = (wmxy - wpxy) / (2.0d0 * Zs)
           Wgdnv(CHF_IX[i;j;k],1) = vy
           Wgdnv(CHF_IX[i;j;k],2) = (wmyz - wpyz) / (2.0d0 * Zs)
@@ -175,7 +175,7 @@ C
         real_t alpha, beta
         real_t phix, phiz, phi
         real_t V,Vmin,Vmax,sn,dV,tau
-        real_t dg,g
+        real_t dfval,fval
         real_t atol
         integer i,IMAX
 
@@ -194,20 +194,20 @@ C
         alpha = 1
         beta  = 100
 
-        g  = sn * alpha * asinh(beta * V) + Zs * V - phi
+        fval  = sn * alpha * asinh(beta * V) + Zs * V - phi
 
         do i = 1,IMAX
-            if ( g .lt. 0) then
+            if ( fval .lt. 0) then
                 Vmin = V
             else
                 Vmax = V
             endif
 
 C           evaluate the functions
-            dg = sn * alpha * beta / sqrt(beta*beta * V*V + 1) + Zs
+            dfval = sn * alpha * beta / sqrt(beta*beta * V*V + 1) + Zs
 
 C           Guess the change
-            dV = -g / dg
+            dV = -fval / dfval
             V  = V + dV
 
 C           Verify that we satisfy the bracket
@@ -215,8 +215,8 @@ C           Verify that we satisfy the bracket
                 V = (Vmin + Vmax) / 2.0d0
             endif
 
-            g  = sn * alpha * asinh(beta * V) + Zs * V - phi
-            if ( abs(g) .lt. atol .or. abs(dV) .lt. atol) then
+            fval  = sn * alpha * asinh(beta * V) + Zs * V - phi
+            if ( abs(fval) .lt. atol .or. abs(dV) .lt. atol) then
                 exit
             endif
         enddo

@@ -15,16 +15,16 @@
 
 AMRLevelLinElastFactory::AMRLevelLinElastFactory()
 {
-    m_godunovPhysics = NULL;
+    m_linElastPhysics = NULL;
     m_isDefined = false;
 }
 
 AMRLevelLinElastFactory::~AMRLevelLinElastFactory()
 {
-    if (m_godunovPhysics != NULL)
+    if (m_linElastPhysics != NULL)
     {
-        delete m_godunovPhysics;
-        m_godunovPhysics = NULL;
+        delete m_linElastPhysics;
+        m_linElastPhysics = NULL;
     }
 
     m_isDefined = false;
@@ -36,7 +36,7 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
     const Real&                 a_refineThresh,
     const int&                  a_tagBufferSize,
     const Real&                 a_initialDtMultiplier,
-    const GodunovPhysics* const a_godunovPhysics,
+    const LinElastPhysics* const a_linElastPhysics,
     const int&                  a_normalPredOrder,
     const bool&                 a_useFourthOrderSlopes,
     const bool&                 a_usePrimLimiting,
@@ -52,7 +52,8 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
     const Vector<Real>&         a_xBodyStations,
     const Vector<Real>&         a_yBodyStations,
     const Vector<Real>&         a_zBodyStations,
-    const Vector<Real>&         a_domainCenter)
+    const Vector<Real>&         a_domainCenter,
+    const bool&                 a_usePlasticity)
 {
     // Store the CFL number
     m_cfl = a_cfl;
@@ -73,15 +74,15 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
     m_initialDtMultiplier = a_initialDtMultiplier;
 
     // Delete any existing physics object
-    if (m_godunovPhysics != NULL)
+    if (m_linElastPhysics != NULL)
     {
-        delete m_godunovPhysics;
-        m_godunovPhysics = NULL;
+        delete m_linElastPhysics;
+        m_linElastPhysics = NULL;
     }
 
     // Store the object that supplies the physics needed by the integrator
     // (used as a factory)
-    m_godunovPhysics = a_godunovPhysics->new_godunovPhysics();
+    m_linElastPhysics = a_linElastPhysics->new_godunovPhysics();
 
     // Store the order of the normal predictor (1 -> PLM, 2 -> PPM)
     m_normalPredOrder = a_normalPredOrder;
@@ -136,7 +137,7 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
 
     m_plotInterval = 0;
 
-    m_usePlasticity = false;
+    m_usePlasticity = a_usePlasticity;
 
     // The object is defined
     m_isDefined = true;
@@ -158,7 +159,7 @@ AMRLevel* AMRLevelLinElastFactory::new_amrlevel() const
         m_refineThresh,
         m_tagBufferSize,
         m_initialDtMultiplier,
-        m_godunovPhysics,
+        m_linElastPhysics,
         m_normalPredOrder,
         m_useFourthOrderSlopes,
         m_usePrimLimiting,

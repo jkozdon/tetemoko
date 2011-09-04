@@ -17,7 +17,7 @@
 // Flag everything as not defined or set
 LinElastPatchGodunov::LinElastPatchGodunov()
 {
-    m_gdnvPhysics      = NULL;
+    m_linElastPhysics      = NULL;
     m_isDefined        = false;
     m_isCurrentTimeSet = false;
     m_isCurrentBoxSet  = false;
@@ -26,17 +26,17 @@ LinElastPatchGodunov::LinElastPatchGodunov()
 LinElastPatchGodunov::~LinElastPatchGodunov()
 {
     // Delete the initial/boundary condition object - if it exists
-    if (m_gdnvPhysics != NULL)
+    if (m_linElastPhysics != NULL)
     {
-        delete m_gdnvPhysics;
-        m_gdnvPhysics  = NULL;
+        delete m_linElastPhysics;
+        m_linElastPhysics  = NULL;
     }
 }
 
 // Define this object and the boundary condition object
 void LinElastPatchGodunov::define(const ProblemDomain&           a_domain,
     const Real&                    a_dx,
-    const GodunovPhysics* const    a_physPtr,
+    const LinElastPhysics* const    a_physPtr,
     const int&                     a_normalPredOrder,
     const bool&                    a_useFourthOrderSlopes,
     const bool&                    a_usePrimLimiting,
@@ -49,14 +49,14 @@ void LinElastPatchGodunov::define(const ProblemDomain&           a_domain,
     m_domain = a_domain;
     m_dx     = a_dx;
 
-    if (m_gdnvPhysics != NULL)
+    if (m_linElastPhysics != NULL)
     {
-        delete m_gdnvPhysics;
-        m_gdnvPhysics  = NULL;
+        delete m_linElastPhysics;
+        m_linElastPhysics  = NULL;
     }
 
-    m_gdnvPhysics = a_physPtr->new_godunovPhysics();
-    m_gdnvPhysics->define(m_domain, m_dx);
+    m_linElastPhysics = a_physPtr->new_godunovPhysics();
+    m_linElastPhysics->define(m_domain, m_dx);
 
     m_util.define(m_domain, m_dx);
 
@@ -95,7 +95,7 @@ void LinElastPatchGodunov::setCurrentBox(const Box& a_currentBox)
     m_currentBox      = a_currentBox;
     m_isCurrentBoxSet = true;
 
-    m_gdnvPhysics->setCurrentBox(a_currentBox);
+    m_linElastPhysics->setCurrentBox(a_currentBox);
 }
 
 void LinElastPatchGodunov::updateState(FArrayBox&       a_U,
@@ -108,8 +108,8 @@ void LinElastPatchGodunov::updateState(FArrayBox&       a_U,
     CH_assert(isDefined());
     CH_assert(a_box == m_currentBox);
 
-    int numPrim = m_gdnvPhysics->numPrimitives();
-    int numFlux = m_gdnvPhysics->numFluxes();
+    int numPrim = m_linElastPhysics->numPrimitives();
+    int numFlux = m_linElastPhysics->numFluxes();
 
     FluxBox whalf(a_box,numPrim);
     whalf.setVal(0.0);
@@ -125,7 +125,7 @@ void LinElastPatchGodunov::updateState(FArrayBox&       a_U,
     a_U += dU;
 
     // Get and return the maximum wave speed on this patch/grid
-    a_maxWaveSpeed = m_gdnvPhysics->getMaxWaveSpeed(a_U, m_currentBox);
+    a_maxWaveSpeed = m_linElastPhysics->getMaxWaveSpeed(a_U, m_currentBox);
 }
 
 void LinElastPatchGodunov::updateState(FArrayBox&       a_U,
@@ -139,8 +139,8 @@ void LinElastPatchGodunov::updateState(FArrayBox&       a_U,
     CH_assert(isDefined());
     CH_assert(a_box == m_currentBox);
 
-    //  int numPrim = m_gdnvPhysics->numPrimitives();
-    int numFlux = m_gdnvPhysics->numFluxes();
+    //  int numPrim = m_linElastPhysics->numPrimitives();
+    int numFlux = m_linElastPhysics->numFluxes();
 
     a_wHalf.setVal(0.0);
 
@@ -155,7 +155,18 @@ void LinElastPatchGodunov::updateState(FArrayBox&       a_U,
     a_U += dU;
 
     // Get and return the maximum wave speed on this patch/grid
-    a_maxWaveSpeed = m_gdnvPhysics->getMaxWaveSpeed(a_U, m_currentBox);
+    a_maxWaveSpeed = m_linElastPhysics->getMaxWaveSpeed(a_U, m_currentBox);
+}
+
+void LinElastPatchGodunov::plasticUpdate(FArrayBox&       a_U,
+    const Real&      a_dt,
+    const Box&       a_box)
+{
+    CH_assert(isDefined());
+    //JK I don't understand why m_currentBox exists...
+    // CH_assert(a_box == m_currentBox);
+
+    m_linElastPhysics->plasticUpdate(a_U,a_dt,a_box);
 }
 
 // Compute the time-centered values of the primitive variable on the
@@ -170,7 +181,7 @@ void LinElastPatchGodunov::computeWHalf(FluxBox&         a_WHalf,
     CH_assert(a_box == m_currentBox);
 
     // Get the number of various variables
-    int numPrim = m_gdnvPhysics->numPrimitives();
+    int numPrim = m_linElastPhysics->numPrimitives();
 
     // The current box of valid cells
     Box curBox = m_currentBox;
@@ -224,7 +235,7 @@ void LinElastPatchGodunov::computeWHalf(FluxBox&         a_WHalf,
 
     // Calculate the primitive variables W from the conserved variables a_U,
     // on cell-centered WBox.
-    m_gdnvPhysics->consToPrim(W, a_U, WBox);
+    m_linElastPhysics->consToPrim(W, a_U, WBox);
 
     // slopeBox is the cell-centered box where slopes will be needed:
     // it is one larger than the final update box "curBox" of valid cells,
@@ -238,10 +249,10 @@ void LinElastPatchGodunov::computeWHalf(FluxBox&         a_WHalf,
     FArrayBox flattening(slopeBox, 1); // cell-centered
     if (m_useFlattening)
     {
-        Interval velInt    = m_gdnvPhysics->velocityInterval();
-        int pressureIndex  = m_gdnvPhysics->pressureIndex();
-        Real smallPressure = m_gdnvPhysics->smallPressure();
-        int bulkIndex      = m_gdnvPhysics->bulkModulusIndex();
+        Interval velInt    = m_linElastPhysics->velocityInterval();
+        int pressureIndex  = m_linElastPhysics->pressureIndex();
+        Real smallPressure = m_linElastPhysics->smallPressure();
+        int bulkIndex      = m_linElastPhysics->bulkModulusIndex();
 
         m_util.computeFlattening(flattening,
             W,
@@ -269,7 +280,7 @@ void LinElastPatchGodunov::computeWHalf(FluxBox&         a_WHalf,
         localSource.define(a_S.box(), a_S.nComp());
         localSource.copy(a_S);
 
-        m_gdnvPhysics->incrementSource(localSource,W,slopeBox);
+        m_linElastPhysics->incrementSource(localSource,W,slopeBox);
 
         localSource *= 0.5 * a_dt;
     }
@@ -311,7 +322,7 @@ void LinElastPatchGodunov::computeWHalf(FluxBox&         a_WHalf,
 
         // Solve the Riemann problem
         WHalf1[dir1].resize(fluxBox[dir1],numPrim); // face-centered
-        m_gdnvPhysics->riemann(WHalf1[dir1],WPlus[dir1],WMinus[dir1],W,
+        m_linElastPhysics->riemann(WHalf1[dir1],WPlus[dir1],WMinus[dir1],W,
             m_currentTime,dir1,faceBox[dir1]);
     }
 
@@ -347,22 +358,22 @@ void LinElastPatchGodunov::computeWHalf(FluxBox&         a_WHalf,
                 // Update the current, extrapolated primitive variable using a flux
                 // in a different direction
 
-                m_gdnvPhysics->quasilinearUpdate(AdWdx,
+                m_linElastPhysics->quasilinearUpdate(AdWdx,
                     WHalf1[dir2],WTempMinus,-(1.0/3.0) * a_dt / m_dx,dir2,ccBox[dir2]);
                 WTempMinus += AdWdx;
 
-                m_gdnvPhysics->quasilinearUpdate(AdWdx,
+                m_linElastPhysics->quasilinearUpdate(AdWdx,
                     WHalf1[dir2],WTempPlus ,-(1.0/3.0) * a_dt / m_dx,dir2,ccBox[dir2]);
                 WTempPlus  += AdWdx;
 
                 // Update the boundary values
-                ((LinElastPhysics*)m_gdnvPhysics)->quasilinearBoundaryUpdate(
+                m_linElastPhysics->quasilinearBoundaryUpdate(
                     WHalf1[dir2],(1.0/3.0)*a_dt,dir2,ccBox[dir2],m_currentTime);
 
                 // Solve the Riemann problem.
 
                 WHalf2[dir1][dir2].resize(fluxBox[dir1],numPrim);
-                m_gdnvPhysics->riemann(WHalf2[dir1][dir2],WTempPlus,WTempMinus,W,
+                m_linElastPhysics->riemann(WHalf2[dir1][dir2],WTempPlus,WTempMinus,W,
                     m_currentTime,dir1,faceBox[dir1]);
             }
         }
@@ -396,16 +407,16 @@ void LinElastPatchGodunov::computeWHalf(FluxBox&         a_WHalf,
                 // the other direction
                 FArrayBox AdWdx(WPlus[dir1].box(),numPrim);
 
-                m_gdnvPhysics->quasilinearUpdate(AdWdx,WHalf1[dir2],WMinus[dir1],
+                m_linElastPhysics->quasilinearUpdate(AdWdx,WHalf1[dir2],WMinus[dir1],
                     -(1.0/2.0) * a_dt / m_dx,dir2,ccBox[dir2]);
                 WMinus[dir1] += AdWdx;
 
-                m_gdnvPhysics->quasilinearUpdate(AdWdx,WHalf1[dir2],WPlus [dir1],
+                m_linElastPhysics->quasilinearUpdate(AdWdx,WHalf1[dir2],WPlus [dir1],
                     -(1.0/2.0) * a_dt / m_dx,dir2,ccBox[dir2]);
                 WPlus[dir1] += AdWdx;
 
                 // Update the boundary values
-                ((LinElastPhysics*)m_gdnvPhysics)->quasilinearBoundaryUpdate(
+                m_linElastPhysics->quasilinearBoundaryUpdate(
                     WHalf1[dir2],(1.0/2.0)*a_dt,dir2,ccBox[dir2],m_currentTime);
 
 #elif (CH_SPACEDIM == 3)
@@ -416,16 +427,16 @@ void LinElastPatchGodunov::computeWHalf(FluxBox&         a_WHalf,
                 // the other two directions
                 FArrayBox AdWdx(WPlus[dir1].box(),numPrim);
 
-                m_gdnvPhysics->quasilinearUpdate(AdWdx,WHalf2[dir2][dir3],WMinus[dir1],
+                m_linElastPhysics->quasilinearUpdate(AdWdx,WHalf2[dir2][dir3],WMinus[dir1],
                     -(1.0/2.0) * a_dt / m_dx,dir2,ccBox[dir2]);
                 WMinus[dir1].plus(AdWdx,0,0,numPrim);
 
-                m_gdnvPhysics->quasilinearUpdate(AdWdx,WHalf2[dir2][dir3],WPlus [dir1],
+                m_linElastPhysics->quasilinearUpdate(AdWdx,WHalf2[dir2][dir3],WPlus [dir1],
                     -(1.0/2.0) * a_dt / m_dx,dir2,ccBox[dir2]);
                 WPlus [dir1].plus(AdWdx,0,0,numPrim);
 
                 // Update the boundary values
-                ((LinElastPhysics*)m_gdnvPhysics)->quasilinearBoundaryUpdate(
+                m_linElastPhysics->quasilinearBoundaryUpdate(
                     WHalf2[dir2][dir3],(1.0/2.0)*a_dt,dir2,ccBox[dir2],m_currentTime);
 #else
                 // Only 2D and 3D should be possible
@@ -437,7 +448,7 @@ void LinElastPatchGodunov::computeWHalf(FluxBox&         a_WHalf,
         // Solve the Riemann problem to obtain time-centered face values.
         // be returned
         FArrayBox& WHalf = a_WHalf[dir1];
-        m_gdnvPhysics->riemann(WHalf,WPlus[dir1],WMinus[dir1],W,
+        m_linElastPhysics->riemann(WHalf,WPlus[dir1],WMinus[dir1],W,
             m_currentTime,dir1,faceBox[dir1]);
     }
 }
@@ -452,7 +463,7 @@ void LinElastPatchGodunov::computeUpdate(FArrayBox&       a_dU,
     CH_assert(isDefined());
     CH_assert(a_box == m_currentBox);
 
-    m_gdnvPhysics->computeUpdate(a_dU,a_F,a_U,a_WHalf,
+    m_linElastPhysics->computeUpdate(a_dU,a_F,a_U,a_WHalf,
         m_useArtificialViscosity,m_artificialViscosity,
         m_currentTime,m_dx,a_dt,a_box);
 }
@@ -481,7 +492,7 @@ void LinElastPatchGodunov::PLMNormalPred(FArrayBox&       a_WMinus,
     const int&       a_dir,
     const Box&       a_box)
 {
-    int numprim = m_gdnvPhysics->numPrimitives();
+    int numprim = m_linElastPhysics->numPrimitives();
 
     // This will hold 2nd or 4th order slopes
     FArrayBox dW(a_box,numprim);
@@ -499,7 +510,7 @@ void LinElastPatchGodunov::PLMNormalPred(FArrayBox&       a_WMinus,
         m_util.vanLeerSlopes(dWvL,a_W,numprim,
             m_useCharLimiting || m_usePrimLimiting,
             a_dir,boxVL);
-        m_gdnvPhysics->getPhysIBC()->setBdrySlopes(dWvL,a_W,a_dir,m_currentTime);
+        m_linElastPhysics->getPhysIBC()->setBdrySlopes(dWvL,a_W,a_dir,m_currentTime);
 
         // Compute 4th order slopes, without limiting.
         m_util.fourthOrderSlopes(dW,a_W,dWvL, numprim, a_dir,a_box);
@@ -510,7 +521,7 @@ void LinElastPatchGodunov::PLMNormalPred(FArrayBox&       a_WMinus,
         m_util.vanLeerSlopes(dW,a_W,numprim,
             m_useCharLimiting || m_usePrimLimiting,
             a_dir,a_box);
-        m_gdnvPhysics->getPhysIBC()->setBdrySlopes(dW,a_W,a_dir,m_currentTime);
+        m_linElastPhysics->getPhysIBC()->setBdrySlopes(dW,a_W,a_dir,m_currentTime);
     }
 
     // To save on storage, we use the input values as temporaries for the
@@ -525,7 +536,7 @@ void LinElastPatchGodunov::PLMNormalPred(FArrayBox&       a_WMinus,
     }
 
     FArrayBox lambda(a_box, numprim);
-    m_gdnvPhysics->charValues(lambda, a_W, a_dir,a_box);
+    m_linElastPhysics->charValues(lambda, a_W, a_dir,a_box);
 
     if (m_useCharLimiting && m_usePrimLimiting)
     {
@@ -540,9 +551,9 @@ void LinElastPatchGodunov::PLMNormalPred(FArrayBox&       a_WMinus,
     if (m_useCharLimiting)
     {
         // Transform from primitive to characteristic variables
-        m_gdnvPhysics->charAnalysis(a_WMinus,a_W,a_dir,a_box);
-        m_gdnvPhysics->charAnalysis(a_WPlus ,a_W,a_dir,a_box);
-        m_gdnvPhysics->charAnalysis(dW      ,a_W,a_dir,a_box);
+        m_linElastPhysics->charAnalysis(a_WMinus,a_W,a_dir,a_box);
+        m_linElastPhysics->charAnalysis(a_WPlus ,a_W,a_dir,a_box);
+        m_linElastPhysics->charAnalysis(dW      ,a_W,a_dir,a_box);
     }
 
     if (m_useCharLimiting || m_usePrimLimiting)
@@ -566,15 +577,15 @@ void LinElastPatchGodunov::PLMNormalPred(FArrayBox&       a_WMinus,
     if (!m_useCharLimiting)
     {
         // Transform from primitive to characteristic variables
-        m_gdnvPhysics->charAnalysis(dW,a_W,a_dir,a_box);
+        m_linElastPhysics->charAnalysis(dW,a_W,a_dir,a_box);
     }
 
     // To the normal prediction in characteristic variables
     m_util.PLMNormalPred(a_WMinus,a_WPlus,dW,lambda,a_dt / a_dx,a_box);
 
     // Construct the increments to the primitive variables
-    m_gdnvPhysics->charSynthesis(a_WMinus,a_W,a_dir,a_box);
-    m_gdnvPhysics->charSynthesis(a_WPlus ,a_W,a_dir,a_box);
+    m_linElastPhysics->charSynthesis(a_WMinus,a_W,a_dir,a_box);
+    m_linElastPhysics->charSynthesis(a_WPlus ,a_W,a_dir,a_box);
 
     // Apply a physics-dependent post-normal predictor step:
     // For example:
@@ -582,7 +593,7 @@ void LinElastPatchGodunov::PLMNormalPred(FArrayBox&       a_WMinus,
     //     quantities are enforced (density and pressure > 0).
     //   - compute source terms that depend on the spatially varying
     //     coefficients.
-    m_gdnvPhysics->postNormalPred(a_WMinus,a_WPlus,a_W,a_dt,a_dx,a_dir,a_box);
+    m_linElastPhysics->postNormalPred(a_WMinus,a_WPlus,a_W,a_dt,a_dx,a_dir,a_box);
 
     // Compute the state from the increments
     a_WMinus += a_W;
@@ -598,7 +609,7 @@ void LinElastPatchGodunov::PPMNormalPred(FArrayBox&       a_WMinus,
     const int&       a_dir,
     const Box&       a_box)
 {
-    int numprim = m_gdnvPhysics->numPrimitives();
+    int numprim = m_linElastPhysics->numPrimitives();
 
     Box faceBox = a_box;
     // added by petermc, 22 Sep 2008:
@@ -610,7 +621,7 @@ void LinElastPatchGodunov::PPMNormalPred(FArrayBox&       a_WMinus,
     // Return WFace on face-centered faceBox.
     m_util.PPMFaceValues(WFace,a_W,numprim,
         m_useCharLimiting || m_usePrimLimiting,
-        a_dir,faceBox,m_currentTime,m_gdnvPhysics);
+        a_dir,faceBox,m_currentTime,m_linElastPhysics);
 
     // To save on storage, we use the input values as temporaries for the
     // delta's
@@ -627,7 +638,7 @@ void LinElastPatchGodunov::PPMNormalPred(FArrayBox&       a_WMinus,
     a_WPlus  += WFace;
 
     FArrayBox lambda(a_box, numprim);
-    m_gdnvPhysics->charValues(lambda, a_W, a_dir,a_box);
+    m_linElastPhysics->charValues(lambda, a_W, a_dir,a_box);
 
     if (m_useCharLimiting && m_usePrimLimiting)
     {
@@ -642,8 +653,8 @@ void LinElastPatchGodunov::PPMNormalPred(FArrayBox&       a_WMinus,
     if (m_useCharLimiting)
     {
         // Transform from primitive to characteristic variables
-        m_gdnvPhysics->charAnalysis(a_WMinus,a_W,a_dir,a_box);
-        m_gdnvPhysics->charAnalysis(a_WPlus ,a_W,a_dir,a_box);
+        m_linElastPhysics->charAnalysis(a_WMinus,a_W,a_dir,a_box);
+        m_linElastPhysics->charAnalysis(a_WPlus ,a_W,a_dir,a_box);
     }
 
     if (m_useCharLimiting || m_usePrimLimiting)
@@ -666,16 +677,16 @@ void LinElastPatchGodunov::PPMNormalPred(FArrayBox&       a_WMinus,
     if (!m_useCharLimiting)
     {
         // Transform from primitive to characteristic variables
-        m_gdnvPhysics->charAnalysis(a_WMinus,a_W,a_dir,a_box);
-        m_gdnvPhysics->charAnalysis(a_WPlus ,a_W,a_dir,a_box);
+        m_linElastPhysics->charAnalysis(a_WMinus,a_W,a_dir,a_box);
+        m_linElastPhysics->charAnalysis(a_WPlus ,a_W,a_dir,a_box);
     }
 
     // To the normal prediction in characteristic variables
     m_util.PPMNormalPred(a_WMinus,a_WPlus,lambda,a_dt / a_dx,numprim,a_box);
 
     // Construct the increments to the primitive variables
-    m_gdnvPhysics->charSynthesis(a_WMinus,a_W,a_dir,a_box);
-    m_gdnvPhysics->charSynthesis(a_WPlus ,a_W,a_dir,a_box);
+    m_linElastPhysics->charSynthesis(a_WMinus,a_W,a_dir,a_box);
+    m_linElastPhysics->charSynthesis(a_WPlus ,a_W,a_dir,a_box);
 
     // Apply a physics-dependent post-normal predictor step:
     // For example:
@@ -683,7 +694,7 @@ void LinElastPatchGodunov::PPMNormalPred(FArrayBox&       a_WMinus,
     //     quantities are enforced (density and pressure > 0).
     //   - compute source terms that depend on the spatially varying
     //     coefficients.
-    m_gdnvPhysics->postNormalPred(a_WMinus,a_WPlus,a_W,a_dt,a_dx,a_dir,a_box);
+    m_linElastPhysics->postNormalPred(a_WMinus,a_WPlus,a_W,a_dt,a_dx,a_dir,a_box);
 
     // Compute the state from the increments
     a_WMinus += a_W;
@@ -699,7 +710,12 @@ void LinElastPatchGodunov::highOrderLimiter(bool a_highOrderLimiter)
 
 GodunovPhysics* LinElastPatchGodunov::getGodunovPhysicsPtr()
 {
-    return m_gdnvPhysics;
+    return (GodunovPhysics*) m_linElastPhysics;
+}
+
+LinElastPhysics* LinElastPatchGodunov::getLinElastPhysicsPtr()
+{
+    return m_linElastPhysics;
 }
 
 // Return true if everything is defined and setup

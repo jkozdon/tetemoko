@@ -19,7 +19,7 @@
 #include "SPMD.H"
 #include "PhysIBC.H"
 #include "LEPhysIBC.H"
-#include "GodunovPhysics.H"
+#include "LinElastPhysics.H"
 #include "LoHiSide.H"
 #include "CH_Timer.H"
 
@@ -50,7 +50,7 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
     const Box&                  a_bdryFaceBox,
     const int&                  a_refineCoarse,
     const Real&                 a_dx,
-    const GodunovPhysics* const a_gdnvPhysics,
+    const LinElastPhysics* const a_linElastPhysics,
     const int&                  a_normalPredOrder,
     const bool&                 a_useFourthOrderSlopes,
     const bool&                 a_usePrimLimiting,
@@ -95,7 +95,7 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
     m_hasFiner     = a_hasFiner;
 
     m_patchGodunov.define(m_domain,m_dx,
-        a_gdnvPhysics,
+        a_linElastPhysics,
         m_normalPredOrder,
         m_useFourthOrderSlopes,
         m_usePrimLimiting,
@@ -116,13 +116,13 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
 
     // (DFM, 9/29/2005) This is really silly, but the simplest
     // work-around. The problem is that the numConserved and
-    // numFluxes functions are not const, but a_gdnvPhysics is.
+    // numFluxes functions are not const, but a_linElastPhysics is.
     // So. the simplest thing is to cast away the const-ness
     // just for this limited context.
     // We may eventually want to make the functions non-const,
     // but that will break all classes derived from GodunovPhysics.
     {
-        GodunovPhysics* nonConstPhysicsPtr = (GodunovPhysics*) a_gdnvPhysics;
+        LinElastPhysics* nonConstPhysicsPtr = (LinElastPhysics*) a_linElastPhysics;
         m_numCons   = nonConstPhysicsPtr->numConserved();
         m_numFluxes = nonConstPhysicsPtr->numFluxes();
         m_numBdryVars = ((LEPhysIBC*) nonConstPhysicsPtr->getPhysIBC())->numBdryVars();
@@ -637,6 +637,33 @@ Real LinElastLevelGodunov::computeUpdate(LevelData<FArrayBox>&       a_dU,
 
     // Return the maximum stable time step
     return dtNew;
+}
+
+// Compute the plastic correction to the solution
+void LinElastLevelGodunov::plasticUpdate(LevelData<FArrayBox>&  a_U,
+    const Real& a_dt)
+{
+    CH_TIME("LinElastLevelGodunov::plasticUpdate");
+
+    // pout() << "LinElastLevelGodunov::plasticUpdate" << endl;
+
+    // make sure things are defined
+    CH_assert(m_isDefined);
+
+    // Beginning of loop through patches/grids.
+    for (DataIterator dit = m_grids.dataIterator(); dit.ok(); ++dit)
+    {
+        // The current box
+        const Box curBox = m_grids.get(dit());
+
+        // The current grid of conserved variables
+        FArrayBox& curU = a_U[dit()];
+
+        // Implicitly update the values stress to take into account plasticity
+        m_patchGodunov.plasticUpdate(curU,
+            a_dt,
+            curBox);
+    }
 }
 
 // Find the maximum wave speed on the current level

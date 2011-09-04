@@ -1,3 +1,5 @@
+#include "LEINDEX.h"
+
 C
 C Set the physical constant parameters
 C
@@ -14,6 +16,166 @@ c
         p_mu   = amu
         p_beta = abeta
         p_eta  = aeta
+        p_b = 0d0
+        p_h = 0d0
+
+        ! print*,p_mu,p_beta,p_eta
+
+        return
+        end
+
+C
+C Do the plastic correction to the fields
+C
+        subroutine PLASTICCORRECTION(
+     &    CHF_FRA[W],
+     &    CHF_CONST_REAL[dt],
+     &    CHF_BOX[box])
+
+#include "PlasticCommon.fh"
+
+        integer CHF_DDECL[i     ;j     ;k    ]
+        ! real_t  vx, vy, vz, sxx, syy, szz, sxy, sxz, syz, lam, gam
+
+        CHF_MULTIDO[box;i;j;k]
+        ! Side 1
+        call PLASTICFLOW(
+     &         W(CHF_IX[i;j;k],IX1_SXX),
+     &         W(CHF_IX[i;j;k],IX1_SYY),
+     &         W(CHF_IX[i;j;k],IX1_SZZ),
+     &         W(CHF_IX[i;j;k],IX1_SXY),
+     &         W(CHF_IX[i;j;k],IX1_SXZ),
+     &         W(CHF_IX[i;j;k],IX1_SYZ),
+     &         W(CHF_IX[i;j;k],IX1_LAM),
+     &         W(CHF_IX[i;j;k],IX1_GAM),
+     &         dt)
+
+
+        ! Side 2
+        call PLASTICFLOW(
+     &         W(CHF_IX[i;j;k],IX2_SXX),
+     &         W(CHF_IX[i;j;k],IX2_SYY),
+     &         W(CHF_IX[i;j;k],IX2_SZZ),
+     &         W(CHF_IX[i;j;k],IX2_SXY),
+     &         W(CHF_IX[i;j;k],IX2_SXZ),
+     &         W(CHF_IX[i;j;k],IX2_SYZ),
+     &         W(CHF_IX[i;j;k],IX2_LAM),
+     &         W(CHF_IX[i;j;k],IX2_GAM),
+     &         dt)
+
+        CHF_ENDDO
+
+        return
+        end
+
+C
+C do the plastic update
+C
+        subroutine PLASTICFLOW(
+     &    CHF_REAL[sxx],
+     &    CHF_REAL[syy],
+     &    CHF_REAL[szz],
+     &    CHF_REAL[sxy],
+     &    CHF_REAL[sxz],
+     &    CHF_REAL[syz],
+     &    CHF_REAL[p_lam],
+     &    CHF_REAL[p_gam],
+     &    CHF_CONST_REAL[dt])
+
+#include "IBCCommon.fh"
+#include "PlasticCommon.fh"
+
+        real_t sigma, tau, Y
+        real_t factor, sig_e
+
+        ! Compute the stress invariants
+        call INVARIANTS(sigma,tau,
+     &           sxx,syy,szz,
+     &           sxy,sxz,syz)
+
+
+        ! check the yield function
+        call YIELD(Y,sigma,tau,p_gam)
+
+        ! no plastic flow
+        if (Y<=0d0) then
+           p_lam = 0d0
+           return
+        endif
+
+        ! Calculate the plastic flow rate for Drucker-Prager using
+        ! Eric's closed form solution
+        ! Eric's code has a special case, need to talk to him about
+        ! this...
+        ! Y = tau+p_mu*sigma-(p_b+p_gam*p_h)
+        p_lam = Y/(dt*(p_h+G+p_mu*p_beta*K)+p_eta)
+
+        ! update the plastic strain
+        p_gam = p_gam + dt*p_lam
+
+        ! save the elastic mean stress
+        sig_e = sigma
+
+        ! Get the corrected tau and sigma
+        tau   =   tau - dt * p_lam * G
+        sigma = sigma - dt * p_lam * K * p_beta
+
+        ! update the stresses
+        factor = tau/(tau+dt*p_lam*G)
+        sxx    = sigma + factor * (sxx - sig_e)
+        syy    = sigma + factor * (syy - sig_e)
+        szz    = sigma + factor * (szz - sig_e)
+        sxy    =         factor *  sxy
+        sxz    =         factor *  sxz
+        syz    =         factor *  syz
+
+        return
+        end
+
+C
+C compute the stress invariants
+C
+        subroutine INVARIANTS(
+     &    CHF_REAL[sigma],
+     &    CHF_REAL[tau],
+     &    CHF_CONST_REAL[sxx],
+     &    CHF_CONST_REAL[syy],
+     &    CHF_CONST_REAL[szz],
+     &    CHF_CONST_REAL[sxy],
+     &    CHF_CONST_REAL[sxz],
+     &    CHF_CONST_REAL[syz])
+
+        real_t J2
+
+        sigma = (sxx + syy + szz) / 3.0d0
+        J2 = ((sxx-syy)**2+(syy-szz)**2+(szz-sxx)**2)/6d0 +
+     &      sxy**2+sxz**2+syz**2
+        tau = sqrt(J2)
+
+
+        return
+        end
+
+
+C
+C Check yield condition
+C
+        subroutine YIELD(
+     &    CHF_REAL[Y],
+     &    CHF_CONST_REAL[sigma],
+     &    CHF_CONST_REAL[tau],
+     &    CHF_CONST_REAL[gam])
+         
+#include "PlasticCommon.fh"
+
+        real_t b
+
+        b = p_b+gam*p_h ! with hardening
+        Y = tau-max(-p_mu*sigma+b,0d0)
+
+        ! Y = tau-max(-p_mu*sigma,0d0)
+
+        ! print*,sigma,tau,p_mu,p_beta,p_eta,Y
 
         return
         end

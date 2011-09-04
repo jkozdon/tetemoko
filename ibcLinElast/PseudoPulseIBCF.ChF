@@ -182,7 +182,7 @@ C         shooting for. i.e. tau_0 = LOCKED + PULSE_T)_HEAL + RAMP
 
           syy = background(4)
           vy  = (wmyy - syy) / Zp
-          SHF = -(vy - syy) * lam / (lam + 2.0d0 * mu)
+          SHF = -(vy - syy) * lam / (lam + 2.0d0 * G)
           Wgdnv(CHF_IX[i;j;k],0) = (wmxy - wpxy) / (2.0d0 * Zs)
           Wgdnv(CHF_IX[i;j;k],1) = vy
           Wgdnv(CHF_IX[i;j;k],2) = (wmyz - wpyz) / (2.0d0 * Zs)

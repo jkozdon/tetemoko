@@ -47,7 +47,7 @@ public:
     /// Object factory for this class
     /**
     */
-    virtual GodunovPhysics* new_godunovPhysics() const;
+    virtual LinElastPhysics* new_godunovPhysics() const;
 
     /// Number of conserved variables
     /**
@@ -204,6 +204,13 @@ public:
         const FArrayBox& a_W,
         const Real&      a_scale,
         const int&       a_dir,
+        const Box&       a_box);
+
+    /// Compute the plastic correction
+    /**
+    */
+    void plasticUpdate(FArrayBox& a_U,
+        const Real&      a_dt,
         const Box&       a_box);
 
     /// Compute primitive variables from conserved variables.

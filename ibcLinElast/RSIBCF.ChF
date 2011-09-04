@@ -98,9 +98,9 @@ C         psi
           psi = Bin(CHF_IX[i;j;k],RX_PSI)
           f   = rs_a*log(V*exp(psi/rs_a)/(2.0d0*rs_V0))
           fss = rs_f0 - (rs_b - rs_a)*log(V / rs_V0)
-          ! if(rs_fExp > 0d0) then
-          !     fss = rs_fw + (fss - rs_fw)*(1 + (V/rs_Vw)**rs_fExp)**(1/rs_fExp)
-          ! endif
+          if(rs_fExp > 0d0) then
+              fss = rs_fw + (fss - rs_fw)/((1d0 + (V/rs_Vw)**rs_fExp)**(1d0/rs_fExp))
+          endif
           Bout(CHF_IX[i;j;k],RX_PSI) = psi - dt * (V / rs_L)*(f - fss)
           ! print*,psi,Bout(CHF_IX[i;j;k],RX_PSI),V,IX1_VX,IX2_VX
           ! print *,i,psi,V,f,fss
@@ -237,7 +237,7 @@ C          phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
            vx1    = -(sxy1 + wpxy1)/Zs
            vz1    = -(syz1 + wpyz1)/Zs
 
-           SHF = -(vy1 - syy1) * lam / (lam + 2.0d0 * mu)
+           SHF = -(vy1 - syy1) * lam / (lam + 2.0d0 * G)
 
            Wgdnv(CHF_IX[i;j;k],IX1_VX ) = vx1
            Wgdnv(CHF_IX[i;j;k],IX1_VY ) = vy1
@@ -259,7 +259,7 @@ C          phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
            ! vx2    = vx1 - Vx
            ! vz2    = vz1 - Vz
 
-           SHF = -(vy2 - syy2) * lam / (lam + 2.0d0 * mu)
+           SHF = -(vy2 - syy2) * lam / (lam + 2.0d0 * G)
 
            Wgdnv(CHF_IX[i;j;k],IX2_VX ) = vx2
            Wgdnv(CHF_IX[i;j;k],IX2_VY ) = vy2
@@ -302,7 +302,7 @@ C
 
         real_t alpha, beta
         real_t Vmin,Vmax,dV
-        real_t dg,g
+        real_t dfval,fval
         real_t atolG,atolV,rtolV,eta
         integer i,IMAX
         rtolV=0d0
@@ -321,20 +321,20 @@ C
         beta  = (1 / (2.0d0 * rs_V0)) * exp(psi / rs_a)
 
         eta = 0.5d0*Zs
-        g  = sn * alpha * asinh(beta * V) + eta * V - phi
+        fval  = sn * alpha * asinh(beta * V) + eta * V - phi
 
         do i = 1,IMAX
-            if ( g .lt. 0) then
+            if ( fval .lt. 0) then
                 Vmin = V
             else
                 Vmax = V
             endif
 
 C           evaluate the functions
-            dg = sn * alpha * beta / sqrt(beta**2 * V**2 + 1) + eta
+            dfval = sn * alpha * beta / sqrt(beta**2 * V**2 + 1) + eta
 
 C           Guess the change
-            dV = -g / dg
+            dV = -fval / dfval
             V  = V + dV
 
 C           Verify that we satisfy the bracket
@@ -342,9 +342,9 @@ C           Verify that we satisfy the bracket
                 V = (Vmin + Vmax) / 2.0d0
             endif
 
-            g  = sn * alpha * asinh(beta * V) + eta * V - phi
-            ! if ( abs(g) .lt. atol .or. abs(dV) .lt. atol) then
-            if (abs(g)<=atolG) exit
+            fval  = sn * alpha * asinh(beta * V) + eta * V - phi
+            ! if ( abs(fval) .lt. atol .or. abs(dV) .lt. atol) then
+            if (abs(fval)<=atolG) exit
 
             if (abs(dV)<=atolV+rtolV*(abs(V)+abs(dV))) exit
         enddo

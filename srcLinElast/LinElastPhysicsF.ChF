@@ -295,11 +295,11 @@ C
           F(CHF_IX[i;j;k],cx    ) = -sxx / rho
           F(CHF_IX[i;j;k],cy    ) = -sxy / rho
           F(CHF_IX[i;j;k],cz    ) = -sxz / rho
-          F(CHF_IX[i;j;k],cx + 3) = -vx * (lam + two * mu)
+          F(CHF_IX[i;j;k],cx + 3) = -vx * (lam + two * G )
           F(CHF_IX[i;j;k],cy + 3) = -vx * lam
           F(CHF_IX[i;j;k],cz + 3) = -vx * lam
-          F(CHF_IX[i;j;k],cxy   ) = -vy * mu
-          F(CHF_IX[i;j;k],cxz   ) = -vz * mu
+          F(CHF_IX[i;j;k],cxy   ) = -vy * G 
+          F(CHF_IX[i;j;k],cxz   ) = -vz * G 
           F(CHF_IX[i;j;k],cyz   ) =  0d0
           F(CHF_IX[i;j;k], 9    ) =  0d0
           F(CHF_IX[i;j;k],10    ) =  0d0
@@ -318,11 +318,11 @@ C
           F(CHF_IX[i;j;k],IX_OFFSET + cx    ) = - rv * sxx / rho
           F(CHF_IX[i;j;k],IX_OFFSET + cy    ) = - rv * sxy / rho
           F(CHF_IX[i;j;k],IX_OFFSET + cz    ) = - rv * sxz / rho
-          F(CHF_IX[i;j;k],IX_OFFSET + cx + 3) = - rv * vx * (lam + two * mu)
+          F(CHF_IX[i;j;k],IX_OFFSET + cx + 3) = - rv * vx * (lam + two * G )
           F(CHF_IX[i;j;k],IX_OFFSET + cy + 3) = - rv * vx * lam
           F(CHF_IX[i;j;k],IX_OFFSET + cz + 3) = - rv * vx * lam
-          F(CHF_IX[i;j;k],IX_OFFSET + cxy   ) = - rv * vy * mu
-          F(CHF_IX[i;j;k],IX_OFFSET + cxz   ) = - rv * vz * mu
+          F(CHF_IX[i;j;k],IX_OFFSET + cxy   ) = - rv * vy * G 
+          F(CHF_IX[i;j;k],IX_OFFSET + cxz   ) = - rv * vz * G 
           F(CHF_IX[i;j;k],IX_OFFSET + cyz   ) =  0d0
           F(CHF_IX[i;j;k],IX_OFFSET +  9    ) =  0d0
           F(CHF_IX[i;j;k],IX_OFFSET + 10    ) =  0d0
@@ -404,8 +404,8 @@ C
           dW(CHF_IX[i;j;k],2* 0) = sxx1 + vx1  * Zp
           dW(CHF_IX[i;j;k],2* 1) = sxy1 + vy1  * Zs
           dW(CHF_IX[i;j;k],2* 2) = sxz1 + vz1  * Zs
-          dW(CHF_IX[i;j;k],2* 3) = syy1 - sxx1 * lam / (2.0d0 * mu + lam)
-          dW(CHF_IX[i;j;k],2* 4) = szz1 - sxx1 * lam / (2.0d0 * mu + lam)
+          dW(CHF_IX[i;j;k],2* 3) = syy1 - sxx1 * lam / (2.0d0 * G  + lam)
+          dW(CHF_IX[i;j;k],2* 4) = szz1 - sxx1 * lam / (2.0d0 * G  + lam)
           dW(CHF_IX[i;j;k],2* 5) = syz1
           dW(CHF_IX[i;j;k],2* 6) = lam1
           dW(CHF_IX[i;j;k],2* 7) = gam1
@@ -417,8 +417,8 @@ C
           dW(CHF_IX[i;j;k],1 + 2* 0) = sxx2 + vx2  * Zp
           dW(CHF_IX[i;j;k],1 + 2* 1) = sxy2 + vy2  * Zs
           dW(CHF_IX[i;j;k],1 + 2* 2) = sxz2 + vz2  * Zs
-          dW(CHF_IX[i;j;k],1 + 2* 3) = syy2 - sxx2 * lam / (2.0d0 * mu + lam)
-          dW(CHF_IX[i;j;k],1 + 2* 4) = szz2 - sxx2 * lam / (2.0d0 * mu + lam)
+          dW(CHF_IX[i;j;k],1 + 2* 3) = syy2 - sxx2 * lam / (2.0d0 * G  + lam)
+          dW(CHF_IX[i;j;k],1 + 2* 4) = szz2 - sxx2 * lam / (2.0d0 * G  + lam)
           dW(CHF_IX[i;j;k],1 + 2* 5) = syz2
           dW(CHF_IX[i;j;k],1 + 2* 6) = lam2
           dW(CHF_IX[i;j;k],1 + 2* 7) = gam2
@@ -508,8 +508,8 @@ C
           dW(CHF_IX[i;j;k],cy    ) = (wxym1 - wxyp1) / 2.0d0 / Zs
           dW(CHF_IX[i;j;k],cz    ) = (wxzm1 - wxzp1) / 2.0d0 / Zs
           dW(CHF_IX[i;j;k],cx + 3) =  sxx1
-          dW(CHF_IX[i;j;k],cy + 3) =  wyy1  + sxx1 * lam / (2.0d0 * mu + lam)
-          dW(CHF_IX[i;j;k],cz + 3) =  wzz1  + sxx1 * lam / (2.0d0 * mu + lam)
+          dW(CHF_IX[i;j;k],cy + 3) =  wyy1  + sxx1 * lam / (2.0d0 * G  + lam)
+          dW(CHF_IX[i;j;k],cz + 3) =  wzz1  + sxx1 * lam / (2.0d0 * G  + lam)
           dW(CHF_IX[i;j;k],cxy   ) = (wxym1 + wxyp1) / 2.0d0
           dW(CHF_IX[i;j;k],cxz   ) = (wxzm1 + wxzp1) / 2.0d0
           dW(CHF_IX[i;j;k],cyz   ) =  wyz1
@@ -521,8 +521,8 @@ C
           dW(CHF_IX[i;j;k],IX_OFFSET + cy    ) = rv * (wxym2 - wxyp2) / 2.0d0 / Zs
           dW(CHF_IX[i;j;k],IX_OFFSET + cz    ) = rv * (wxzm2 - wxzp2) / 2.0d0 / Zs
           dW(CHF_IX[i;j;k],IX_OFFSET + cx + 3) =  sxx2
-          dW(CHF_IX[i;j;k],IX_OFFSET + cy + 3) =  wyy2  + sxx2 * lam / (2.0d0 * mu + lam)
-          dW(CHF_IX[i;j;k],IX_OFFSET + cz + 3) =  wzz2  + sxx2 * lam / (2.0d0 * mu + lam)
+          dW(CHF_IX[i;j;k],IX_OFFSET + cy + 3) =  wyy2  + sxx2 * lam / (2.0d0 * G  + lam)
+          dW(CHF_IX[i;j;k],IX_OFFSET + cz + 3) =  wzz2  + sxx2 * lam / (2.0d0 * G  + lam)
           dW(CHF_IX[i;j;k],IX_OFFSET + cxy   ) = (wxym2 + wxyp2) / 2.0d0
           dW(CHF_IX[i;j;k],IX_OFFSET + cxz   ) = (wxzm2 + wxzp2) / 2.0d0
           dW(CHF_IX[i;j;k],IX_OFFSET + cyz   ) =  wyz2
@@ -662,12 +662,12 @@ C         Set the left state variables
           wxym = Rsxy + Zs * Rvy
           wxzm = Rsxz + Zs * Rvz
 
-          wyy  = Rsyy - Rsxx * lam / (2.0d0 * mu + lam)
-          wzz  = Rszz - Rsxx * lam / (2.0d0 * mu + lam)
+          wyy  = Rsyy - Rsxx * lam / (2.0d0 * G  + lam)
+          wzz  = Rszz - Rsxx * lam / (2.0d0 * G  + lam)
           wyz  = Rsyz
 
-          wyy  = (wyy + Lsyy - Lsxx * lam / (2.0d0 * mu + lam)) / 2.0d0
-          wzz  = (wzz + Lszz - Lsxx * lam / (2.0d0 * mu + lam)) / 2.0d0
+          wyy  = (wyy + Lsyy - Lsxx * lam / (2.0d0 * G  + lam)) / 2.0d0
+          wzz  = (wzz + Lszz - Lsxx * lam / (2.0d0 * G  + lam)) / 2.0d0
           wyz  = (wyz + Lsyz) / 2.0d0
 
           sxx = (wxxm + wxxp) / 2.0d0
@@ -675,8 +675,8 @@ C         Set the left state variables
           Wgdnv(CHF_IX[i;j;k],cy    ) = (wxym - wxyp) / 2.0d0 / Zs
           Wgdnv(CHF_IX[i;j;k],cz    ) = (wxzm - wxzp) / 2.0d0 / Zs
           Wgdnv(CHF_IX[i;j;k],cx + 3) = (wxxm + wxxp) / 2.0d0
-          Wgdnv(CHF_IX[i;j;k],cy + 3) =  wyy + sxx * lam / (2.0d0 * mu + lam)
-          Wgdnv(CHF_IX[i;j;k],cz + 3) =  wzz + sxx * lam / (2.0d0 * mu + lam)
+          Wgdnv(CHF_IX[i;j;k],cy + 3) =  wyy + sxx * lam / (2.0d0 * G  + lam)
+          Wgdnv(CHF_IX[i;j;k],cz + 3) =  wzz + sxx * lam / (2.0d0 * G  + lam)
           Wgdnv(CHF_IX[i;j;k],cxy   ) = (wxym + wxyp) / 2.0d0
           Wgdnv(CHF_IX[i;j;k],cxz   ) = (wxzm + wxzp) / 2.0d0
           Wgdnv(CHF_IX[i;j;k],cyz   ) = wyz
@@ -719,12 +719,12 @@ C         Set the left state variables
           wxym = Rsxy + rv*Zs * Rvy
           wxzm = Rsxz + rv*Zs * Rvz
 
-          wyy  = Rsyy - Rsxx * lam / (2.0d0 * mu + lam)
-          wzz  = Rszz - Rsxx * lam / (2.0d0 * mu + lam)
+          wyy  = Rsyy - Rsxx * lam / (2.0d0 * G  + lam)
+          wzz  = Rszz - Rsxx * lam / (2.0d0 * G  + lam)
           wyz  = Rsyz
 
-          wyy  = (wyy + Lsyy - Lsxx * lam / (2.0d0 * mu + lam)) / 2.0d0
-          wzz  = (wzz + Lszz - Lsxx * lam / (2.0d0 * mu + lam)) / 2.0d0
+          wyy  = (wyy + Lsyy - Lsxx * lam / (2.0d0 * G  + lam)) / 2.0d0
+          wzz  = (wzz + Lszz - Lsxx * lam / (2.0d0 * G  + lam)) / 2.0d0
           wyz  = (wyz + Lsyz) / 2.0d0
 
           sxx = (wxxm + wxxp) / 2.0d0
@@ -732,8 +732,8 @@ C         Set the left state variables
           Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy    ) = rv*(wxym - wxyp) / 2.0d0 / Zs
           Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz    ) = rv*(wxzm - wxzp) / 2.0d0 / Zs
           Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cx + 3) = (wxxm + wxxp) / 2.0d0
-          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy + 3) =  wyy + sxx * lam / (2.0d0 * mu + lam)
-          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz + 3) =  wzz + sxx * lam / (2.0d0 * mu + lam)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy + 3) =  wyy + sxx * lam / (2.0d0 * G  + lam)
+          Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz + 3) =  wzz + sxx * lam / (2.0d0 * G  + lam)
           Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cxy   ) = (wxym + wxyp) / 2.0d0
           Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cxz   ) = (wxzm + wxzp) / 2.0d0
           Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cyz   ) = wyz
@@ -836,11 +836,11 @@ C
           AdWdx(CHF_IX[i;j;k],cx    ) = -scale * sxx / rho
           AdWdx(CHF_IX[i;j;k],cy    ) = -scale * sxy / rho
           AdWdx(CHF_IX[i;j;k],cz    ) = -scale * sxz / rho
-          AdWdx(CHF_IX[i;j;k],cx + 3) = -scale * vx  * (lam + 2.0d0 * mu)
+          AdWdx(CHF_IX[i;j;k],cx + 3) = -scale * vx  * (lam + 2.0d0 * G )
           AdWdx(CHF_IX[i;j;k],cy + 3) = -scale * vx  * lam
           AdWdx(CHF_IX[i;j;k],cz + 3) = -scale * vx  * lam
-          AdWdx(CHF_IX[i;j;k],cxy   ) = -scale * vy  * mu
-          AdWdx(CHF_IX[i;j;k],cxz   ) = -scale * vz  * mu
+          AdWdx(CHF_IX[i;j;k],cxy   ) = -scale * vy  * G 
+          AdWdx(CHF_IX[i;j;k],cxz   ) = -scale * vz  * G 
           AdWdx(CHF_IX[i;j;k],cyz   ) = -scale * 0d0
           AdWdx(CHF_IX[i;j;k], 9    ) = -scale * 0d0
           AdWdx(CHF_IX[i;j;k],10    ) = -scale * 0d0
@@ -868,11 +868,11 @@ C
           AdWdx(CHF_IX[i;j;k],IX_OFFSET + cx    ) = -rv * scale * sxx / rho
           AdWdx(CHF_IX[i;j;k],IX_OFFSET + cy    ) = -rv * scale * sxy / rho
           AdWdx(CHF_IX[i;j;k],IX_OFFSET + cz    ) = -rv * scale * sxz / rho
-          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cx + 3) = -rv * scale * vx  * (lam + 2.0d0 * mu)
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cx + 3) = -rv * scale * vx  * (lam + 2.0d0 * G )
           AdWdx(CHF_IX[i;j;k],IX_OFFSET + cy + 3) = -rv * scale * vx  * lam
           AdWdx(CHF_IX[i;j;k],IX_OFFSET + cz + 3) = -rv * scale * vx  * lam
-          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cxy   ) = -rv * scale * vy  * mu
-          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cxz   ) = -rv * scale * vz  * mu
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cxy   ) = -rv * scale * vy  * G 
+          AdWdx(CHF_IX[i;j;k],IX_OFFSET + cxz   ) = -rv * scale * vz  * G 
           AdWdx(CHF_IX[i;j;k],IX_OFFSET + cyz   ) = -rv * scale * 0d0
           AdWdx(CHF_IX[i;j;k],IX_OFFSET +  9    ) = -rv * scale * 0d0
           AdWdx(CHF_IX[i;j;k],IX_OFFSET + 10    ) = -rv * scale * 0d0
@@ -946,7 +946,7 @@ C         so we set w- = -w+
             wmz = -wpz
           endif
           sxx = (wmx + wpx) / (2.0d0)
-          SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * mu)
+          SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * G )
           Wgdnv(CHF_IX[i;j;k],cx    ) = (wmx - wpx) / (2.0d0 * Zp)
           Wgdnv(CHF_IX[i;j;k],cy    ) = (wmy - wpy) / (2.0d0 * Zs)
           Wgdnv(CHF_IX[i;j;k],cz    ) = (wmz - wpz) / (2.0d0 * Zs)
@@ -980,7 +980,7 @@ C         so we set w- = -w+
             wmz = -wpz
           endif
           sxx = (wmx + wpx) / (2.0d0)
-          SHF = -(WInside(CHF_IX[i;j;k],IX_OFFSET + cx) - sxx) * lam / (lam + 2.0d0 * mu)
+          SHF = -(WInside(CHF_IX[i;j;k],IX_OFFSET + cx) - sxx) * lam / (lam + 2.0d0 * G )
           Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cx    ) = rv*(wmx - wpx) / (2.0d0 * Zp)
           Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy    ) = rv*(wmy - wpy) / (2.0d0 * Zs)
           Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz    ) = rv*(wmz - wpz) / (2.0d0 * Zs)
@@ -1079,7 +1079,7 @@ C         This is a right boundary
           endif
 
           sxx = (wmx_1 + wpx_1) / (2.0d0)
-          SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * mu)
+          SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * G )
           Wgdnv(CHF_IX[i;j;k],cx    ) = (wmx_1 - wpx_1) / (2.0d0 * Zp)
           Wgdnv(CHF_IX[i;j;k],cy    ) = (wmy_1 - wpy_1) / (2.0d0 * Zs)
           Wgdnv(CHF_IX[i;j;k],cz    ) = (wmz_1 - wpz_1) / (2.0d0 * Zs)
@@ -1106,7 +1106,7 @@ C         This is a right boundary
           endif
 
           sxx = (wmx_2 + wpx_2) / (2.0d0)
-          SHF = -(WInside(CHF_IX[i;j;k],IX_OFFSET + cx) - sxx) * lam / (lam + 2.0d0 * mu)
+          SHF = -(WInside(CHF_IX[i;j;k],IX_OFFSET + cx) - sxx) * lam / (lam + 2.0d0 * G )
           Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cx    ) = rv*(wmx_2 - wpx_2) / (2.0d0 * Zp)
           Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cy    ) = rv*(wmy_2 - wpy_2) / (2.0d0 * Zs)
           Wgdnv(CHF_IX[i;j;k],IX_OFFSET + cz    ) = rv*(wmz_2 - wpz_2) / (2.0d0 * Zs)
@@ -1139,15 +1139,16 @@ c       physical parameters
 c
         cs  = aucs
         cp  = aucp
-        mu  = aumu
+        G   = aumu
 
 c
 c       other physical (dependent) parameters
 c
-        rho = mu / (cs**2)
-        lam = (cp**2) * rho - two * mu
+        rho = G  / (cs**2)
+        lam = (cp**2) * rho - two * G 
         Zs  = rho * cs
         Zp  = rho * cp
+        K   = lam+2d0*G/3d0
 
 c
 c       Set the background values

@@ -62,7 +62,7 @@ public:
         const Box&                  a_bdryBox,
         const int&                  a_refineCoarse,
         const Real&                 a_dx,
-        const GodunovPhysics* const a_godunovFactory,
+        const LinElastPhysics* const a_linElastPhysics,
         const int&                  a_normalPredOrder,
         const bool&                 a_useFourthOrderSlopes,
         const bool&                 a_usePrimLimiting,
@@ -103,6 +103,15 @@ public:
         const Real&                 a_TCoarseNew,
         const Real&                 a_time,
         const Real&                 a_dt);
+
+    /// Do the plastic update (perhaps should be called operator splitting?)
+    /*
+     * Do a correction to the fields based on plasticity.
+     *
+     * This might be better called as a spltting operation, as opposed to
+     * plasticUpdate for generality.
+     */
+    void plasticUpdate(LevelData<FArrayBox>&  a_U, const Real& a_dt);
 
     /// To be added...
     /**

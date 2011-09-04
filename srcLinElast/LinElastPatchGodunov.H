@@ -16,7 +16,7 @@
 #include "Vector.H"
 #include "FluxBox.H"
 
-#include "GodunovPhysics.H"
+#include "LinElastPhysics.H"
 #include "GodunovUtilities.H"
 #include "NamespaceHeader.H"
 
@@ -48,7 +48,7 @@ public:
     */
     virtual void define(const ProblemDomain&        a_domain,
         const Real&                 a_dx,
-        const GodunovPhysics* const a_gdnvPhysicsPtr,
+        const LinElastPhysics* const a_gdnvPhysicsPtr,
         const int&                  a_normalPredOrder,
         const bool&                 a_useFourthOrderSlopes,
         const bool&                 a_usePrimLimiting,
@@ -81,6 +81,10 @@ public:
         const FArrayBox& a_S,
         const Real&      a_dt,
         const Box&       a_box);
+
+    virtual void plasticUpdate(FArrayBox& curU,
+        const Real& a_dt,
+        const Box&  curBox);
 
     virtual void updateState(FArrayBox&       a_U,
         FluxBox&         a_F,
@@ -169,6 +173,11 @@ public:
     */
     GodunovPhysics* getGodunovPhysicsPtr();
 
+    /// Accessor to get at the GodunovPhysics object
+    /**
+    */
+    LinElastPhysics* getLinElastPhysicsPtr();
+
     /// Is the object completely defined
     /**
       Return true if the object is completely defined.
@@ -188,7 +197,7 @@ protected:
     Real          m_dx;
 
     // Object providing physics information
-    GodunovPhysics*  m_gdnvPhysics;
+    LinElastPhysics*  m_linElastPhysics;
 
     // Object containing various methods for the Godunov computation
     GodunovUtilities m_util;

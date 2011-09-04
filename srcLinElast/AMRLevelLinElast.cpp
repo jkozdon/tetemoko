@@ -42,7 +42,7 @@ AMRLevelLinElast::AMRLevelLinElast()
         pout() << "AMRLevelLinElast default constructor" << endl;
     }
 
-    m_gdnvPhysics = NULL;
+    m_linElastPhysics = NULL;
     m_paramsDefined = false;
 }
 
@@ -55,10 +55,10 @@ AMRLevelLinElast::~AMRLevelLinElast()
         pout() << "AMRLevelLinElast destructor" << endl;
     }
 
-    if (m_gdnvPhysics != NULL)
+    if (m_linElastPhysics != NULL)
     {
-        delete m_gdnvPhysics;
-        m_gdnvPhysics = NULL;
+        delete m_linElastPhysics;
+        m_linElastPhysics = NULL;
     }
 
     m_paramsDefined = false;
@@ -70,7 +70,7 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
     const Real&                 a_refineThresh,
     const int&                  a_tagBufferSize,
     const Real&                 a_initialDtMultiplier,
-    const GodunovPhysics* const a_godunovPhysics,
+    const LinElastPhysics* const a_linElastPhysics,
     const int&                  a_normalPredOrder,
     const bool&                 a_useFourthOrderSlopes,
     const bool&                 a_usePrimLimiting,
@@ -107,15 +107,15 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
 
     initialDtMultiplier(a_initialDtMultiplier);
 
-    if (m_gdnvPhysics != NULL)
+    if (m_linElastPhysics != NULL)
     {
-        delete m_gdnvPhysics;
-        m_gdnvPhysics = NULL;
+        delete m_linElastPhysics;
+        m_linElastPhysics = NULL;
     }
 
-    m_gdnvPhysics = (GodunovPhysics*) a_godunovPhysics->new_godunovPhysics();
+    m_linElastPhysics = (LinElastPhysics*) a_linElastPhysics->new_godunovPhysics();
 
-    //BD m_bdryUseData = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->hasBdryData();
+    //BD m_bdryUseData = ((LEPhysIBC*) m_linElastPhysics->getPhysIBC())->hasBdryData();
 
     m_normalPredOrder = a_normalPredOrder;
 
@@ -216,15 +216,15 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     // individual computations may create local data with more
     m_numGhost = 1;
 
-    CH_assert(m_gdnvPhysics != NULL);
+    CH_assert(m_linElastPhysics != NULL);
     CH_assert(isDefined());
-    m_gdnvPhysics->define(m_problem_domain,m_dx);
+    m_linElastPhysics->define(m_problem_domain,m_dx);
 
     // Number and names of conserved states
-    m_numStates  = m_gdnvPhysics->numConserved();
-    m_stateNames = m_gdnvPhysics->stateNames();
-    m_numBdryVars = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->numBdryVars();
-    m_bdryNames = ((LEPhysIBC*) m_gdnvPhysics->getPhysIBC())->bdryNames();
+    m_numStates  = m_linElastPhysics->numConserved();
+    m_stateNames = m_linElastPhysics->stateNames();
+    m_numBdryVars = ((LEPhysIBC*) m_linElastPhysics->getPhysIBC())->numBdryVars();
+    m_bdryNames = ((LEPhysIBC*) m_linElastPhysics->getPhysIBC())->bdryNames();
 
     // Setup the boundary Face box
     m_bdryFaceBox = bdryLo(a_problemDomain.domainBox(),1,1);
@@ -439,7 +439,7 @@ Real AMRLevelLinElast::advance()
         m_time,
         m_dt);
 
-    // if(m_usePlasticity) m_LElevelGodunov.plasticUpdate(m_UNew,m_dt)
+    if(m_usePlasticity) m_LElevelGodunov.plasticUpdate(m_UNew,m_dt);
 
     // Update the time and store the new timestep
     m_time += m_dt;
@@ -577,7 +577,7 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
 
     // Compute relative gradient
     DataIterator dit = levelDomain.dataIterator();
-    LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
+    LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_linElastPhysics->getPhysIBC();
 
     for (dit.begin(); dit.ok(); ++dit)
     {
@@ -680,7 +680,7 @@ void AMRLevelLinElast::tagCellsInit(IntVectSet& a_tags)
     // Compute relative gradient
     DataIterator dit = levelDomain.dataIterator();
 
-    LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
+    LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_linElastPhysics->getPhysIBC();
 
     for (dit.begin(); dit.ok(); ++dit)
     {
@@ -847,7 +847,7 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
     // m_BNew_old.define(m_bdryGrids_old,m_numBdryVars,ivBGhost);
 
     // Reshape the boundary grid
-    LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
+    LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_linElastPhysics->getPhysIBC();
     lephysIBCPtr->initialize(m_UNew);
     //BD if(m_bdryUseData)
     //BD {
@@ -1024,7 +1024,7 @@ void AMRLevelLinElast::initialData()
         pout() << "AMRLevelLinElast::initialData " << m_level << endl;
     }
 
-    LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
+    LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_linElastPhysics->getPhysIBC();
     lephysIBCPtr->initialize(m_UNew);
     //BD if(m_bdryUseData)
     //BD {
@@ -1942,7 +1942,7 @@ void AMRLevelLinElast::levelSetup()
             m_bdryFaceBox,
             nRefCrse,
             m_dx,
-            m_gdnvPhysics,
+            m_linElastPhysics,
             m_normalPredOrder,
             m_useFourthOrderSlopes,
             m_usePrimLimiting,
@@ -1978,7 +1978,7 @@ void AMRLevelLinElast::levelSetup()
             m_bdryFaceBox,
             m_ref_ratio,
             m_dx,
-            m_gdnvPhysics,
+            m_linElastPhysics,
             m_normalPredOrder,
             m_useFourthOrderSlopes,
             m_usePrimLimiting,
@@ -2067,7 +2067,7 @@ void AMRLevelLinElast::dumpBdryData()
         boundaryData = fopen(prefix,"w");
         if(boundaryData != NULL)
         {
-            LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_gdnvPhysics->getPhysIBC();
+            LEPhysIBC* lephysIBCPtr = (LEPhysIBC*) m_linElastPhysics->getPhysIBC();
             for (DataIterator dit = m_BNew.dataIterator(); dit.ok(); ++dit)
             {
                 lephysIBCPtr->setBdryData(&m_BNew[dit()]);

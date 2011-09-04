@@ -435,13 +435,14 @@ void amrGodunov()
     int inUsePlasticity = 0;
     ppphysics.query("plasticity", inUsePlasticity);
     bool usePlasticity = (inUsePlasticity == 1);
-    Real plasBeta = 0.5735;
-    Real plasMu = plasBeta/2;
+    Real plasMu = 0.5735;
+    Real plasBeta = plasMu/2;
     Real plasEta = 0.2775;
     if(usePlasticity)
     {
+        ppphysics.query("plas_mu",plasMu);
+        plasBeta=plasMu/2;
         ppphysics.query("plas_beta",plasBeta);
-        ppphysics.query("plas_beta",plasMu);
         ppphysics.query("plas_eta",plasEta);
     }
 
@@ -822,7 +823,7 @@ void amrGodunov()
     linElastPhysics.setPhysIBC(leibc);
 
     // Cast to physics base class pointer for technical reasons
-    GodunovPhysics* godunovPhysics = static_cast<GodunovPhysics*> (&linElastPhysics);
+    LinElastPhysics* godunovPhysics = static_cast<LinElastPhysics*> (&linElastPhysics);
 
     // Set up the AMRLevel... factory
     AMRLevelLinElastFactory amrGodFact;
@@ -849,7 +850,8 @@ void amrGodunov()
         xBodyStations,
         yBodyStations,
         zBodyStations,
-        domainCenter);
+        domainCenter,
+        usePlasticity);
 
     // Set up output files
     if (ppcomp.contains("plot_prefix"))
@@ -861,12 +863,6 @@ void amrGodunov()
 
     // set the plotting number
     amrGodFact.plotInterval(boundPlotInterval);
-
-    // Set up plasticity
-    if(usePlasticity)
-    {
-        // amrGodFact.plasticity(plasMu,plasBeta,plasEta);
-    }
 
     AMR amr;
     

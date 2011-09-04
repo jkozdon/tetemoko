@@ -40,7 +40,7 @@ public:
                       const Real&                 a_refineThresh,
                       const int&                  a_tagBufferSize,
                       const Real&                 a_initialDtMultiplier,
-                      const GodunovPhysics* const a_godunovPhysics,
+                      const LinElastPhysics* const a_godunovPhysics,
                       const int&                  a_normalPredOrder,
                       const bool&                 a_useFourthOrderSlopes,
                       const bool&                 a_usePrimLimiting,
@@ -56,7 +56,8 @@ public:
                       const Vector<Real>&         a_xBodyStations,
                       const Vector<Real>&         a_yBodyStations,
                       const Vector<Real>&         a_zBodyStations,
-                      const Vector<Real>&         a_domainCenter);
+                      const Vector<Real>&         a_domainCenter,
+                      const bool&                 a_usePlasticity);
 
   /// Create a new AMRLevel (for polytropic gases)
   /**
@@ -102,7 +103,7 @@ protected:
 
   // Pointer to the object that supplies the physics needed by the integrator
   // (used as a factory here)
-  const GodunovPhysics* m_godunovPhysics;
+  const LinElastPhysics* m_linElastPhysics;
 
   // Order of the normal predictor (1 -> PLM, 2 -> PPM)
   int m_normalPredOrder;

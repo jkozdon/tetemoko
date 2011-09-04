@@ -14,6 +14,8 @@
 
 #include "LinElastPhysicsF_F.H"
 
+#include "PlasticPhysicsF_F.H"
+
 #include "LEPhysIBC.H"
 
 #include "GodunovPhysicsF_F.H"
@@ -48,11 +50,11 @@ Real LinElastPhysics::getMaxWaveSpeed(const FArrayBox& a_U,
 }
 
 /// Object factory for this class
-GodunovPhysics* LinElastPhysics::new_godunovPhysics() const
+LinElastPhysics* LinElastPhysics::new_godunovPhysics() const
 {
     CH_assert(m_isBCSet);
 
-    GodunovPhysics* retval = static_cast<GodunovPhysics*>
+    LinElastPhysics* retval = static_cast<LinElastPhysics*>
         (new LinElastPhysics(0 /*JUNK*/));
 
     retval->setPhysIBC(m_bc);
@@ -533,4 +535,19 @@ void LinElastPhysics::artVisc(FArrayBox&       a_F,
 
   // Change fluxes due to artificial viscosity on the boundary faces
   // m_bc->artViscBC(a_F,a_U,divu,a_dir,a_currentTime);
+}
+
+/// Compute the plastic correction
+/**
+*/
+void LinElastPhysics::plasticUpdate(FArrayBox& a_U,
+    const Real&      a_dt,
+    const Box&       a_box)
+{
+    // pout() << "LinElastPhysics::plasticUpdate - Box : " << a_box << endl;
+    // pout() << "LinElastPhysics::plasticUpdate - dt  : " << a_dt << endl;
+    FORT_PLASTICCORRECTION(
+        CHF_FRA(a_U),
+        CHF_CONST_REAL(a_dt),
+        CHF_BOX(a_box));
 }

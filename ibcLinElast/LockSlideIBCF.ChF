@@ -136,7 +136,7 @@ C         This is a right boundary
           endif
 
           sxx = (wmx + wpx) / (2.0d0)
-          SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * mu)
+          SHF = -(WInside(CHF_IX[i;j;k],cx) - sxx) * lam / (lam + 2.0d0 * G)
           Wgdnv(CHF_IX[i;j;k],cx    ) = (wmx - wpx) / (2.0d0 * Zp)
           Wgdnv(CHF_IX[i;j;k],cy    ) = (wmy - wpy) / (2.0d0 * Zs)
           Wgdnv(CHF_IX[i;j;k],cz    ) = (wmz - wpz) / (2.0d0 * Zs)

@@ -29,7 +29,7 @@
 #include "LinElastLevelGodunov.H"
 #include "PhysIBC.H"
 #include "LEPhysIBC.H"
-#include "GodunovPhysics.H"
+#include "LinElastPhysics.H"
 
 #include "UsingNamespace.H"
 
@@ -58,7 +58,7 @@ public:
                     const Real&                 a_refineThresh,
                     const int&                  a_tagBufferSize,
                     const Real&                 a_initialDtMultiplier,
-                    const GodunovPhysics* const a_godunovPhysics,
+                    const LinElastPhysics* const a_godunovPhysics,
                     const int&                  a_normalPredOrder,
                     const bool&                 a_useFourthOrderSlopes,
                     const bool&                 a_usePrimLimiting,
@@ -275,7 +275,7 @@ protected:
   LevelFluxRegister m_fluxRegister;
 
   // Pointer to the class defining the physics of the problem
-  GodunovPhysics* m_gdnvPhysics;
+  LinElastPhysics* m_linElastPhysics;
 
   // Order of the normal predictor (1 -> PLM, 2-> PPM)
   int m_normalPredOrder;

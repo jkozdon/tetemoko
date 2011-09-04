@@ -8,31 +8,33 @@ physics.cp = 6
 physics.rho = 2.670
 
 # Set the background values
-#                     vx1  vy1  vz1  sxx   syy  szz  sxy  sxz  syz vx2 vy2 vz2
-physics.background =    0    0    0    0  -120    0   70    0    0   0   0   0
+#                     vx1  vy1  vz1   sxx   syy   szz  sxy  sxz  syz vx2 vy2 vz2
+physics.background =    0    0    0   -50  -126   -88   32    0    0   0   0   0
 
 physics.a   = 0.016
 physics.b   = 0.020
-physics.L   = 0.4
+physics.L   = 0.2572
 physics.V0  = 1e-6
-physics.f0  = 0.6
+physics.f0  = 0.7
 physics.Vw  = 0.17
 physics.fw  = 0.13
-physics.psi = 0.56
-physics.nuc_R = 1
+physics.psi = 0.4367
+physics.fric_exp = 8.0
+physics.nuc_R = 0.3
 physics.nuc_T = 1
-physics.nuc_x = 51.2
-physics.nuc_y = 7.5
-physics.nuc_S = 45
+# physics.nuc_x = 51.2
+physics.nuc_x = 8
+physics.nuc_y = 0
+physics.nuc_S = 65
 physics.nuc_N = 0
 
 physics.rupture_front_vel_thresh = 0.001
 
 # define plasticity
-physics.plas      = 0
-physics.plas_mu   = 0.5735
-physics.plas_beta = 0.2867
-physics.plas_eta  = 0.2775
+physics.plasticity = 1
+physics.plas_mu    = 0.5735
+physics.plas_beta  = 0.2867
+physics.plas_eta   = 0.2775
 
 # Turn on some output
 # comp.verbosity = 10
@@ -40,17 +42,20 @@ comp.verbosity = 1
 
 # Number of steps, final time, and time step
 # comp.restart_file = = rs_hdf5/check.rs_G160x80x80_L2_R4.750.3d.hdf5
-comp.max_step = 10000
+# comp.max_step = 10000
+comp.max_step = 2000
 comp.max_time = 12
 # comp.fixed_dt = 0.002
 
 # Size of the domain's longest dimension
-comp.domain_length = 102.4
+# comp.domain_length = 102.4
+comp.domain_length = 16
 # comp.domain_length = 25.6
 
 # Coarsest grid
 # comp.num_cells = 512 256 256
-comp.num_cells = 1024 512 512
+# comp.num_cells = 1024 512 512
+comp.num_cells = 1280 160
 # comp.num_cells = 4096 2048 2048
 # comp.num_cells = 2048 1024 1024
 # comp.num_cells = 256 128 128
@@ -65,11 +70,11 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 1
+comp.max_level = 0
 # For 2D
-comp.ref_ratio = 4 4 4 4 4 4
+# comp.ref_ratio = 4 4 4 4 4 4
 # For 3D
-# comp.ref_ratio = 2 2 2 2 2
+comp.ref_ratio = 2 2 2 2 2
 
 # Regridding parameters
 comp.regrid_interval = 2 2 2 2 2 2 2 2 2 2
@@ -98,7 +103,7 @@ comp.use_artificial_viscosity = 0
 comp.artificial_viscosity = 0.1
 
 # Plot file information
-comp.plot_interval = 1
+comp.plot_interval = 10
 # comp.plot_interval = 1
 comp.plot_prefix  = rs_hdf5/rs_r1.
 comp.pout_name  = pout/rs_r1
