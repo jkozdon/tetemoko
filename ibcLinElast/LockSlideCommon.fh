@@ -1,5 +1,0 @@
-C
-C   Simple problem constants
-C
-        real_t r0, edge
-        common /lockslide/ edge, r0

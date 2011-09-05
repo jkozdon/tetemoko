@@ -1,5 +1,0 @@
-C
-C   Asinh 1s problem constants
-C
-        real_t r0, nucTime, sigma
-        common /velslideasinh1s/ r0, nucTime, sigma

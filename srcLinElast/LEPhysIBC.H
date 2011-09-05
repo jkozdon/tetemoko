@@ -55,7 +55,7 @@ public:
     /// Store pointer to boundary data
     /**
     */
-    virtual void updateBoundary(const FArrayBox& a_WHalf,int dir,const Real& a_dt,const Real& a_time,const bool a_final)
+    virtual void updateBoundary(const FArrayBox& a_WHalf,int dir,const Real& a_dt,const Real& a_dx,const Real& a_time,const bool a_final)
     {
         // Default implementation is to do nothing
     }
@@ -93,7 +93,10 @@ public:
     {
     }
 
-    void setFortranCommonLE(const Real& a_cs, const Real& a_cp, const Real& a_mu, const vector<Real> a_back);
+    void setFortranCommonLE(const Real& a_cs, const Real& a_cp, const Real& a_mu,
+        const Real& a_sxx0,const Real& a_syy0,const Real& a_szz0,
+        const Real& a_sxy0,const Real& a_sxz0,const Real& a_syz0);
+
     void setFortranCommonPlastic(const Real& a_mu, const Real& a_beta, const Real& a_eta);
 
 protected:

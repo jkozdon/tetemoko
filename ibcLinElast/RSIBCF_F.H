@@ -76,6 +76,7 @@ void FORTRAN_NAME( RSSETBND ,rssetbnd )(
       ,CHFp_CONST_FRA(Bin)
       ,CHFp_CONST_FRA(U)
       ,CHFp_CONST_REAL(dt)
+      ,CHFp_CONST_REAL(dx)
       ,CHFp_CONST_REAL(time) );
 
 #define FORT_RSSETBND FORTRAN_NAME( inlineRSSETBND, inlineRSSETBND)
@@ -87,6 +88,7 @@ inline void FORTRAN_NAME(inlineRSSETBND, inlineRSSETBND)(
       ,CHFp_CONST_FRA(Bin)
       ,CHFp_CONST_FRA(U)
       ,CHFp_CONST_REAL(dt)
+      ,CHFp_CONST_REAL(dx)
       ,CHFp_CONST_REAL(time) )
 {
  CH_TIMELEAF("FORT_RSSETBND");
@@ -96,6 +98,7 @@ inline void FORTRAN_NAME(inlineRSSETBND, inlineRSSETBND)(
       ,CHFt_CONST_FRA(Bin)
       ,CHFt_CONST_FRA(U)
       ,CHFt_CONST_REAL(dt)
+      ,CHFt_CONST_REAL(dx)
       ,CHFt_CONST_REAL(time) );
 }
 #endif  // GUARDRSSETBND 

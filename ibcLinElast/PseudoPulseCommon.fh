@@ -1,6 +1,0 @@
-C
-C   Pseudo Pulse problem constants
-C
-        real_t r0, slope, dTau, Vh, Vr, stopTime, jumpTime, a(20), b(20)
-        integer len_a
-        common /pseudopulse/ r0, slope, dTau, Vh, Vr, stopTime, jumpTime, a, b, len_a

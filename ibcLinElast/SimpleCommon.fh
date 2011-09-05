@@ -1,6 +1,0 @@
-C
-C   Simple problem constants
-C
-        real_t r0,sig
-        real_t mag(0:8)
-        common /simple/ r0,mag,sig

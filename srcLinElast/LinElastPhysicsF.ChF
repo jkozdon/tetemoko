@@ -1130,7 +1130,12 @@ C
      &    CHF_CONST_REAL[aucs],
      &    CHF_CONST_REAL[aucp],
      &    CHF_CONST_REAL[aumu],
-     &    CHF_CONST_VR[aback])
+     &    CHF_CONST_REAL[asxx0],
+     &    CHF_CONST_REAL[asyy0],
+     &    CHF_CONST_REAL[aszz0],
+     &    CHF_CONST_REAL[asxy0],
+     &    CHF_CONST_REAL[asxz0],
+     &    CHF_CONST_REAL[asyz0])
 
 #include "IBCCommon.fh"
 
@@ -1155,29 +1160,29 @@ c       Set the background values
 c
 
 C       first on side 1
-        background(IX1_VX ) = aback(0)
-        background(IX1_VY ) = aback(1)
-        background(IX1_VZ ) = aback(2)
-        background(IX1_SXX) = aback(3)
-        background(IX1_SYY) = aback(4)
-        background(IX1_SZZ) = aback(5)
-        background(IX1_SXY) = aback(6)
-        background(IX1_SXZ) = aback(7)
-        background(IX1_SYZ) = aback(8)
+        background(IX1_VX ) = 0d0
+        background(IX1_VY ) = 0d0
+        background(IX1_VZ ) = 0d0
+        background(IX1_SXX) = asxx0
+        background(IX1_SYY) = asyy0
+        background(IX1_SZZ) = aszz0
+        background(IX1_SXY) = asxy0
+        background(IX1_SXZ) = asxz0
+        background(IX1_SYZ) = asyz0
         background(IX1_LAM) = 0d0
         background(IX1_GAM) = 0d0
 
 C       now on side 2 (it is only the velocities that differ)
 C       Currently the difference is only in velocity
-        background(IX2_VX ) = aback( 9)
-        background(IX2_VY ) = aback(10)
-        background(IX2_VZ ) = aback(11)
-        background(IX2_SXX) = aback( 3)
-        background(IX2_SYY) = aback( 4)
-        background(IX2_SZZ) = aback( 5)
-        background(IX2_SXY) = aback( 6)
-        background(IX2_SXZ) = aback( 7)
-        background(IX2_SYZ) = aback( 8)
+        background(IX2_VX ) = 0d0
+        background(IX2_VY ) = 0d0
+        background(IX2_VZ ) = 0d0
+        background(IX2_SXX) = asxx0
+        background(IX2_SYY) = asyy0
+        background(IX2_SZZ) = aszz0
+        background(IX2_SXY) = asxy0
+        background(IX2_SXZ) = asxz0
+        background(IX2_SYZ) = asyz0
         background(IX2_LAM) = 0d0
         background(IX2_GAM) = 0d0
 

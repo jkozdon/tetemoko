@@ -276,7 +276,7 @@ void RSIBC::artViscBC(FArrayBox&       a_F,
     pout() << "NOT SETUP :: RSIBC::artViscBC" << endl;
 }
 
-void RSIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,const Real& a_time,const bool a_final)
+void RSIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,const Real& a_dx,const Real& a_time,const bool a_final)
 {
     if(a_dir == 1 && bdryLo(m_domain,a_dir).contains(bdryLo(a_WHalf.box(),a_dir)))
     {
@@ -288,6 +288,7 @@ void RSIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,c
                 CHF_CONST_FRA((*m_bdryData)),
                 CHF_CONST_FRA(a_WHalf),
                 CHF_CONST_REAL(a_dt),
+                CHF_CONST_REAL(a_dx),
                 CHF_CONST_REAL(a_time));
         }
         // THIS MAY BE NECESSARY IN 3-D, NOT SURE!!!
@@ -299,6 +300,7 @@ void RSIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,c
         //         CHF_CONST_FRA((*m_tmpBdryData)),
         //         CHF_CONST_FRA(a_WHalf),
         //         CHF_CONST_REAL(a_dt),
+        //         CHF_CONST_REAL(a_dx),
         //         CHF_CONST_REAL(a_time));
         // }
         else
@@ -310,6 +312,7 @@ void RSIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,c
                 CHF_CONST_FRA((*m_bdryData)),
                 CHF_CONST_FRA(a_WHalf),
                 CHF_CONST_REAL(a_dt),
+                CHF_CONST_REAL(a_dx),
                 CHF_CONST_REAL(a_time));
             m_tmpBdryDataSet = true;
         }

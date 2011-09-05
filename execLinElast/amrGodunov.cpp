@@ -24,6 +24,7 @@ using std::ios;
 #endif
 
 #include "FABView.H"
+#include "CONSTANTS.H"
 
 #include "ParmParse.H"
 #include "CH_HDF5.H"
@@ -202,15 +203,15 @@ void amrGodunov()
     CH_assert(cp >= 0);
 
     // Shear modulus
-    Real mu = 30;
-    ppphysics.query("mu",mu);
-    CH_assert(mu >= 0);
+    Real G = 30;
+    ppphysics.query("G",G);
+    CH_assert(G >= 0);
 
     Real rho = -10;
     ppphysics.query("rho",rho);
     if(rho > 0)
     {
-        mu = rho * cs*cs;
+        G = rho * cs*cs;
     }
 
     if(verbosity >= 1)
@@ -221,7 +222,7 @@ void amrGodunov()
            pout() << ":::::::::::::::::::::::::::" << endl << endl;
            pout() << "S-wave Speed    = " << cs << endl;
            pout() << "P-wave Speed    = " << cp << endl;
-           pout() << "Shear Modulus   = " << mu << endl << endl;
+           pout() << "Shear Modulus   = " << G << endl << endl;
     }
 
     // Define IBC for ramp problem
@@ -422,8 +423,33 @@ void amrGodunov()
     LEPhysIBC* leibc;
 
     // Background Values
-    vector<Real> backgroundVals(12,0);
-    ppphysics.queryarr("background",backgroundVals,0,12);
+    Real sxx0 = 0;
+    ppphysics.query("sxx0",sxx0);
+    Real syy0 = 0;
+    ppphysics.query("syy0",syy0);
+    Real szz0 = 0;
+    ppphysics.query("szz0",szz0);
+    Real sxy0 = 0;
+    ppphysics.query("sxy0",sxy0);
+    Real sxz0 = 0;
+    ppphysics.query("sxz0",sxz0);
+    Real syz0 = 0;
+    ppphysics.query("syz0",syz0);
+    if(ppphysics.contains("plas_Psi"))
+    {
+        Real pPsi = 0;
+        ppphysics.query("plas_Psi",pPsi);
+        if (pPsi==45)
+        {
+            sxx0 = syy0;
+        }
+        else
+        {
+            Real pi = atan(1)*4.0;
+            sxx0 = (1.0-2.0*sxy0/(syy0*tan(2.0*(pi*pPsi/180.0))))*syy0;
+        }
+        szz0 = (sxx0+syy0)/2.0;
+    }
 
     // Domain Center
     vector<Real> domainCenter(3,0);
@@ -557,17 +583,12 @@ void amrGodunov()
                     pout() << " at " << "(" << xcPatches[itor] << ",0," << zcPatches[itor] << ")";
                     pout() << " +/- (" << xwPatches[itor] << ",0," << zwPatches[itor] << ")" << endl;
                 }
-                pout() << "Background Values = " << 
-                    backgroundVals[0] << " " <<
-                    backgroundVals[1] << " " <<
-                    backgroundVals[2] << " " <<
-                    backgroundVals[3] << " " <<
-                    backgroundVals[4] << " " <<
-                    backgroundVals[5] << " " <<
-                    backgroundVals[6] << " " <<
-                    backgroundVals[7] << " " <<
-                    backgroundVals[8] << " " <<
-                    endl << endl;
+                pout() << "sxx0 = " << sxx0 << endl;
+                pout() << "syy0 = " << syy0 << endl;
+                pout() << "szz0 = " << szz0 << endl;
+                pout() << "sxy0 = " << sxy0 << endl;
+                pout() << "sxz0 = " << sxz0 << endl;
+                pout() << "syz0 = " << syz0 << endl;
             }
         }
         else if (problemString == "rateandstate")
@@ -655,17 +676,12 @@ void amrGodunov()
                 pout() << "  S   = " << nucS << endl;
                 pout() << "  N   = " << nucN << endl << endl;
 
-                pout() << "Background Values = " << 
-                    backgroundVals[0] << " " <<
-                    backgroundVals[1] << " " <<
-                    backgroundVals[2] << " " <<
-                    backgroundVals[3] << " " <<
-                    backgroundVals[4] << " " <<
-                    backgroundVals[5] << " " <<
-                    backgroundVals[6] << " " <<
-                    backgroundVals[7] << " " <<
-                    backgroundVals[8] << " " <<
-                    endl << endl;
+                pout() << "sxx0 = " << sxx0 << endl;
+                pout() << "syy0 = " << syy0 << endl;
+                pout() << "szz0 = " << szz0 << endl;
+                pout() << "sxy0 = " << sxy0 << endl;
+                pout() << "sxz0 = " << sxz0 << endl;
+                pout() << "syz0 = " << syz0 << endl;
                 pout() << "Rupture Threshold = " << ruptureVelocityThreshold << endl << endl;
             }
         }
@@ -683,7 +699,7 @@ void amrGodunov()
         return;
     }
 
-    leibc->setFortranCommonLE(cs,cp,mu,backgroundVals);
+    leibc->setFortranCommonLE(cs,cp,G,sxx0,syy0,szz0,sxy0,sxz0,syz0);
     if(usePlasticity)
         leibc->setFortranCommonPlastic(plasMu,plasBeta,plasEta);
 

@@ -55,14 +55,24 @@ C
      &    CHF_CONST_FRA[Bin],
      &    CHF_CONST_FRA[U],
      &    CHF_CONST_REAL[dt],
+     &    CHF_CONST_REAL[dx],
      &    CHF_CONST_REAL[time])
 
 #include "RSCommon.fh"
 
         integer CHF_DDECL[i;j;k]
-        real Vx, Vz, V, psi, fss, f
+        real_t Vx, Vz, V, psi, fss, f,tau_xy_0,tau_yz_0
+        real_t CHF_DDECL[x;y;z]
 
         CHF_MULTIDO[box;i;j;k]
+           CHF_DTERM[
+           x   = (i + half) * dx - x0;
+           y   = (j + half) * dx - y0;
+           z   = (k + half) * dx - z0]
+
+           call GAUSSIANFUNC(tau_xy_0,r0,x)
+           tau_xy_0 = nsig*tau_xy_0
+           tau_yz_0 = 0d0
 
 
 C         Only south face slip velocity
@@ -78,9 +88,9 @@ C         Vz
 C         V
           Bout(CHF_IX[i;j;k],RX_V) = V
 C         sxy
-          Bout(CHF_IX[i;j;k],RX_SXY) = U(CHF_IX[i;j;k],IX_SXY)
+          Bout(CHF_IX[i;j;k],RX_SXY) = U(CHF_IX[i;j;k],IX_SXY)+tau_xy_0
 C         syz
-          Bout(CHF_IX[i;j;k],RX_SYZ) = U(CHF_IX[i;j;k],IX_SYZ)
+          Bout(CHF_IX[i;j;k],RX_SYZ) = U(CHF_IX[i;j;k],IX_SYZ)+tau_yz_0
 C         slip_x
           Bout(CHF_IX[i;j;k],RX_DX) = Bin(CHF_IX[i;j;k],RX_DX) + dt*Vx
 C         slip_z
@@ -96,10 +106,10 @@ C         syy
           Bout(CHF_IX[i;j;k],RX_SYY)  = U(CHF_IX[i;j;k],IX_SYY)
 C         psi
           psi = Bin(CHF_IX[i;j;k],RX_PSI)
-          f   = rs_a*log(V*exp(psi/rs_a)/(2.0d0*rs_V0))
+          f   = rs_a*asinh(V*exp(psi/rs_a)/(2.0d0*rs_V0))
           fss = rs_f0 - (rs_b - rs_a)*log(V / rs_V0)
           if(rs_fExp > 0d0) then
-              fss = rs_fw + (fss - rs_fw)/((1d0 + (V/rs_Vw)**rs_fExp)**(1d0/rs_fExp))
+              fss = rs_fw + (fss - rs_fw)/((1d0 + (V/rs_Vw)**8)**(0.125d0))
           endif
           Bout(CHF_IX[i;j;k],RX_PSI) = psi - dt * (V / rs_L)*(f - fss)
           ! print*,psi,Bout(CHF_IX[i;j;k],RX_PSI),V,IX1_VX,IX2_VX
@@ -192,6 +202,7 @@ C          Get the characteristic propagating into the fault
 
 C          set the perturbation due to nucleation
            call GAUSSIANFUNC(tau_xy_0,r0,x)
+           ! print*,nsig,r0
            tau_xy_0 = nsig*tau_xy_0
            ! tau_xy_0 = 0d0
            tau_yz_0 = 0d0
@@ -317,11 +328,11 @@ C
             V = (Vmin + Vmax) / 2.0d0
         endif
 
-        alpha = rs_a
-        beta  = (1 / (2.0d0 * rs_V0)) * exp(psi / rs_a)
-
+        alpha = sn * rs_a
+        beta  = exp(psi / rs_a) / (2.0d0 * rs_V0)
         eta = 0.5d0*Zs
-        fval  = sn * alpha * asinh(beta * V) + eta * V - phi
+
+        fval  = alpha * asinh(beta * V) + eta * V - phi
 
         do i = 1,IMAX
             if ( fval .lt. 0) then
@@ -331,7 +342,7 @@ C
             endif
 
 C           evaluate the functions
-            dfval = sn * alpha * beta / sqrt(beta**2 * V**2 + 1) + eta
+            dfval = alpha * beta / sqrt(beta**2 * V**2 + 1) + eta
 
 C           Guess the change
             dV = -fval / dfval
@@ -342,7 +353,7 @@ C           Verify that we satisfy the bracket
                 V = (Vmin + Vmax) / 2.0d0
             endif
 
-            fval  = sn * alpha * asinh(beta * V) + eta * V - phi
+            fval  = alpha * asinh(beta * V) + eta * V - phi
             ! if ( abs(fval) .lt. atol .or. abs(dV) .lt. atol) then
             if (abs(fval)<=atolG) exit
 
@@ -350,7 +361,7 @@ C           Verify that we satisfy the bracket
         enddo
 
 
-        tau = sn * alpha * asinh(beta * V)
+        tau = alpha * asinh(beta * V)
 
         return
         end

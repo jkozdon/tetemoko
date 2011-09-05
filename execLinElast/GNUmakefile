@@ -2,6 +2,7 @@
 
 ## Define the variables needed by Make.example
 
+
 # trace the chain of included makefiles
 makefiles += example_AMRGodunov_execPolytropic
 

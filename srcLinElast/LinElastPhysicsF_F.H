@@ -469,7 +469,12 @@ void FORTRAN_NAME( LINELASTSETF ,linelastsetf )(
       CHFp_CONST_REAL(aucs)
       ,CHFp_CONST_REAL(aucp)
       ,CHFp_CONST_REAL(aumu)
-      ,CHFp_CONST_VR(aback) );
+      ,CHFp_CONST_REAL(asxx0)
+      ,CHFp_CONST_REAL(asyy0)
+      ,CHFp_CONST_REAL(aszz0)
+      ,CHFp_CONST_REAL(asxy0)
+      ,CHFp_CONST_REAL(asxz0)
+      ,CHFp_CONST_REAL(asyz0) );
 
 #define FORT_LINELASTSETF FORTRAN_NAME( inlineLINELASTSETF, inlineLINELASTSETF)
 #define FORTNT_LINELASTSETF FORTRAN_NAME( LINELASTSETF, linelastsetf)
@@ -478,14 +483,24 @@ inline void FORTRAN_NAME(inlineLINELASTSETF, inlineLINELASTSETF)(
       CHFp_CONST_REAL(aucs)
       ,CHFp_CONST_REAL(aucp)
       ,CHFp_CONST_REAL(aumu)
-      ,CHFp_CONST_VR(aback) )
+      ,CHFp_CONST_REAL(asxx0)
+      ,CHFp_CONST_REAL(asyy0)
+      ,CHFp_CONST_REAL(aszz0)
+      ,CHFp_CONST_REAL(asxy0)
+      ,CHFp_CONST_REAL(asxz0)
+      ,CHFp_CONST_REAL(asyz0) )
 {
  CH_TIMELEAF("FORT_LINELASTSETF");
  FORTRAN_NAME( LINELASTSETF ,linelastsetf )(
       CHFt_CONST_REAL(aucs)
       ,CHFt_CONST_REAL(aucp)
       ,CHFt_CONST_REAL(aumu)
-      ,CHFt_CONST_VR(aback) );
+      ,CHFt_CONST_REAL(asxx0)
+      ,CHFt_CONST_REAL(asyy0)
+      ,CHFt_CONST_REAL(aszz0)
+      ,CHFt_CONST_REAL(asxy0)
+      ,CHFt_CONST_REAL(asxz0)
+      ,CHFt_CONST_REAL(asyz0) );
 }
 #endif  // GUARDLINELASTSETF 
 

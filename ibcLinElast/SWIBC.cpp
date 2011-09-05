@@ -290,7 +290,7 @@ void SWIBC::artViscBC(FArrayBox&       a_F,
     pout() << "NOT SETUP :: SWIBC::artViscBC" << endl;
 }
 
-void SWIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,const Real& a_time,const bool a_final)
+void SWIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,const Real& a_dx,const Real& a_time,const bool a_final)
 {
     if(a_dir == 1 && bdryLo(m_domain,a_dir).contains(bdryLo(a_WHalf.box(),a_dir)))
     {

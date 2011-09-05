@@ -368,7 +368,7 @@ void LinElastPatchGodunov::computeWHalf(FluxBox&         a_WHalf,
 
                 // Update the boundary values
                 m_linElastPhysics->quasilinearBoundaryUpdate(
-                    WHalf1[dir2],(1.0/3.0)*a_dt,dir2,ccBox[dir2],m_currentTime);
+                    WHalf1[dir2],(1.0/3.0)*a_dt,m_dx,dir2,ccBox[dir2],m_currentTime);
 
                 // Solve the Riemann problem.
 
@@ -417,7 +417,7 @@ void LinElastPatchGodunov::computeWHalf(FluxBox&         a_WHalf,
 
                 // Update the boundary values
                 m_linElastPhysics->quasilinearBoundaryUpdate(
-                    WHalf1[dir2],(1.0/2.0)*a_dt,dir2,ccBox[dir2],m_currentTime);
+                    WHalf1[dir2],(1.0/2.0)*a_dt,m_dx,dir2,ccBox[dir2],m_currentTime);
 
 #elif (CH_SPACEDIM == 3)
                 // In 3D, find a direction different from the two above
@@ -437,7 +437,7 @@ void LinElastPatchGodunov::computeWHalf(FluxBox&         a_WHalf,
 
                 // Update the boundary values
                 m_linElastPhysics->quasilinearBoundaryUpdate(
-                    WHalf2[dir2][dir3],(1.0/2.0)*a_dt,dir2,ccBox[dir2],m_currentTime);
+                    WHalf2[dir2][dir3],(1.0/2.0)*a_dt,m_dx,dir2,ccBox[dir2],m_currentTime);
 #else
                 // Only 2D and 3D should be possible
                 MayDay::Error("LinElastPatchGodunov::computeWHalf: CH_SPACEDIM not 2 or 3!");

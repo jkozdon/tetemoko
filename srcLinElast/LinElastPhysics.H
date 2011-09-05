@@ -192,6 +192,7 @@ public:
     void quasilinearBoundaryUpdate(
         const FArrayBox& a_wHalf,
         const Real&      a_dt,
+        const Real&      a_dx,
         const int&       a_dir,
         const Box&       a_box,
         const Real&      a_currentTime);

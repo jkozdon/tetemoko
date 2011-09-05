@@ -171,7 +171,7 @@ void LinElastPhysics::computeUpdate(FArrayBox&       a_dU,
         // Add flux difference to dU
         a_dU += diff;
 
-        ((LEPhysIBC*)m_bc)->updateBoundary(a_WHalf[idir],idir,a_dt,a_currentTime+a_dt,true);
+        ((LEPhysIBC*)m_bc)->updateBoundary(a_WHalf[idir],idir,a_dt,a_dx,a_currentTime+a_dt,true);
     }
 
     // Multiply dU by dt/dx because that is what the output expects
@@ -386,11 +386,12 @@ void LinElastPhysics::postNormalPred(FArrayBox&       a_dWMinus,
 void LinElastPhysics::quasilinearBoundaryUpdate(
     const FArrayBox& a_wHalf,
     const Real&      a_dt,
+    const Real&      a_dx,
     const int&       a_dir,
     const Box&       a_box,
     const Real&      a_currentTime)
 {
-    ((LEPhysIBC*)m_bc)->updateBoundary(a_wHalf,a_dir,a_dt,0,false);
+    ((LEPhysIBC*)m_bc)->updateBoundary(a_wHalf,a_dir,a_dt,a_dx,0,false);
 }
 
 /// Compute the quasilinear update A*dW/dx.
