@@ -110,8 +110,8 @@ comp.artificial_viscosity = 0.1
 # Plot file information
 comp.plot_interval = 30
 # comp.plot_interval = 1
-comp.plot_prefix  = bssa_hdf5/bssa_r1.
-comp.pout_name  = pout/bssa_r1
+comp.plot_prefix  = /scratch/01643/jeremyko/bssa_flat/bssa_r1.
+comp.pout_name  = /work/01643/jeremyko/tetemoko/pout/bssa_r1
 
 # comp.bound_plot_interval = 1
 
@@ -127,7 +127,7 @@ comp.pout_name  = pout/bssa_r1
 # Checkpoint file information
 comp.checkpoint_interval = -1
 # comp.checkpoint_interval = 1
-comp.chk_prefix = bssa_hdf5/check.rs.
+comp.chk_prefix  = /scratch/01643/jeremyko/bssa_flat/bssa_r1.check.
 
 # Restart file information
 # comp.restart_file = bssa_hdf5/check.rs.200.3d.hdf5

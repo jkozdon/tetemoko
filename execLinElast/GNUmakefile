@@ -13,10 +13,12 @@ ebase = amrGodunov
 HOSTNAME:=$(shell hostname)
 ifeq ($(findstring cees,$(HOSTNAME)),cees)
 	CHOMBO_HOME = /home/jkozdon/packages/Chombo/lib
-else ifeq ($(findstring ranger,$(HOSTNAME)),ranger)
+else
+ifeq ($(findstring ranger,$(HOSTNAME)),ranger)
 	CHOMBO_HOME = /share/home/01643/jeremyko/packages/Chombo/lib
 else
 	CHOMBO_HOME = /Users/jkozdon/apps/Chombo/lib
+endif
 endif
 
 # names of Chombo libraries needed by this program, in order of search.
