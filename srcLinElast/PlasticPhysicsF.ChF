@@ -1,4 +1,4 @@
-#include "LEINDEX.h"
+#include "LEINDEX.H"
 
 C
 C Set the physical constant parameters
