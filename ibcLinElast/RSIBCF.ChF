@@ -62,6 +62,7 @@ C
 
         integer CHF_DDECL[i;j;k]
         real_t Vx, Vz, V, psi, fss, f,tau_xy_0,tau_yz_0
+        real_t c_rs_a, c_rs_Vw
         real_t CHF_DDECL[x;y;z]
 
         CHF_MULTIDO[box;i;j;k]
@@ -75,45 +76,49 @@ C
            tau_yz_0 = 0d0
 
 
-C         Only south face slip velocity
-          Vx = U(CHF_IX[i;j;k],IX1_VX) - U(CHF_IX[i;j;k],IX2_VX)
-          Vz = U(CHF_IX[i;j;k],IX1_VZ) - U(CHF_IX[i;j;k],IX2_VZ)
-          V  = SQRT(Vx**2 + Vz**2)
+           c_rs_a  = rs_a+0.008d0*max(0d0,min(1d0,-(x+6d0)/6d0))
+           c_rs_Vw = rs_Vw+5d0*max(0d0,-(x+6d0)/6d0)
 
-C         ORDER MUST MATCH WHAT IN RSIBC.CPP!!!!
-C         Vx
-          Bout(CHF_IX[i;j;k],RX_VX) = Vx
-C         Vz
-          Bout(CHF_IX[i;j;k],RX_VZ) = Vz
-C         V
-          Bout(CHF_IX[i;j;k],RX_V) = V
-C         sxy
-          Bout(CHF_IX[i;j;k],RX_SXY) = U(CHF_IX[i;j;k],IX_SXY)+tau_xy_0
-C         syz
-          Bout(CHF_IX[i;j;k],RX_SYZ) = U(CHF_IX[i;j;k],IX_SYZ)+tau_yz_0
-C         slip_x
-          Bout(CHF_IX[i;j;k],RX_DX) = Bin(CHF_IX[i;j;k],RX_DX) + dt*Vx
-C         slip_z
-          Bout(CHF_IX[i;j;k],RX_DZ) = Bin(CHF_IX[i;j;k],RX_DZ) + dt*Vz
-C         slip_total
-          Bout(CHF_IX[i;j;k],RX_DT) = Bin(CHF_IX[i;j;k],RX_DT) + dt*V
-C         rupture
-          if (Bin(CHF_IX[i;j;k],RX_RT) .gt. time .and.
-     &                               V .gt. ruptureThreshold) then
-            Bout(CHF_IX[i;j;k],RX_RT) = time
-          endif
-C         syy
-          Bout(CHF_IX[i;j;k],RX_SYY)  = U(CHF_IX[i;j;k],IX_SYY)
-C         psi
-          psi = Bin(CHF_IX[i;j;k],RX_PSI)
-          f   = rs_a*asinh(V*exp(psi/rs_a)/(2.0d0*rs_V0))
-          fss = rs_f0 - (rs_b - rs_a)*log(V / rs_V0)
-          if(rs_fExp > 0d0) then
-              fss = rs_fw + (fss - rs_fw)/((1d0 + (V/rs_Vw)**8)**(0.125d0))
-          endif
-          Bout(CHF_IX[i;j;k],RX_PSI) = psi - dt * (V / rs_L)*(f - fss)
-          ! print*,psi,Bout(CHF_IX[i;j;k],RX_PSI),V,IX1_VX,IX2_VX
-          ! print *,i,psi,V,f,fss
+
+C          Only south face slip velocity
+           Vx = U(CHF_IX[i;j;k],IX1_VX) - U(CHF_IX[i;j;k],IX2_VX)
+           Vz = U(CHF_IX[i;j;k],IX1_VZ) - U(CHF_IX[i;j;k],IX2_VZ)
+           V  = SQRT(Vx**2 + Vz**2)
+
+C          ORDER MUST MATCH WHAT IN RSIBC.CPP!!!!
+C          Vx
+           Bout(CHF_IX[i;j;k],RX_VX) = Vx
+C          Vz
+           Bout(CHF_IX[i;j;k],RX_VZ) = Vz
+C          V
+           Bout(CHF_IX[i;j;k],RX_V) = V
+C          sxy
+           Bout(CHF_IX[i;j;k],RX_SXY) = U(CHF_IX[i;j;k],IX_SXY)+tau_xy_0
+C          syz
+           Bout(CHF_IX[i;j;k],RX_SYZ) = U(CHF_IX[i;j;k],IX_SYZ)+tau_yz_0
+C          slip_x
+           Bout(CHF_IX[i;j;k],RX_DX) = Bin(CHF_IX[i;j;k],RX_DX) + dt*Vx
+C          slip_z
+           Bout(CHF_IX[i;j;k],RX_DZ) = Bin(CHF_IX[i;j;k],RX_DZ) + dt*Vz
+C          slip_total
+           Bout(CHF_IX[i;j;k],RX_DT) = Bin(CHF_IX[i;j;k],RX_DT) + dt*V
+C          rupture
+           if (Bin(CHF_IX[i;j;k],RX_RT) .gt. time .and.
+     &                                V .gt. ruptureThreshold) then
+             Bout(CHF_IX[i;j;k],RX_RT) = time
+           endif
+C          syy
+           Bout(CHF_IX[i;j;k],RX_SYY)  = U(CHF_IX[i;j;k],IX_SYY)
+C          psi
+           psi = Bin(CHF_IX[i;j;k],RX_PSI)
+           f   = c_rs_a*asinh(V*exp(psi/c_rs_a)/(2.0d0*rs_V0))
+           fss = rs_f0 - (rs_b - c_rs_a)*log(V / rs_V0)
+           if(rs_fExp > 0d0) then
+               fss = rs_fw + (fss - rs_fw)/((1d0 + (V/c_rs_Vw)**8)**(0.125d0))
+           endif
+           Bout(CHF_IX[i;j;k],RX_PSI) = psi - dt * (V / rs_L)*(f - fss)
+           ! print*,psi,Bout(CHF_IX[i;j;k],RX_PSI),V,IX1_VX,IX2_VX
+           ! print *,i,psi,V,f,fss
 
         CHF_ENDDO
         
@@ -152,7 +157,7 @@ C
         real_t vx1,vy1,vz1,sxx1,syy1,szz1,sxy1,sxz1,syz1
         real_t vx2,vy2,vz2,sxx2,syy2,szz2,sxy2,sxz2,syz2
 
-        real_t SHF, tau, fric, V, tau_xy_0, tau_yz_0, psi,Vx,Vz
+        real_t SHF, tau, fric, V, tau_xy_0, tau_yz_0, psi,Vx,Vz,c_rs_a
 
         real_t phi_xy,phi_yz,phi
 
@@ -236,7 +241,8 @@ C          phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
 
            V = sqrt((vx1-vx2)**2 + (vz1-vz2)**2)
 
-           CALL RSNEWTON(phi,psi,-syy1,V,tau)
+           c_rs_a  = rs_a+0.008d0*max(0d0,min(1d0,-(x+6d0)/6d0))
+           CALL RSNEWTON(phi,psi,-syy1,c_rs_a,V,tau)
            ! tau = phi
            ! print *,i,phi,psi,-syy1,tau,V
 
@@ -305,6 +311,7 @@ C
      &    CHF_CONST_REAL[phi],
      &    CHF_CONST_REAL[psi],
      &    CHF_CONST_REAL[sn],
+     &    CHF_CONST_REAL[c_rs_a],
      &    CHF_REAL[V],
      &    CHF_REAL[tau])
 
@@ -322,14 +329,15 @@ C
 
         IMAX = 100
 
+
         Vmin = 0
         Vmax = phi / Zs
         if ( V .lt. Vmin .or. V .gt. Vmax) then
             V = (Vmin + Vmax) / 2.0d0
         endif
 
-        alpha = sn * rs_a
-        beta  = exp(psi / rs_a) / (2.0d0 * rs_V0)
+        alpha = sn * c_rs_a
+        beta  = exp(psi / c_rs_a) / (2.0d0 * rs_V0)
         eta = 0.5d0*Zs
 
         fval  = alpha * asinh(beta * V) + eta * V - phi

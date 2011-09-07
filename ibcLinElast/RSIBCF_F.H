@@ -154,6 +154,7 @@ void FORTRAN_NAME( RSNEWTON ,rsnewton )(
       CHFp_CONST_REAL(phi)
       ,CHFp_CONST_REAL(psi)
       ,CHFp_CONST_REAL(sn)
+      ,CHFp_CONST_REAL(c_rs_a)
       ,CHFp_REAL(V)
       ,CHFp_REAL(tau) );
 
@@ -164,6 +165,7 @@ inline void FORTRAN_NAME(inlineRSNEWTON, inlineRSNEWTON)(
       CHFp_CONST_REAL(phi)
       ,CHFp_CONST_REAL(psi)
       ,CHFp_CONST_REAL(sn)
+      ,CHFp_CONST_REAL(c_rs_a)
       ,CHFp_REAL(V)
       ,CHFp_REAL(tau) )
 {
@@ -172,6 +174,7 @@ inline void FORTRAN_NAME(inlineRSNEWTON, inlineRSNEWTON)(
       CHFt_CONST_REAL(phi)
       ,CHFt_CONST_REAL(psi)
       ,CHFt_CONST_REAL(sn)
+      ,CHFt_CONST_REAL(c_rs_a)
       ,CHFt_REAL(V)
       ,CHFt_REAL(tau) );
 }
