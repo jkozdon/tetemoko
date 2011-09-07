@@ -349,8 +349,9 @@ Real AMRLevelLinElast::advance()
 {
     CH_assert(allDefined());
 
-    if (s_verbosity >= 3)
+    if (s_verbosity >= 1)
     {
+        for(int i = 0; i < m_level;i++) pout() << "   ";
         pout() << "AMRLevelLinElast::advance level " << m_level << " to time " << m_time + m_dt << " by dt " << m_dt << endl;
     }
 
