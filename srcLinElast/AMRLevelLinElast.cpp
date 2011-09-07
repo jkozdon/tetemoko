@@ -27,6 +27,7 @@
 #include "CH_HDF5.H"
 #include "AMRIO.H"
 #include "AMRLevel.H"
+#include "LEINDEX.H"
 
 #include "AMRLevelLinElast.H"
 
@@ -626,7 +627,7 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
 
         //JK THIS SHOUlD REALLY BE AN ARGUMENT NOT HARD CODED!!!!
         // if(m_time < 1)
-        lephysIBCPtr->tagCellsInit(gradMagFab);
+        lephysIBCPtr->tagCells(gradMagFab,m_time,m_refineThresh);
 
         // Tag where gradient exceeds threshold
         BoxIterator bit(b);
@@ -634,7 +635,7 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
         {
             const IntVect& iv = bit();
 
-            if (gradMagFab(iv) >= m_refineThresh)
+            if (gradMagFab(iv) >= m_refineThresh || UFab.get(iv,IX1_GAM) >= 1e-10 || UFab.get(iv,IX2_GAM) >= 1e-10)
             {
                 localTags |= iv;
                 //pout() << gradFab(iv,0) << "     " << gradFab(iv,1) << "     " << gradMagFab(iv) << "    " << m_refineThresh << endl;
@@ -688,7 +689,7 @@ void AMRLevelLinElast::tagCellsInit(IntVectSet& a_tags)
         const Box& b = levelDomain[dit()];
         FArrayBox markFAB(b,1);
         markFAB.setVal(0.0);
-        if(lephysIBCPtr->tagCellsInit(markFAB))
+        if(lephysIBCPtr->tagCellsInit(markFAB,1))
         {
             // Tag where gradient exceeds threshold
             BoxIterator bit(b);

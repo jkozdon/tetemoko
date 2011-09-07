@@ -63,7 +63,7 @@ public:
     /// Do the initial tagging of cells
     /**
     */
-    virtual bool tagCellsInit(FArrayBox& markFAB)
+    virtual bool tagCellsInit(FArrayBox& markFAB,const Real& threshold)
     {
         // Default implementation is to do nothing
         return false;
@@ -72,7 +72,7 @@ public:
     /// Do the physics dependent tagging of cells
     /**
     */
-    virtual bool tagCells(FArrayBox& markFAB, Real& time)
+    virtual bool tagCells(FArrayBox& markFAB, Real& time,const Real& threshold)
     {
         return false;
     }

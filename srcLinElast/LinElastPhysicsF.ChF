@@ -171,6 +171,26 @@ C
 
         end
 
+C
+C       Mark cells on boundary for refinement
+C
+        subroutine ALLBOUNDREFINE(
+     &    CHF_FRA1[markCells],
+     &    CHF_CONST_REAL[threshold],
+     &    CHF_BOX[box])
+
+        integer CHF_DDECL[i   ;j   ;k   ]
+
+        CHF_MULTIDO[box;i;j;k]
+          if(j .eq. 0) then
+
+              markCells(CHF_IX[i;j;k]) = 4d0*threshold
+
+          endif
+        CHF_ENDDO
+
+        end
+
 
 C
 C       Compute the absolution gradient and several components

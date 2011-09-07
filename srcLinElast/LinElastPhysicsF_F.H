@@ -151,6 +151,31 @@ inline void FORTRAN_NAME(inlineBOUNDREFINE, inlineBOUNDREFINE)(
 }
 #endif  // GUARDBOUNDREFINE 
 
+#ifndef GUARDALLBOUNDREFINE 
+#define GUARDALLBOUNDREFINE 
+// Prototype for Fortran procedure ALLBOUNDREFINE ...
+//
+void FORTRAN_NAME( ALLBOUNDREFINE ,allboundrefine )(
+      CHFp_FRA1(markCells)
+      ,CHFp_CONST_REAL(threshold)
+      ,CHFp_BOX(box) );
+
+#define FORT_ALLBOUNDREFINE FORTRAN_NAME( inlineALLBOUNDREFINE, inlineALLBOUNDREFINE)
+#define FORTNT_ALLBOUNDREFINE FORTRAN_NAME( ALLBOUNDREFINE, allboundrefine)
+
+inline void FORTRAN_NAME(inlineALLBOUNDREFINE, inlineALLBOUNDREFINE)(
+      CHFp_FRA1(markCells)
+      ,CHFp_CONST_REAL(threshold)
+      ,CHFp_BOX(box) )
+{
+ CH_TIMELEAF("FORT_ALLBOUNDREFINE");
+ FORTRAN_NAME( ALLBOUNDREFINE ,allboundrefine )(
+      CHFt_FRA1(markCells)
+      ,CHFt_CONST_REAL(threshold)
+      ,CHFt_BOX(box) );
+}
+#endif  // GUARDALLBOUNDREFINE 
+
 #ifndef GUARDGETFULLGRADF 
 #define GUARDGETFULLGRADF 
 // Prototype for Fortran procedure GETFULLGRADF ...

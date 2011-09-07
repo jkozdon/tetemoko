@@ -655,6 +655,11 @@ void amrGodunov()
             RSIBC* rsibc =
                 new RSIBC(nucR,nucx,nucy,nucS,nucT,psi,
                     a,b,V0,f0,L,fw,Vw,fExp,ruptureVelocityThreshold,boundaryType);
+            if(ppphysics.contains("R0"))
+            {
+                Real R0;ppphysics.query("R0",R0);
+                rsibc->setR0(R0);
+            }
             leibc = rsibc;
             if(verbosity >= 1)
             {
@@ -923,7 +928,38 @@ void amrGodunov()
     amr.verbosity(verbosity);
 
     // Set up input files
-    if (!ppcomp.contains("restart_file"))
+    bool getRestart = false;
+    int  intGetRestart = 0;
+    ppcomp.query("restart_bool",intGetRestart);
+    getRestart = (intGetRestart == 1);
+
+    // Test for the restart pointer file
+    if(getRestart)
+    {
+        std::string prefix;
+        if (ppcomp.contains("chk_prefix"))
+        {
+            ppcomp.query("chk_prefix",prefix);
+        }
+        else
+        {
+            prefix = string("chk");
+        }
+        char chk_file[100];
+        sprintf(chk_file,
+            "%s%dd.current",
+            prefix.c_str(), SpaceDim );
+        FILE * chk_track;
+        chk_track = fopen(chk_file,"r");
+        getRestart = (NULL != chk_track);
+        if(chk_track != NULL)
+            fclose(chk_track);
+        if(!getRestart)
+            pout() << "WARNING: starting from scratch, " << chk_file<< " does not exist" << endl;
+    }
+
+
+    if (!ppcomp.contains("restart_file") && !getRestart)
     {
         if (!ppcomp.contains("fixed_hierarchy"))
         {
@@ -951,7 +987,37 @@ void amrGodunov()
     else
     {
         std::string restartFile;
-        ppcomp.query("restart_file",restartFile);
+        if (getRestart)
+        {
+            std::string prefix;
+            if (ppcomp.contains("chk_prefix"))
+            {
+                ppcomp.query("chk_prefix",prefix);
+            }
+            else
+            {
+                prefix = string("chk");
+            }
+            char chk_file[100];
+            sprintf(chk_file,
+                "%s%dd.current",
+                prefix.c_str(), SpaceDim );
+            FILE * chk_track;
+            chk_track = fopen(chk_file,"r");
+            int ckpstep;
+            fscanf(chk_track,"%d",&ckpstep);
+            fclose(chk_track);
+            char iter_str[100];
+            sprintf(iter_str,
+                "%s%d.%dd.hdf5",
+                prefix.c_str(), ckpstep, SpaceDim );
+            restartFile = string(iter_str);
+        }
+        else
+        {
+            ppcomp.query("restart_file",restartFile);
+        }
+        pout() << "Loading restart: " << restartFile << endl;
 
 #ifdef CH_USE_HDF5
         HDF5Handle handle(restartFile,HDF5Handle::OPEN_RDONLY);

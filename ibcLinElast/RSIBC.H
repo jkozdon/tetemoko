@@ -115,20 +115,26 @@ public:
     /// Do the initial tagging of cells
     /**
     */
-    virtual bool tagCellsInit(FArrayBox& markFAB);
+    virtual bool tagCellsInit(FArrayBox& markFAB,const Real& threshold);
 
     /// Do the physics dependent tagging of cells
     /**
     */
-    virtual bool tagCells(FArrayBox& markFAB, Real& time)
+    virtual bool tagCells(FArrayBox& markFAB, Real& time,const Real& threshold)
     {
-        return tagCellsInit(markFAB);
+        return tagCellsInit(markFAB,threshold);
     }
 
     virtual int numBdryVars()
     {
         return m_numBdryVars;
     }
+
+    /// Set R0
+    /**
+     * Used in tagCells to refined level based on R0
+    */
+    virtual void setR0(const Real& a_R0);
 
     virtual Vector<string> bdryNames();
 
@@ -139,6 +145,9 @@ protected:
 
     bool m_tmpBdryDataSet;
     FArrayBox* m_tmpBdryData;
+
+    Real m_R0;
+    Real m_x0;
 private:
 };
 

@@ -37,6 +37,8 @@ RSIBC::RSIBC(const Real& a_r0,
     m_boundaryType       = a_boundaryType;
     m_isFortranCommonSet = true;
     m_psi = a_psi;
+    m_R0 = 1e10;
+    m_x0 = a_x0;
     m_numBdryVars = 11;
 }
 
@@ -55,6 +57,12 @@ void RSIBC::setFortranCommonSet()
   m_isFortranCommonSet = true;
 }
 
+
+void RSIBC::setR0(const Real& a_R0)
+{
+    m_R0 = a_R0;
+}
+
 /// Factory method - this object is its own factory
 PhysIBC* RSIBC::new_physIBC()
 {
@@ -65,6 +73,8 @@ PhysIBC* RSIBC::new_physIBC()
     }
     retval->m_boundaryType = m_boundaryType;
     retval->m_psi          = m_psi;
+    retval->m_R0           = m_R0;
+    retval->m_x0           = m_x0;
     retval->m_numBdryVars  = m_numBdryVars;
     return static_cast<PhysIBC*>(retval);
 }
@@ -322,9 +332,41 @@ void RSIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,c
 /// Do the initial tagging of cells
 /**
 */
-bool RSIBC::tagCellsInit(FArrayBox& markFAB)
+bool RSIBC::tagCellsInit(FArrayBox& markFAB,const Real& threshold)
 {
-    // markFAB.setVal(1,m_patchBoxes[itor] & markFAB.box(),0);
+    // If grid spacing > R0 refine otherwise only refine the nucleation patch
+    if(m_dx > m_R0)
+    {
+        // pout() << m_dx << "  " << m_R0 << endl;
+        markFAB.setVal(1,bdryLo(m_domain.domainBox(),1,1) & markFAB.box(),0);
+    }
+    else
+    {
+        IntVect nucSm;
+        IntVect nucBg;
+        if(SpaceDim > 0)
+        {
+            nucSm.setVal(0,floor(m_x0/m_dx));
+            nucBg.setVal(0, ceil(m_x0/m_dx));
+        }
+        if(SpaceDim > 1)
+        {
+            nucSm.setVal(1,0);
+            nucBg.setVal(1,0);
+        }
+        if(SpaceDim > 2)
+        {
+            nucSm.setVal(2,floor(m_x0/m_dx));
+            nucBg.setVal(2, ceil(m_x0/m_dx));
+        }
+        markFAB.setVal(1,Box(nucSm,nucBg)& markFAB.box(),0);
+    }
+
+    // pout() << m_domain << endl;
+    // FORT_ALLBOUNDREFINE(
+    //     CHF_FRA1(markFAB,0),
+    //     CHF_CONST_REAL(threshold),
+    //     CHF_BOX(markFAB.box()));
     return true;
 }
 

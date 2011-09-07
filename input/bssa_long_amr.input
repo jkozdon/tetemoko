@@ -53,13 +53,13 @@ comp.max_time = 200
 
 # Size of the domain's longest dimension
 # comp.domain_length = 102.4
-comp.domain_length = 64
+comp.domain_length = 1000
 # comp.domain_length = 25.6
 
 # Coarsest grid
-# comp.num_cells = 512 640
+# comp.num_cells = 512 256 256
 # comp.num_cells = 1024 512 512
-comp.num_cells = 64 32
+comp.num_cells = 1024 64
 # comp.num_cells = 5121 1280
 # comp.num_cells = 4096 2048 2048
 # comp.num_cells = 2048 1024 1024
@@ -108,12 +108,10 @@ comp.use_artificial_viscosity = 0
 comp.artificial_viscosity = 0.1
 
 # Plot file information
-comp.plot_interval = 1
+comp.plot_interval = 4
 # comp.plot_interval = 1
-comp.plot_prefix  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/test.
-comp.pout_name  = /data/dunham2/jkozdon/tetemoko/pout/test
-
-# comp.bound_plot_interval = 1
+comp.plot_prefix  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/bssa_long_amr.
+comp.pout_name  = /data/dunham2/jkozdon/tetemoko/pout/bssa_long_amr
 
 # comp.num_fault_stations = 7
 # comp.x_fault_stations  = -12 -7.5 -4.5 0 4.5 7.5 12
@@ -125,11 +123,11 @@ comp.pout_name  = /data/dunham2/jkozdon/tetemoko/pout/test
 # comp.y_body_stations  = 3 3
 
 # Checkpoint file information
-comp.checkpoint_interval = -1
+comp.checkpoint_interval = 10
 # comp.checkpoint_interval = 1
-comp.chk_prefix  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/test.check.
-# comp.restart_file  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/test.check.
-comp.restart_bool = 0
+comp.chk_prefix  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/bssa_long_amr.check.
+# comp.restart_file  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/bssa_long_amr.check.
+comp.restart_bool = 1
 
 # Restart file information
 # comp.restart_file = bssa_hdf5/check.rs.200.3d.hdf5

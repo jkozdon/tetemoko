@@ -111,14 +111,14 @@ public:
     /// Do the initial tagging of cells
     /**
     */
-    virtual bool tagCellsInit(FArrayBox& markFAB);
+    virtual bool tagCellsInit(FArrayBox& markFAB,const Real& threshold);
 
     /// Do the physics dependent tagging of cells
     /**
     */
-    virtual bool tagCells(FArrayBox& markFAB, Real& time)
+    virtual bool tagCells(FArrayBox& markFAB, Real& time,const Real& threshold)
     {
-        return tagCellsInit(markFAB);
+        return tagCellsInit(markFAB,threshold);
     }
 
     virtual int numBdryVars()

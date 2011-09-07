@@ -20,7 +20,6 @@ physics.f0  = 0.7
 physics.Vw  = 0.17
 physics.fw  = 0.13
 physics.psi = 0.436735460718965
-physics.R0  = 0.3
 physics.fric_exp = 8.0
 physics.nuc_R = 0.3
 physics.nuc_T = 1e-9
@@ -46,21 +45,22 @@ physics.plas_eta = 0.277482678983834
 comp.verbosity = 1
 
 # Number of steps, final time, and time step
+# comp.restart_file = = bssa_hdf5/check.bssa_G160x80x80_L2_R4.750.3d.hdf5
 # comp.max_step = 10000
-comp.max_step = 200000000
-comp.max_time = 200
+comp.max_step = 20000000
+comp.max_time = 20
 # comp.fixed_dt = 0.002
 
 # Size of the domain's longest dimension
 # comp.domain_length = 102.4
-comp.domain_length = 64
+comp.domain_length = 96
 # comp.domain_length = 25.6
 
 # Coarsest grid
-# comp.num_cells = 512 640
+# comp.num_cells = 512 256 256
 # comp.num_cells = 1024 512 512
-comp.num_cells = 64 32
-# comp.num_cells = 5121 1280
+# comp.num_cells = 1280 320
+comp.num_cells = 5120 1280
 # comp.num_cells = 4096 2048 2048
 # comp.num_cells = 2048 1024 1024
 # comp.num_cells = 256 128 128
@@ -75,11 +75,11 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 3
+comp.max_level = 0
 # For 2D
-comp.ref_ratio = 8 8 8 4 4 4
+# comp.ref_ratio = 4 4 4 4 4 4
 # For 3D
-# comp.ref_ratio = 2 2 2 2 2
+comp.ref_ratio = 2 2 2 2 2
 
 # Regridding parameters
 comp.regrid_interval = 2 2 2 2 2 2 2 2 2 2
@@ -108,10 +108,10 @@ comp.use_artificial_viscosity = 0
 comp.artificial_viscosity = 0.1
 
 # Plot file information
-comp.plot_interval = 1
+comp.plot_interval = 40
 # comp.plot_interval = 1
-comp.plot_prefix  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/test.
-comp.pout_name  = /data/dunham2/jkozdon/tetemoko/pout/test
+comp.plot_prefix  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/bssa_uniform.
+comp.pout_name  = /data/dunham2/jkozdon/tetemoko/pout/bssa_uniform.
 
 # comp.bound_plot_interval = 1
 
@@ -127,16 +127,14 @@ comp.pout_name  = /data/dunham2/jkozdon/tetemoko/pout/test
 # Checkpoint file information
 comp.checkpoint_interval = -1
 # comp.checkpoint_interval = 1
-comp.chk_prefix  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/test.check.
-# comp.restart_file  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/test.check.
-comp.restart_bool = 0
+comp.chk_prefix  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/bssa_uniform.check.
 
 # Restart file information
 # comp.restart_file = bssa_hdf5/check.rs.200.3d.hdf5
 
 # CFL multipliers
-comp.cfl = 0.882327058443910
-comp.initial_cfl = 0.882327058443910
+comp.cfl = 0.9
+comp.initial_cfl = 0.9
 
 # Variable time step parameters
 comp.max_dt_growth = 1

@@ -333,7 +333,7 @@ void SWIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,c
 /// Do the initial tagging of cells
 /**
 */
-bool SWIBC::tagCellsInit(FArrayBox& markFAB)
+bool SWIBC::tagCellsInit(FArrayBox& markFAB,const Real& threshold)
 {
     // We do this here becauase we need m_dx to be set, and it isn't set when
     // the object is defined
