@@ -106,6 +106,9 @@ C          rupture
            if (Bin(CHF_IX[i;j;k],RX_RT) .gt. time .and.
      &                                V .gt. ruptureThreshold) then
              Bout(CHF_IX[i;j;k],RX_RT) = time
+           else if(Bin(CHF_IX[i;j;k],RX_RT) .gt. time) then
+             ! hack to extend rupture time
+             Bout(CHF_IX[i;j;k],RX_RT) = 1d10
            endif
 C          syy
            Bout(CHF_IX[i;j;k],RX_SYY)  = U(CHF_IX[i;j;k],IX_SYY)

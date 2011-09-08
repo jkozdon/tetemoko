@@ -109,7 +109,7 @@ void RSIBC::initialize(LevelData<FArrayBox>& a_U)
 void RSIBC::initializeBdry(LevelData<FArrayBox>& a_B)
 {
     const Real tmpVal  =  0.0;
-    const Real tmpVal2 = 100;
+    const Real tmpVal2 = 1e10;
     for (DataIterator dit = a_B.dataIterator(); dit.ok(); ++dit)
     {
         // Storage for current grid
