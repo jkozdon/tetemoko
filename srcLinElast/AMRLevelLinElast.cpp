@@ -636,7 +636,7 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
         {
             const IntVect& iv = bit();
 
-            if (gradMagFab(iv) >= m_refineThresh || UFab.get(iv,IX1_GAM) >= 1e-10 || UFab.get(iv,IX2_GAM) >= 1e-10)
+            if (gradMagFab(iv) >= m_refineThresh || UFab.get(iv,IX1_GAM) >= 1e-3 || UFab.get(iv,IX2_GAM) >= 1e-3)
             {
                 localTags |= iv;
                 //pout() << gradFab(iv,0) << "     " << gradFab(iv,1) << "     " << gradMagFab(iv) << "    " << m_refineThresh << endl;
