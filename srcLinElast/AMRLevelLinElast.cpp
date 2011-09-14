@@ -275,7 +275,8 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
             //     m_dxFaultStation[itor],
             //     m_dzFaultStation[itor]);
 
-            fprintf(stationData,"time");
+            fprintf(stationData,"#number of values = %d\n",m_numBdryVars);
+            fprintf(stationData,"#time");
             for(int i_c = 0; i_c < m_numBdryVars; i_c++)
             {
                 fprintf(stationData," %s",m_bdryNames[i_c].c_str());
@@ -330,7 +331,8 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
             //     m_dyBodyStation[itor],
             //     m_dzBodyStation[itor]);
 
-            fprintf(stationData,"time");
+            fprintf(stationData,"#number of values = %d\n",m_numStates);
+            fprintf(stationData,"#time");
             for(int i_c = 0; i_c < m_numStates; i_c++)
             {
                 fprintf(stationData," %s",m_stateNames[i_c].c_str());
@@ -349,10 +351,16 @@ Real AMRLevelLinElast::advance()
 {
     CH_assert(allDefined());
 
-    if (s_verbosity >= 1)
+    if (s_verbosity >= 1 && procID() == 0)
     {
         for(int i = 0; i < m_level;i++) pout() << "   ";
-        pout() << "AMRLevelLinElast::advance level " << m_level << " to time " << m_time + m_dt << " by dt " << m_dt << endl;
+        pout() << "AMRLevelLinElast::advance level " << m_level << " to time " << scientific << m_time + m_dt << " by dt " << m_dt << endl;
+    }
+
+    if (s_verbosity >= 2)
+    {
+        for(int i = 0; i < m_level;i++) pout() << "   ";
+        pout() << "AMRLevelLinElast::advance level " << m_level << " to time " << scientific << m_time + m_dt << " by dt " << m_dt << endl;
     }
 
     // Copy the new to the old
@@ -1720,26 +1728,27 @@ void AMRLevelLinElast::writeStationLevel()
                     FILE * stationData;
                     stationData = fopen(m_faultSationNames[itor].c_str(),"a");
 
-                    fprintf(stationData,"%E",m_time);
+                    fwrite (&m_time, sizeof(Real), 1, stationData );
                     for(int i_c = 0; i_c < m_numBdryVars;i_c++)
                     {
                         if(SpaceDim < 3)
                         {
-                            fprintf(stationData," %E",
-                                m_BNew[dit()].get(tmpLoc,i_c)*(1-m_dxFaultStation[itor])
-                                +m_BNew[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxFaultStation[itor]);
+                            Real value = m_BNew[dit()].get(tmpLoc,i_c)*(1-m_dxFaultStation[itor])
+                                +m_BNew[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxFaultStation[itor];
+                            fwrite(&value,sizeof(Real), 1, stationData );
                         }
                         else
                         {
-                            fprintf(stationData," %E",
-                                m_BNew[dit()].get(tmpLoc,i_c)*(1-m_dxFaultStation[itor])*(1-m_dzFaultStation[itor])
+                            Real value = m_BNew[dit()].get(tmpLoc,i_c)*(1-m_dxFaultStation[itor])*(1-m_dzFaultStation[itor])
                                 +m_BNew[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxFaultStation[itor]*(1-m_dzFaultStation[itor])
                                 +m_BNew[dit()].get(tmpLoc+BASISV(2),i_c)*(1-m_dxFaultStation[itor])*m_dzFaultStation[itor]
-                                +m_BNew[dit()].get(tmpLoc+BASISV(0)+BASISV(2),i_c)*m_dxFaultStation[itor]*m_dzFaultStation[itor]);
-
+                                +m_BNew[dit()].get(tmpLoc+BASISV(0)+BASISV(2),i_c)*m_dxFaultStation[itor]*m_dzFaultStation[itor];
+                            fwrite(&value,sizeof(Real), 1, stationData );
                         }
                     }
-                    fprintf(stationData," %d %d\n",m_level,procID());
+                    fwrite (&m_level, sizeof(int), 1, stationData );
+                    int tmp = procID();
+                    fwrite (&tmp, sizeof(int), 1, stationData );
                     fclose(stationData);
                 }
             }
@@ -1765,32 +1774,33 @@ void AMRLevelLinElast::writeStationLevel()
                     FILE * stationData;
                     stationData = fopen(m_bodySationNames[itor].c_str(),"a");
 
-                    fprintf(stationData,"%E",m_time);
+                    fwrite (&m_time, sizeof(Real), 1, stationData );
                     for(int i_c = 0; i_c < m_numStates;i_c++)
                     {
                         if(SpaceDim < 3)
                         {
-                            fprintf(stationData," %E",
-                                m_UNew[dit()].get(tmpLoc,i_c)*(1-m_dxBodyStation[itor])*(1-m_dyBodyStation[itor])
+                            Real value = m_UNew[dit()].get(tmpLoc,i_c)*(1-m_dxBodyStation[itor])*(1-m_dyBodyStation[itor])
                                 +m_UNew[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxBodyStation[itor]*(1-m_dyBodyStation[itor])
                                 +m_UNew[dit()].get(tmpLoc+BASISV(1),i_c)*(1-m_dxBodyStation[itor])*m_dyBodyStation[itor]
-                                +m_UNew[dit()].get(tmpLoc+BASISV(0)+BASISV(1),i_c)*m_dxBodyStation[itor]*m_dyBodyStation[itor]);
+                                +m_UNew[dit()].get(tmpLoc+BASISV(0)+BASISV(1),i_c)*m_dxBodyStation[itor]*m_dyBodyStation[itor];
+                            fwrite(&value,sizeof(Real), 1, stationData );
                         }
                         else
                         {
-                            fprintf(stationData," %E",
-                                m_UNew[dit()].get(tmpLoc,i_c)*(1-m_dxBodyStation[itor])*(1-m_dyBodyStation[itor])*(1-m_dzBodyStation[itor])
+                            Real value = m_UNew[dit()].get(tmpLoc,i_c)*(1-m_dxBodyStation[itor])*(1-m_dyBodyStation[itor])*(1-m_dzBodyStation[itor])
                                 +m_UNew[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxBodyStation[itor]*(1-m_dyBodyStation[itor])*(1-m_dzBodyStation[itor])
                                 +m_UNew[dit()].get(tmpLoc+BASISV(1),i_c)*(1-m_dxBodyStation[itor])*m_dyBodyStation[itor]*(1-m_dzBodyStation[itor])
                                 +m_UNew[dit()].get(tmpLoc+BASISV(0)+BASISV(1),i_c)*m_dxBodyStation[itor]*m_dyBodyStation[itor]*(1-m_dzBodyStation[itor])
                                 +m_UNew[dit()].get(tmpLoc+BASISV(2),i_c)*(1-m_dxBodyStation[itor])*(1-m_dyBodyStation[itor])*m_dzBodyStation[itor]
                                 +m_UNew[dit()].get(tmpLoc+BASISV(2)+BASISV(0),i_c)*m_dxBodyStation[itor]*(1-m_dyBodyStation[itor])*m_dzBodyStation[itor]
                                 +m_UNew[dit()].get(tmpLoc+BASISV(2)+BASISV(1),i_c)*(1-m_dxBodyStation[itor])*m_dyBodyStation[itor]*m_dzBodyStation[itor]
-                                +m_UNew[dit()].get(tmpLoc+BASISV(2)+BASISV(0)+BASISV(1),i_c)*m_dxBodyStation[itor]*m_dyBodyStation[itor]*m_dzBodyStation[itor]);
-
+                                +m_UNew[dit()].get(tmpLoc+BASISV(2)+BASISV(0)+BASISV(1),i_c)*m_dxBodyStation[itor]*m_dyBodyStation[itor]*m_dzBodyStation[itor];
+                            fwrite(&value,sizeof(Real), 1, stationData );
                         }
                     }
-                    fprintf(stationData," %d %d\n",m_level,procID());
+                    fwrite (&m_level, sizeof(int), 1, stationData );
+                    int tmp = procID();
+                    fwrite (&tmp, sizeof(int), 1, stationData );
                     fclose(stationData);
                 }
             }
