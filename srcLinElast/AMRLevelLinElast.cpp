@@ -276,12 +276,13 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
             //     m_dzFaultStation[itor]);
 
             fprintf(stationData,"#number of values = %d\n",m_numBdryVars);
+            fprintf(stationData,"#size of real = %d\n",sizeof(Real));
             fprintf(stationData,"#time");
             for(int i_c = 0; i_c < m_numBdryVars; i_c++)
             {
-                fprintf(stationData," %s",m_bdryNames[i_c].c_str());
+                fprintf(stationData,"\t%s",m_bdryNames[i_c].c_str());
             }
-            fprintf(stationData," level procID\n");
+            fprintf(stationData,"\tlevel\tprocID\n");
             fclose(stationData);
         }
     }
@@ -332,12 +333,13 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
             //     m_dzBodyStation[itor]);
 
             fprintf(stationData,"#number of values = %d\n",m_numStates);
+            fprintf(stationData,"#size of real = %d\n",sizeof(Real));
             fprintf(stationData,"#time");
             for(int i_c = 0; i_c < m_numStates; i_c++)
             {
-                fprintf(stationData," %s",m_stateNames[i_c].c_str());
+                fprintf(stationData,"\t%s",m_stateNames[i_c].c_str());
             }
-            fprintf(stationData," level procID\n");
+            fprintf(stationData,"\tlevel\tprocID\n");
             fclose(stationData);
         }
     }
@@ -1746,9 +1748,10 @@ void AMRLevelLinElast::writeStationLevel()
                             fwrite(&value,sizeof(Real), 1, stationData );
                         }
                     }
-                    fwrite (&m_level, sizeof(int), 1, stationData );
-                    int tmp = procID();
-                    fwrite (&tmp, sizeof(int), 1, stationData );
+                    Real t_level = m_level;
+                    fwrite (&t_level, sizeof(Real), 1, stationData );
+                    Real t_procID = procID();
+                    fwrite (&t_procID, sizeof(Real), 1, stationData );
                     fclose(stationData);
                 }
             }
@@ -1798,9 +1801,10 @@ void AMRLevelLinElast::writeStationLevel()
                             fwrite(&value,sizeof(Real), 1, stationData );
                         }
                     }
-                    fwrite (&m_level, sizeof(int), 1, stationData );
-                    int tmp = procID();
-                    fwrite (&tmp, sizeof(int), 1, stationData );
+                    Real t_level = m_level;
+                    fwrite (&t_level, sizeof(Real), 1, stationData );
+                    Real t_procID = procID();
+                    fwrite (&t_procID, sizeof(Real), 1, stationData );
                     fclose(stationData);
                 }
             }
