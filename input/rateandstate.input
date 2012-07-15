@@ -8,9 +8,9 @@ physics.G = 32.04
 # physics.rho = 2.670
 
 # Set the background values
-physics.syy = -126
-physics.sxy = -32
-physics.plas_Psi = 10
+physics.syy0 = -126
+physics.sxy0 = 32
+physics.plas_Psi = 30
 
 physics.a   = 0.016
 physics.b   = 0.020
@@ -24,7 +24,7 @@ physics.fric_exp = 8.0
 physics.nuc_R = 0.3
 physics.nuc_T = 1e-9
 # physics.nuc_x = 51.2
-physics.nuc_x = 8
+physics.nuc_x = 3
 physics.nuc_y = 0
 physics.nuc_S = 61.2158
 physics.nuc_N = 0
@@ -45,21 +45,22 @@ physics.plas_eta = 0.277482678983834
 comp.verbosity = 1
 
 # Number of steps, final time, and time step
-# comp.restart_file = = rs_hdf5/check.rs_G160x80x80_L2_R4.750.3d.hdf5
+# comp.restart_file = = rs_hdf5/check.750.3d.hdf5
 # comp.max_step = 10000
 comp.max_step = 200
-comp.max_time = 12
+comp.max_time = 20
 # comp.fixed_dt = 0.002
 
 # Size of the domain's longest dimension
 # comp.domain_length = 102.4
-comp.domain_length = 90
+comp.domain_length = 6
 # comp.domain_length = 25.6
 
 # Coarsest grid
 # comp.num_cells = 512 256 256
 # comp.num_cells = 1024 512 512
-comp.num_cells = 1200 300
+# comp.num_cells = 1280 320
+comp.num_cells = 320 80
 # comp.num_cells = 4096 2048 2048
 # comp.num_cells = 2048 1024 1024
 # comp.num_cells = 256 128 128
@@ -74,7 +75,7 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 0
+comp.max_level = 1
 # For 2D
 # comp.ref_ratio = 4 4 4 4 4 4
 # For 3D
@@ -109,8 +110,8 @@ comp.artificial_viscosity = 0.1
 # Plot file information
 comp.plot_interval = 1
 # comp.plot_interval = 1
-comp.plot_prefix  = rs_hdf5/rs_r1.
-comp.pout_name  = pout/rs_r1
+comp.plot_prefix  = rs_hdf5/rs_hdf5_new.
+comp.pout_name  = rs_new.
 
 # comp.bound_plot_interval = 1
 
@@ -126,7 +127,7 @@ comp.pout_name  = pout/rs_r1
 # Checkpoint file information
 comp.checkpoint_interval = -1
 # comp.checkpoint_interval = 1
-comp.chk_prefix = rs_hdf5/check.rs.
+comp.chk_prefix  = rs_hdf5/rs_hdf5.check_new.
 
 # Restart file information
 # comp.restart_file = rs_hdf5/check.rs.200.3d.hdf5

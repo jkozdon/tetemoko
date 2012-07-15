@@ -12,12 +12,12 @@ ebase = amrGodunov
 # the location of Chombo lib dir
 HOSTNAME:=$(shell hostname)
 ifeq ($(findstring cees,$(HOSTNAME)),cees)
-	CHOMBO_HOME = /home/jkozdon/packages/Chombo/lib
+	CHOMBO_HOME = /home/jkozdon/packages/Chombo-3.1/lib
 else
 ifeq ($(findstring ranger,$(HOSTNAME)),ranger)
-	CHOMBO_HOME = /share/home/01643/jeremyko/packages/Chombo/lib
+	CHOMBO_HOME = /share/home/01643/jeremyko/packages/Chombo-3.1/lib
 else
-	CHOMBO_HOME = /Users/jkozdon/apps/Chombo/lib
+	CHOMBO_HOME = /Users/jkozdon/apps/Chombo-3.1/lib
 endif
 endif
 

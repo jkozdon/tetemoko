@@ -110,8 +110,8 @@ comp.artificial_viscosity = 0.1
 # Plot file information
 comp.plot_interval = 40
 # comp.plot_interval = 1
-comp.plot_prefix  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/bssa_uniform.
-comp.pout_name  = /data/dunham2/jkozdon/tetemoko/pout/bssa_uniform.
+comp.plot_prefix  = bssa_flat/bssa_uniform.
+comp.pout_name  = bssa_uniform.
 
 # comp.bound_plot_interval = 1
 
@@ -127,7 +127,7 @@ comp.pout_name  = /data/dunham2/jkozdon/tetemoko/pout/bssa_uniform.
 # Checkpoint file information
 comp.checkpoint_interval = -1
 # comp.checkpoint_interval = 1
-comp.chk_prefix  = /data/dunham2/jkozdon/tetemoko/data/bssa_flat/bssa_uniform.check.
+comp.chk_prefix  = bssa_flat/bssa_uniform.check.
 
 # Restart file information
 # comp.restart_file = bssa_hdf5/check.rs.200.3d.hdf5

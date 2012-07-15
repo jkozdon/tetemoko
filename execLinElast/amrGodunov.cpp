@@ -54,11 +54,11 @@ using std::ios;
 static void enableFpExceptions();
 #endif
 
-OldTimer Everything    ("gov Everything", 0);
-OldTimer TimeReadInput ("gov Read Input",   Everything);
-OldTimer TimeSetupAMR  ("gov Setup AMR",    Everything);
-OldTimer TimeRun       ("gov Run",          Everything);
-OldTimer TimeConclude  ("gov Conclude",     Everything);
+//3.1 OldTimer Everything    ("gov Everything", 0);
+//3.1 OldTimer TimeReadInput ("gov Read Input",   Everything);
+//3.1 OldTimer TimeSetupAMR  ("gov Setup AMR",    Everything);
+//3.1 OldTimer TimeRun       ("gov Run",          Everything);
+//3.1 OldTimer TimeConclude  ("gov Conclude",     Everything);
 
 // Possible pressure relationships for the initial condition
 #define PRESSURE_ISENTROPIC 0
@@ -104,9 +104,9 @@ int main(int a_argc, char* a_argv[])
         pout() << " number_procs = " << number_procs << endl;
     }
 
-    OldTimer::TimerInit(rank);
+    //3.1 OldTimer::TimerInit(rank);
 
-    Everything.start();
+    //3.1 Everything.start();
 
     // Check for an input file
     char* inFile = NULL;
@@ -132,23 +132,23 @@ int main(int a_argc, char* a_argv[])
     // Run amrGodunov, i.e., do the computation
     amrGodunov();
 
-    Everything.stop();
+    //3.1 Everything.stop();
 
-#ifndef CH_NTIMER
-    Real end_memory = get_memory_usage_from_OS();
-
-    pout() << endl
-        << "Everything completed --- "
-        << "mem: "
-        << setw(8) << setprecision(3)
-        << setiosflags(ios::fixed)
-        << end_memory
-        << " MB, time: "
-        << setw(8) << setprecision(3)
-        << setiosflags(ios::fixed)
-        << Everything.wc_time()
-        << " sec (wall-clock)" << endl << endl;
-#endif
+//3.1 #ifndef CH_NTIMER
+//3.1     Real end_memory = get_memory_usage_from_OS();
+//3.1 
+//3.1     pout() << endl
+//3.1         << "Everything completed --- "
+//3.1         << "mem: "
+//3.1         << setw(8) << setprecision(3)
+//3.1         << setiosflags(ios::fixed)
+//3.1         << end_memory
+//3.1         << " MB, time: "
+//3.1         << setw(8) << setprecision(3)
+//3.1         << setiosflags(ios::fixed)
+//3.1         << Everything.wc_time()
+//3.1         << " sec (wall-clock)" << endl << endl;
+//3.1 #endif
 
 #if !defined(CH_NTIMER) && defined(CH_MPI)
     Real avg_memory, min_memory, max_memory;
@@ -168,7 +168,7 @@ int main(int a_argc, char* a_argv[])
 void amrGodunov()
 {
     // Start timing the reading of the input file
-    TimeReadInput.start();
+    //31 TimeReadInput.start();
 
     // Read inputs that are prefixed with "physics." These are the physical
     // parameters of the simulation
@@ -417,7 +417,7 @@ void amrGodunov()
     ppcomp.get("dt_tolerance_factor",dtToleranceFactor);
 
     // End timing the reading of the input file
-    TimeReadInput.stop();
+    //3.1 TimeReadInput.stop();
 
     // Create and define IBC (initial and boundary condition) object
     LEPhysIBC* leibc;
@@ -709,21 +709,21 @@ void amrGodunov()
         leibc->setFortranCommonPlastic(plasMu,plasBeta,plasEta);
 
 
-#ifndef CH_NTIMER
-    pout() << "Input Read completed --- "
-        << "mem: "
-        << setw(8) << setprecision(3)
-        << setiosflags(ios::fixed)
-        << get_memory_usage_from_OS()
-        << " MB, time: "
-        << setw(8) << setprecision(3)
-        << setiosflags(ios::fixed)
-        << TimeReadInput.wc_time()
-        << " sec (wall-clock)" << endl;
-#endif
+//3.1 #ifndef CH_NTIMER
+//3.1     pout() << "Input Read completed --- "
+//3.1         << "mem: "
+//3.1         << setw(8) << setprecision(3)
+//3.1         << setiosflags(ios::fixed)
+//3.1         << get_memory_usage_from_OS()
+//3.1         << " MB, time: "
+//3.1         << setw(8) << setprecision(3)
+//3.1         << setiosflags(ios::fixed)
+//3.1         << TimeReadInput.wc_time()
+//3.1         << " sec (wall-clock)" << endl;
+//3.1 #endif
     
     // Start timing AMR solver setup
-    TimeSetupAMR.start();
+    //3.1 TimeSetupAMR.start();
 
     //JK // A minimum pressure needed to construct PolytropicPhysics - used in slope
     //JK // flattening
@@ -1030,71 +1030,71 @@ void amrGodunov()
     }
 
     // End timing AMR solver setup
-    TimeSetupAMR.stop();
+    //3.1 TimeSetupAMR.stop();
 
-#ifndef CH_NTIMER
-    pout() << "AMR Setup completed ---- "
-        << "mem: "
-        << setw(8) << setprecision(3)
-        << setiosflags(ios::fixed)
-        << get_memory_usage_from_OS()
-        << " MB, time: "
-        << setw(8) << setprecision(3)
-        << setiosflags(ios::fixed)
-        << TimeSetupAMR.wc_time()
-        << " sec (wall-clock)" << endl;
-
-    if (verbosity >= 1)
-    {
-        pout() << endl;
-    }
-#endif
+//3.1 #ifndef CH_NTIMER
+//3.1     pout() << "AMR Setup completed ---- "
+//3.1         << "mem: "
+//3.1         << setw(8) << setprecision(3)
+//3.1         << setiosflags(ios::fixed)
+//3.1         << get_memory_usage_from_OS()
+//3.1         << " MB, time: "
+//3.1         << setw(8) << setprecision(3)
+//3.1         << setiosflags(ios::fixed)
+//3.1         << TimeSetupAMR.wc_time()
+//3.1         << " sec (wall-clock)" << endl;
+//3.1 
+//3.1     if (verbosity >= 1)
+//3.1     {
+//3.1         pout() << endl;
+//3.1     }
+//3.1 #endif
 
     // Run and time the computation
-    TimeRun.start();
+    //3.1 TimeRun.start();
     amr.run(maxTime,nstop);
     Vector<AMRLevel*> vecLevels = amr.getAMRLevels();
     for(int ator = 0; ator < vecLevels.size(); ator++)
     {
         ((AMRLevelLinElast*)vecLevels[ator])->dumpBdryData();
     }
-    TimeRun.stop();
+    //3.1 TimeRun.stop();
 
-#ifndef CN_NTIMER
-    if (verbosity >= 1)
-    {
-        pout() << endl;
-    }
-
-    pout() << "AMR Run completed ------ "
-        << "mem: "
-        << setw(8) << setprecision(3)
-        << setiosflags(ios::fixed)
-        << get_memory_usage_from_OS()
-        << " MB, time: "
-        << setw(8) << setprecision(3)
-        << setiosflags(ios::fixed)
-        << TimeRun.wc_time()
-        << " sec (wall-clock)" << endl;
-#endif
+//3.1 #ifndef CN_NTIMER
+//3.1     if (verbosity >= 1)
+//3.1     {
+//3.1         pout() << endl;
+//3.1     }
+//3.1 
+//3.1     pout() << "AMR Run completed ------ "
+//3.1         << "mem: "
+//3.1         << setw(8) << setprecision(3)
+//3.1         << setiosflags(ios::fixed)
+//3.1         << get_memory_usage_from_OS()
+//3.1         << " MB, time: "
+//3.1         << setw(8) << setprecision(3)
+//3.1         << setiosflags(ios::fixed)
+//3.1         << TimeRun.wc_time()
+//3.1         << " sec (wall-clock)" << endl;
+//3.1 #endif
 
     // Output the last plot file and statistics - time the process
-    TimeConclude.start();
+    //3,1 TimeConclude.start();
     amr.conclude();
-    TimeConclude.stop();
+    //3,1 TimeConclude.stop();
 
-#ifndef CH_NTIMER
-    pout() << "AMR Conclude completed - "
-        << "mem: "
-        << setw(8) << setprecision(3)
-        << setiosflags(ios::fixed)
-        << get_memory_usage_from_OS()
-        << " MB, time: "
-        << setw(8) << setprecision(3)
-        << setiosflags(ios::fixed)
-        << TimeConclude.wc_time()
-        << " sec (wall-clock)" << endl;
-#endif
+//3.1 #ifndef CH_NTIMER
+//3.1     pout() << "AMR Conclude completed - "
+//3.1         << "mem: "
+//3.1         << setw(8) << setprecision(3)
+//3.1         << setiosflags(ios::fixed)
+//3.1         << get_memory_usage_from_OS()
+//3.1         << " MB, time: "
+//3.1         << setw(8) << setprecision(3)
+//3.1         << setiosflags(ios::fixed)
+//3.1         << TimeConclude.wc_time()
+//3.1         << " sec (wall-clock)" << endl;
+//3.1 #endif
 }
 
 // setupFixedGrids allows fixed grids to be read in and used in this AMR

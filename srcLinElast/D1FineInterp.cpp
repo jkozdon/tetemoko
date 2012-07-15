@@ -50,7 +50,8 @@ D1FineInterp::define(const DisjointBoxLayout& a_fine_domain,
         const Box tmpCoarseBox(tmpFineBox.smallEnd()/m_ref_ratio,
             (tmpFineBox.bigEnd()+IntVect::Unit-BASISV(m_dir))/m_ref_ratio-(IntVect::Unit-BASISV(m_dir)),
             BASISV(m_dir));
-        coarsened_fine_domain.ref(lit()) = tmpCoarseBox;
+        // coarsened_fine_domain[lit()] = tmpCoarseBox; //3.1
+        coarsened_fine_domain.ref(lit()) = tmpCoarseBox; //3.0
     }
     coarsened_fine_domain.close();
     m_coarsened_fine_data.define ( coarsened_fine_domain,
