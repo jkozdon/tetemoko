@@ -39,21 +39,12 @@ D1FineInterp::define(const DisjointBoxLayout& a_fine_domain,
         (m_fine_box.bigEnd()+IntVect::Unit-BASISV(m_dir))/m_ref_ratio-(IntVect::Unit-BASISV(m_dir)),
         BASISV(m_dir));
 
-    // Loop through the fine data boxes and define a new set of coarse data
-    // boxes
+    // manually coarsen the domain all all dims except m_dir
     const DisjointBoxLayout& constGrids = a_fine_domain;
     DisjointBoxLayout coarsened_fine_domain;
-    coarsened_fine_domain.deepCopy(constGrids);
-    for(LayoutIterator lit = a_fine_domain.layoutIterator(); lit.ok(); ++lit)
-    {
-        const Box tmpFineBox = a_fine_domain[lit()];
-        const Box tmpCoarseBox(tmpFineBox.smallEnd()/m_ref_ratio,
-            (tmpFineBox.bigEnd()+IntVect::Unit-BASISV(m_dir))/m_ref_ratio-(IntVect::Unit-BASISV(m_dir)),
-            BASISV(m_dir));
-        // coarsened_fine_domain[lit()] = tmpCoarseBox; //3.1
-        coarsened_fine_domain.ref(lit()) = tmpCoarseBox; //3.0
-    }
-    coarsened_fine_domain.close();
+    coarsen (coarsened_fine_domain, a_fine_domain, m_ref_ratio*(IntVect::Unit-BASISV(m_dir))+BASISV(m_dir));
+
+    //define
     m_coarsened_fine_data.define ( coarsened_fine_domain,
         m_numcomps,
         IntVect::Unit-BASISV(m_dir));

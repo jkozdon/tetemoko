@@ -75,7 +75,7 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 1
+comp.max_level = 2
 # For 2D
 # comp.ref_ratio = 4 4 4 4 4 4
 # For 3D

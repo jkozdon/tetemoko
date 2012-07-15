@@ -44,21 +44,7 @@ D1CoarseAverage::define(const DisjointBoxLayout& a_fine_domain,
 
   const DisjointBoxLayout& constGrids = a_fine_domain;
   DisjointBoxLayout coarsened_fine_domain;
-
-  // manually coarsen the domain all all dims except m_dir
-  coarsened_fine_domain.deepCopy(constGrids);
-  for(LayoutIterator lit = a_fine_domain.layoutIterator(); lit.ok(); ++lit)
-  {
-    const Box tmpFineBox = a_fine_domain[lit()];
-    const Box tmpCoarseBox(tmpFineBox.smallEnd()/m_ref_ratio,
-        (tmpFineBox.bigEnd()+IntVect::Unit-BASISV(m_dir))/m_ref_ratio-(IntVect::Unit-BASISV(m_dir)),
-        BASISV(m_dir));
-    // coarsened_fine_domain[lit()] = tmpCoarseBox; //3.1
-    coarsened_fine_domain.ref(lit()) = tmpCoarseBox;
-  }
-  coarsened_fine_domain.close();
-
-  // define
+  coarsen (coarsened_fine_domain, a_fine_domain, m_ref_ratio*(IntVect::Unit-BASISV(m_dir))+BASISV(m_dir));
   m_coarsened_fine_data.define ( coarsened_fine_domain,
       m_numcomps);
 
