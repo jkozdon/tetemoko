@@ -125,9 +125,10 @@ comp.pout_name  = rs_new.
 # comp.y_body_stations  = 3 3
 
 # Checkpoint file information
-comp.checkpoint_interval = -1
+comp.checkpoint_interval = 10
 # comp.checkpoint_interval = 1
 comp.chk_prefix  = rs_hdf5/rs_hdf5.check_new.
+comp.restart_bool = 1
 
 # Restart file information
 # comp.restart_file = rs_hdf5/check.rs.200.3d.hdf5

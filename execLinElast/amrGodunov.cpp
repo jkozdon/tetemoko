@@ -1009,7 +1009,7 @@ void amrGodunov()
             fclose(chk_track);
             char iter_str[100];
             sprintf(iter_str,
-                "%s%d.%dd.hdf5",
+                "%s%06d.%dd.hdf5",
                 prefix.c_str(), ckpstep, SpaceDim );
             restartFile = string(iter_str);
         }
