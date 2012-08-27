@@ -56,6 +56,7 @@ public:
                     const Real&                 a_domainLength,
                     const int&                  a_verbosity,
                     const Real&                 a_refineThresh,
+                    const Real&                 a_plasticThresh,
                     const int&                  a_tagBufferSize,
                     const Real&                 a_initialDtMultiplier,
                     const LinElastPhysics* const a_godunovPhysics,
@@ -69,6 +70,11 @@ public:
                     const bool&                 a_useSourceTerm,
                     const Real&                 a_sourceTermScaling,
                     const bool&                 a_highOrderLimiter,
+                    const Vector<Real>&         a_xCoarsen,
+                    const Vector<Real>&         a_yCoarsen,
+                    const Vector<Real>&         a_zCoarsen,
+                    const Real&                 a_slopeCoarsen,
+                    const Real&                 a_widthCoarsen,
                     const Vector<Real>&         a_xFaultStations,
                     const Vector<Real>&         a_zFaultStations,
                     const Vector<Real>&         a_xBodyStations,
@@ -303,6 +309,7 @@ protected:
   
   // Refinement threshold for gradient
   Real m_refineThresh;
+  Real m_plasticThresh;
 
   // Tag buffer size
   int m_tagBufferSize;
@@ -354,6 +361,12 @@ protected:
 
 
 private:
+  Vector<Real> m_xCoarsen;
+  Vector<Real> m_yCoarsen;
+  Vector<Real> m_zCoarsen;
+  Real m_slopeCoarsen;
+  Real m_widthCoarsen;
+
   bool m_usePlasticity;
 
   // Disallowed for all the usual reasons

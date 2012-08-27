@@ -28,12 +28,18 @@ RSIBC::RSIBC(const Real& a_r0,
     const Real& a_fw,
     const Real& a_Vw,
     const Real& a_fExp,
+    const Real& a_ramp_x,
+    const Real& a_ramp_w,
+    const Real& a_ramp_a,
+    const Real& a_ramp_Vw,
     const Real a_ruptureVelocityThreshold,
     const Vector<int>& a_boundaryType)
 {
     FORT_RSSETF(CHF_CONST_REAL(a_r0),CHF_CONST_REAL(a_x0),CHF_CONST_REAL(a_y0),CHF_CONST_REAL(a_nsig),
         CHF_CONST_REAL(a_ntime),CHF_CONST_REAL(a_a),CHF_CONST_REAL(a_b),CHF_CONST_REAL(a_V0),CHF_CONST_REAL(a_f0),
-        CHF_CONST_REAL(a_L),CHF_CONST_REAL(a_fw),CHF_CONST_REAL(a_Vw),CHF_CONST_REAL(a_fExp),CHF_CONST_REAL(a_ruptureVelocityThreshold));
+        CHF_CONST_REAL(a_L),CHF_CONST_REAL(a_fw),CHF_CONST_REAL(a_Vw),CHF_CONST_REAL(a_fExp),
+        CHF_CONST_REAL(a_ramp_x),CHF_CONST_REAL(a_ramp_w),CHF_CONST_REAL(a_ramp_a),CHF_CONST_REAL(a_ramp_Vw),
+        CHF_CONST_REAL(a_ruptureVelocityThreshold));
     m_boundaryType       = a_boundaryType;
     m_isFortranCommonSet = true;
     m_psi = a_psi;

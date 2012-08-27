@@ -69,6 +69,7 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
     const Real&                 a_domainLength,
     const int&                  a_verbosity,
     const Real&                 a_refineThresh,
+    const Real&                 a_plasticThresh,
     const int&                  a_tagBufferSize,
     const Real&                 a_initialDtMultiplier,
     const LinElastPhysics* const a_linElastPhysics,
@@ -82,6 +83,11 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
     const bool&                 a_useSourceTerm,
     const Real&                 a_sourceTermScaling,
     const bool&                 a_highOrderLimiter,
+    const Vector<Real>&         a_xCoarsen,
+    const Vector<Real>&         a_yCoarsen,
+    const Vector<Real>&         a_zCoarsen,
+    const Real&                 a_slopeCoarsen,
+    const Real&                 a_widthCoarsen,
     const Vector<Real>&         a_xFaultStations,
     const Vector<Real>&         a_zFaultStations,
     const Vector<Real>&         a_xBodyStations,
@@ -102,6 +108,7 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
 
     // Set the refinement threshold
     m_refineThresh = a_refineThresh;
+    m_plasticThresh = a_plasticThresh;
 
     // Set the tag buffer size
     m_tagBufferSize = a_tagBufferSize;
@@ -160,6 +167,12 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
     m_usePlasticity = a_usePlasticity;
 
     m_paramsDefined = true;
+
+    m_xCoarsen     = a_xCoarsen;
+    m_yCoarsen     = a_yCoarsen;
+    m_zCoarsen     = a_zCoarsen;
+    m_slopeCoarsen = a_slopeCoarsen;
+    m_widthCoarsen = a_widthCoarsen;
 }
 
 // This instance should never get called - historical
@@ -636,8 +649,6 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
             CHF_CONST_FRA(gradFab),
             CHF_BOX(b));
 
-        //JK THIS SHOUlD REALLY BE AN ARGUMENT NOT HARD CODED!!!!
-        // if(m_time < 1)
         lephysIBCPtr->tagCells(gradMagFab,m_time,m_refineThresh);
 
         // Tag where gradient exceeds threshold
@@ -646,7 +657,24 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
         {
             const IntVect& iv = bit();
 
-            if (gradMagFab(iv) >= m_refineThresh || UFab.get(iv,IX1_GAM) >= 1e-3 || UFab.get(iv,IX2_GAM) >= 1e-3)
+
+            Real r = 0;
+#if(CH_SPACEDIM >= 1)
+            Real x = iv[0]*m_dx;
+            r = max(r,max(m_xCoarsen[0]-x,x-m_xCoarsen[1]));
+#endif
+#if(CH_SPACEDIM >= 2)
+            Real y = iv[1]*m_dx;
+            r = max(r,max(m_yCoarsen[0]-y,y-m_yCoarsen[1]));
+#endif
+#if(CH_SPACEDIM >= 3)
+            Real z = iv[1]*m_dx;
+            r = max(r,max(m_zCoarsen[0]-z,z-m_zCoarsen[1]));
+#endif
+
+            Real refineThresh = m_refineThresh*(1+r*m_slopeCoarsen/m_widthCoarsen);
+
+            if (gradMagFab(iv) >= refineThresh || UFab.get(iv,IX1_GAM) >= m_plasticThresh || UFab.get(iv,IX2_GAM) >= m_plasticThresh)
             {
                 localTags |= iv;
                 //pout() << gradFab(iv,0) << "     " << gradFab(iv,1) << "     " << gradMagFab(iv) << "    " << m_refineThresh << endl;

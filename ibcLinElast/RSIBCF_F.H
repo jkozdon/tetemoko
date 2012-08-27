@@ -26,6 +26,10 @@ void FORTRAN_NAME( RSSETF ,rssetf )(
       ,CHFp_CONST_REAL(aRSfw)
       ,CHFp_CONST_REAL(aRSVw)
       ,CHFp_CONST_REAL(afExp)
+      ,CHFp_CONST_REAL(arampx)
+      ,CHFp_CONST_REAL(arampw)
+      ,CHFp_CONST_REAL(arampa)
+      ,CHFp_CONST_REAL(arampVW)
       ,CHFp_CONST_REAL(aruptureThreshold) );
 
 #define FORT_RSSETF FORTRAN_NAME( inlineRSSETF, inlineRSSETF)
@@ -45,6 +49,10 @@ inline void FORTRAN_NAME(inlineRSSETF, inlineRSSETF)(
       ,CHFp_CONST_REAL(aRSfw)
       ,CHFp_CONST_REAL(aRSVw)
       ,CHFp_CONST_REAL(afExp)
+      ,CHFp_CONST_REAL(arampx)
+      ,CHFp_CONST_REAL(arampw)
+      ,CHFp_CONST_REAL(arampa)
+      ,CHFp_CONST_REAL(arampVW)
       ,CHFp_CONST_REAL(aruptureThreshold) )
 {
  CH_TIMELEAF("FORT_RSSETF");
@@ -62,6 +70,10 @@ inline void FORTRAN_NAME(inlineRSSETF, inlineRSSETF)(
       ,CHFt_CONST_REAL(aRSfw)
       ,CHFt_CONST_REAL(aRSVw)
       ,CHFt_CONST_REAL(afExp)
+      ,CHFt_CONST_REAL(arampx)
+      ,CHFt_CONST_REAL(arampw)
+      ,CHFt_CONST_REAL(arampa)
+      ,CHFt_CONST_REAL(arampVW)
       ,CHFt_CONST_REAL(aruptureThreshold) );
 }
 #endif  // GUARDRSSETF 

@@ -135,7 +135,7 @@ int main(int a_argc, char* a_argv[])
     //3.1 Everything.stop();
 
 //3.1 #ifndef CH_NTIMER
-//3.1     Real end_memory = get_memory_usage_from_OS();
+    Real end_memory = get_memory_usage_from_OS();
 //3.1 
 //3.1     pout() << endl
 //3.1         << "Everything completed --- "
@@ -279,6 +279,10 @@ void amrGodunov()
     Real refineThresh = 0.3;
     ppcomp.get ("refine_thresh",refineThresh);
 
+    Real plasticThresh = 1e-5;
+    ppcomp.query("plastic_thresh",plasticThresh);
+
+
     // Minimum dimension of a grid
     int blockFactor = 1;
     ppcomp.get("block_factor",blockFactor);
@@ -394,6 +398,27 @@ void amrGodunov()
             ppcomp.getarr("z_body_stations",zBodyStations,0,numBodyStation);
         }
     }
+
+    std::vector<Real> xCoarsen(2,0);
+    xCoarsen[0] = -1e40;
+    xCoarsen[1] =  1e40;
+    ppcomp.queryarr("x_coarsen",xCoarsen,0,2);
+
+    std::vector<Real> yCoarsen(2,0);
+    yCoarsen[0] = -1e40;
+    yCoarsen[1] =  1e40;
+    ppcomp.queryarr("y_coarsen",yCoarsen,0,2);
+
+    std::vector<Real> zCoarsen(2,0);
+    zCoarsen[0] = -1e40;
+    zCoarsen[1] =  1e40;
+    ppcomp.queryarr("z_coarsen",zCoarsen,0,2);
+
+    Real slopeCoarsen = 0;
+    ppcomp.query("slope_coarsen",slopeCoarsen);
+
+    Real widthCoarsen = 1e40;
+    ppcomp.query("width_coarsen",widthCoarsen);
 
     // CFL multiplier
     Real cfl = 0.8;
@@ -612,11 +637,14 @@ void amrGodunov()
             Real nucN = 0.0; ppphysics.query("nuc_N",nucN);
             Real fExp =-1.0; ppphysics.query("fric_exp",fExp);
 
+            // get ramp paramters
+            Real ramp_x  = 0.0;  ppphysics.query("nuc_ramp_x",ramp_x); // ramp offset from nucx
+            Real ramp_w  = 1e40; ppphysics.query("nuc_ramp_w",ramp_w); // ramp inverse width
+            Real ramp_a  = 0.0;  ppphysics.query("nuc_ramp_a",ramp_a); // ramp a offset
+            Real ramp_Vw = 0.0;  ppphysics.query("nuc_ramp_Vw",ramp_Vw); // ramp Vw offset
+
             Real ruptureVelocityThreshold = 0.001;
             ppphysics.query("rupture_front_vel_thresh",ruptureVelocityThreshold);
-
-
-
 
             // get the boundary conditiions
             // 0 : Outflow
@@ -654,7 +682,10 @@ void amrGodunov()
 
             RSIBC* rsibc =
                 new RSIBC(nucR,nucx,nucy,nucS,nucT,psi,
-                    a,b,V0,f0,L,fw,Vw,fExp,ruptureVelocityThreshold,boundaryType);
+                    a,b,V0,f0,L,fw,Vw,fExp,
+                    ramp_x,ramp_w,ramp_a,ramp_Vw,
+                    ruptureVelocityThreshold,
+                    boundaryType);
             if(ppphysics.contains("R0"))
             {
                 Real R0;ppphysics.query("R0",R0);
@@ -776,6 +807,7 @@ void amrGodunov()
         pout() << "tag_buffer_size      = " << tagBufferSize << endl;
 
         pout() << "refinement_threshold = " << refineThresh << endl;
+        pout() << "plastic_threshold = " << plasticThresh << endl;
 
         pout() << "blocking_factor      = " << blockFactor << endl;
         pout() << "max_grid_size        = " << maxGridSize << endl;
@@ -853,6 +885,7 @@ void amrGodunov()
         domainLength,
         verbosity,
         refineThresh,
+        plasticThresh,
         tagBufferSize,
         initialCFL,
         godunovPhysics,
@@ -866,6 +899,11 @@ void amrGodunov()
         useSourceTerm,
         sourceTermScaling,
         highOrderLimiter,
+        xCoarsen,
+        yCoarsen,
+        zCoarsen,
+        slopeCoarsen,
+        widthCoarsen,
         xFaultStations,
         zFaultStations,
         xBodyStations,

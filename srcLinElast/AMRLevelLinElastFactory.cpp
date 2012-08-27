@@ -34,6 +34,7 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
     const Real&                 a_domainLength,
     const int&                  a_verbosity,
     const Real&                 a_refineThresh,
+    const Real&                 a_plasticThresh,
     const int&                  a_tagBufferSize,
     const Real&                 a_initialDtMultiplier,
     const LinElastPhysics* const a_linElastPhysics,
@@ -47,6 +48,11 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
     const bool&                 a_useSourceTerm,
     const Real&                 a_sourceTermScaling,
     const bool&                 a_highOrderLimiter,
+    const Vector<Real>&         a_xCoarsen,
+    const Vector<Real>&         a_yCoarsen,
+    const Vector<Real>&         a_zCoarsen,
+    const Real&                 a_slopeCoarsen,
+    const Real&                 a_widthCoarsen,
     const Vector<Real>&         a_xFaultStations,
     const Vector<Real>&         a_zFaultStations,
     const Vector<Real>&         a_xBodyStations,
@@ -66,6 +72,9 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
 
     // Store the refinement threshold for gradient
     m_refineThresh = a_refineThresh;
+    
+    // Store the refinement threshold for plasticity
+    m_plasticThresh = a_plasticThresh;
 
     // Store the tag buffer size
     m_tagBufferSize = a_tagBufferSize;
@@ -141,6 +150,12 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
 
     // The object is defined
     m_isDefined = true;
+
+    m_xCoarsen     = a_xCoarsen;
+    m_yCoarsen     = a_yCoarsen;
+    m_zCoarsen     = a_zCoarsen;
+    m_slopeCoarsen = a_slopeCoarsen;
+    m_widthCoarsen = a_widthCoarsen;
 }
 
 // Virtual constructor
@@ -157,6 +172,7 @@ AMRLevel* AMRLevelLinElastFactory::new_amrlevel() const
         m_domainLength,
         m_verbosity,
         m_refineThresh,
+        m_plasticThresh,
         m_tagBufferSize,
         m_initialDtMultiplier,
         m_linElastPhysics,
@@ -170,6 +186,11 @@ AMRLevel* AMRLevelLinElastFactory::new_amrlevel() const
         m_useSourceTerm,
         m_sourceTermScaling,
         m_highOrderLimiter,
+        m_xCoarsen,
+        m_yCoarsen,
+        m_zCoarsen,
+        m_slopeCoarsen,
+        m_widthCoarsen,
         m_xFaultStations,
         m_zFaultStations,
         m_xBodyStations,

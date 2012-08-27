@@ -35,6 +35,10 @@ public:
         const Real& fw,
         const Real& Vw,
         const Real& fExp,
+        const Real& a_ramp_x,
+        const Real& a_ramp_w,
+        const Real& a_ramp_a,
+        const Real& a_ramp_Vw,
         const Real ruptureVelocityThreshold,
         const Vector<int>& boundaryType);
 
