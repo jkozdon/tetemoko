@@ -49,7 +49,7 @@ c
         ramp_a  = arampa
         ramp_VW = arampVW
         ruptureThreshold = aruptureThreshold
-        print*,ramp_x,ramp_w ,ramp_a,ramp_VW 
+        !print*,ramp_x,ramp_w ,ramp_a,ramp_VW 
 
         return
         end
