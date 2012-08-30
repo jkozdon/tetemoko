@@ -1584,6 +1584,15 @@ void AMRLevelLinElast::writePlotLevel(HDF5Handle& a_handle) const
   write(a_handle,m_UNew,"data", IntVect::Unit);
 }
 
+
+int AMRLevelLinElast::numBdryLevels(int ix)
+{
+  int numLevel = 0;
+  if((*m_BNew[ix]).boxLayout().numCells()>0) numLevel = m_level;
+  if(m_hasFiner) numLevel = max(numLevel, getFinerLevel()->numBdryLevels(ix));
+  return numLevel;
+}
+
 // Write boundary plotfile data for this level
 void AMRLevelLinElast::writeCustomPlotFile(const std::string& a_prefix,
     const int& a_max_level,
@@ -1608,72 +1617,76 @@ void AMRLevelLinElast::writeCustomPlotFile(const std::string& a_prefix,
     {
       pout() << "AMRLevelLinElast::writeCustomPlotFile" << endl;
     }
-
-    char iter_str[80];
-
-    sprintf(iter_str,
-        "%sboundary.%06d.%dd.hdf5",
-        a_prefix.c_str(), a_cur_step, SpaceDim);
-
-    if (s_verbosity >= 2)
+    
+    for(int ix = 0; ix < 2*CH_SPACEDIM; ix++)
     {
-      pout() << "plot file name = " << iter_str << endl;
+
+      char iter_str[80];
+
+      sprintf(iter_str,
+          "%sboundary%d.%06d.%dd.hdf5",
+          a_prefix.c_str(), ix, a_cur_step, SpaceDim);
+
+      if (s_verbosity >= 2)
+      {
+        pout() << "plot file name = " << iter_str << endl;
+      }
+
+      HDF5Handle handle(iter_str, HDF5Handle::CREATE);
+
+      // write amr data
+      HDF5HeaderData header;
+      header.m_int ["max_level"]  = a_max_level;
+      header.m_int ["num_levels"] = numBdryLevels(ix) + 1;
+      header.m_int ["iteration"]  = a_cur_step;
+      header.m_real["time"]       = a_cur_time;
+
+      // write the boundary physics class header data
+
+      // Setup the number of components
+      header.m_int["num_components"] = m_numBdryVars[ix];
+
+      // Setup the component names
+      char compStr[30];
+      for (int comp = 0; comp < m_numBdryVars[ix]; ++comp)
+      {
+        sprintf(compStr,"component_%d",comp);
+        header.m_string[compStr] = m_bdryNames[ix][comp];
+      }
+
+      if (s_verbosity >= 3)
+      {
+        pout() << header << endl;
+      }
+
+      header.writeToFile(handle);
+
+      // handle.setGroup("/Expressions");
+      // HDF5HeaderData expressions;
+      // m_LElevelGodunov.getGodunovPhysicsPtrConst()->expressions(expressions);
+      // expressions.writeToFile(handle);
+
+      if (s_verbosity >= 3)
+      {
+        pout() << header << endl;
+      }
+
+      // write physics class per-level data
+      writeThisBdryLevel(handle,ix);
+
+      handle.close();
     }
-
-    HDF5Handle handle(iter_str, HDF5Handle::CREATE);
-
-    // write amr data
-    HDF5HeaderData header;
-    header.m_int ["max_level"]  = a_max_level;
-    header.m_int ["num_levels"] = a_finest_level + 1;
-    header.m_int ["iteration"]  = a_cur_step;
-    header.m_real["time"]       = a_cur_time;
-
-    // write the boundary physics class header data
-
-    // Setup the number of components
-    header.m_int["num_components"] = m_numBdryVars[2];
-
-    // Setup the component names
-    char compStr[30];
-    for (int comp = 0; comp < m_numBdryVars[2]; ++comp)
-    {
-      sprintf(compStr,"component_%d",comp);
-      header.m_string[compStr] = m_bdryNames[2][comp];
-    }
-
-    if (s_verbosity >= 3)
-    {
-      pout() << header << endl;
-    }
-
-    header.writeToFile(handle);
-
-    // handle.setGroup("/Expressions");
-    // HDF5HeaderData expressions;
-    // m_LElevelGodunov.getGodunovPhysicsPtrConst()->expressions(expressions);
-    // expressions.writeToFile(handle);
-
-    if (s_verbosity >= 3)
-    {
-      pout() << header << endl;
-    }
-
-    // write physics class per-level data
-    writeThisBdryLevel(handle);
-
-    handle.close();
   }
 }
 
-void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle)
+void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle, int ix)
 {
   //JK Need to fix this so that it only puts data on the boundary
   if (s_verbosity >= 3)
   {
     pout() << "AMRLevelLinElast::writeThisBdryLevel" << endl;
   }
-  if((*m_BNew[2]).boxLayout().numCells()>0) //TODO: BOUNDARY
+  if((*m_BNew[ix]).boxLayout().numCells()>0) //TODO: BOUNDARY
   {
 
     // Setup the level string
@@ -1691,7 +1704,7 @@ void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle)
     header.m_real["dt"]          = m_dt;
     header.m_real["time"]        = m_time;
     //header.m_box ["prob_domain"] = m_problem_domain.domainBox();
-    header.m_box ["prob_domain"] = m_bdryFaceBox[2];
+    header.m_box ["prob_domain"] = m_bdryFaceBox[ix];
 
     // Write the header for this level
     header.writeToFile(a_handle);
@@ -1702,15 +1715,15 @@ void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle)
     }
 
     // Write the data for this level
-    // write(a_handle,(*m_BNew[2]).boxLayout()); //TODO: BOUNDARY
-    // write(a_handle,(*m_BNew[2]),"data", IntVect::Unit); //TODO: BOUNDARY
-    write(a_handle,(*m_BNew[2]).boxLayout()); //TODO: BOUNDARY
-    write(a_handle,(*m_BNew[2]),"data", IntVect::Unit); //TODO: BOUNDARY
+    // write(a_handle,(*m_BNew[ix]).boxLayout()); //TODO: BOUNDARY
+    // write(a_handle,(*m_BNew[ix]),"data", IntVect::Unit); //TODO: BOUNDARY
+    write(a_handle,(*m_BNew[ix]).boxLayout()); //TODO: BOUNDARY
+    write(a_handle,(*m_BNew[ix]),"data", IntVect::Unit); //TODO: BOUNDARY
   }
 
   if (m_hasFiner)
   {
-    getFinerLevel()->writeThisBdryLevel(a_handle);
+    getFinerLevel()->writeThisBdryLevel(a_handle,ix);
   }
 }
 

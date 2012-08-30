@@ -365,6 +365,8 @@ private:
 
   bool m_usePlasticity;
 
+  int numBdryLevels(int ix);
+
   // Disallowed for all the usual reasons
   void operator=(const AMRLevelLinElast& a_input)
   {
@@ -377,7 +379,7 @@ private:
     MayDay::Error("invalid operator");
   }
 #ifdef CH_USE_HDF5
-  void writeThisBdryLevel(HDF5Handle& a_handle); // TODO: BOUNDARY
+  void writeThisBdryLevel(HDF5Handle& a_handle,int ix);
   void writeStationLevel();
 #endif
 };
