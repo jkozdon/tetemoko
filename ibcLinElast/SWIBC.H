@@ -59,17 +59,12 @@ public:
     */
     virtual void initialize(LevelData<FArrayBox>& a_U);
 
-    virtual void initializeBdry(LevelData<FArrayBox>& a_B);
+    virtual void initializeBdry(LevelData<FArrayBox>& a_B,int a_side);
 
     /// Set up initial boundary data
     /**
     */
     virtual bool hasBdryData();
-
-    /// Store pointer to boundary data
-    /**
-    */
-    virtual void setBdryData(FArrayBox* a_bdryData);
 
     /// Set boundary primitive values.
     /**
@@ -121,14 +116,12 @@ public:
         return tagCellsInit(markFAB,threshold);
     }
 
-    virtual int numBdryVars()
+    virtual Vector<string> bdryNames(int a_side)
     {
-        return m_numBdryVars;
-    }
-
-    virtual Vector<string> bdryNames()
-    {
-        Vector<string> bdryNames;
+      Vector<string> bdryNames;
+      if(a_side == 2)
+      {
+        // MUST MATCH SWINDEX.H ORDER!!!
         bdryNames.push_back("Vx");
         bdryNames.push_back("Vz");
         bdryNames.push_back("sxy");
@@ -138,7 +131,21 @@ public:
         bdryNames.push_back("slip_z");
         bdryNames.push_back("slip_total");
         bdryNames.push_back("rupture");
-        return bdryNames;
+      }
+      else
+      {
+        // MUST MATCH LEPhysIBC.H ORDER!!!
+        bdryNames.push_back("vn");
+        bdryNames.push_back("vm");
+        bdryNames.push_back("vz");
+        bdryNames.push_back("sn");
+        bdryNames.push_back("sm");
+        bdryNames.push_back("sz");
+        bdryNames.push_back("un");
+        bdryNames.push_back("um");
+        bdryNames.push_back("uz");
+      }
+      return bdryNames;
     }
 
     virtual void dumpBdryData(FILE * a_boundaryDataFile);
@@ -147,7 +154,6 @@ protected:
     bool m_isFortranCommonSet;
     Vector<int> m_boundaryType;
     bool m_isPatchBoxSet;
-    bool m_tmpBdryDataSet;
 
     int m_numPatches;
     Vector<Real> m_xcPatches;
@@ -162,8 +168,6 @@ protected:
     Vector<Real> m_fricBoxCenter;
     Vector<Real> m_fricBoxWidth;
     Vector<Box>  m_patchBoxes;
-
-    FArrayBox* m_tmpBdryData;
 private:
 };
 

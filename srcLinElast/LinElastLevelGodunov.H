@@ -55,11 +55,11 @@ public:
       empty DisjointBoxLayout is passed in for coarserDisjointBoxLayout.
       */
     void define(const DisjointBoxLayout&    a_thisDisjointBoxLayout,
-        const DisjointBoxLayout&    a_bdryDisjointBoxLayout,
+        const Vector<DisjointBoxLayout>&    a_bdryDisjointBoxLayout,
         const DisjointBoxLayout&    a_coarserDisjointBoxLayout,
-        const DisjointBoxLayout&    a_bdryCoarserDisjointBoxLayout,
+        const Vector<DisjointBoxLayout>&    a_bdryCoarserDisjointBoxLayout,
         const ProblemDomain&        a_domain,
-        const Box&                  a_bdryBox,
+        const Vector<Box>&                  a_bdryBox,
         const int&                  a_refineCoarse,
         const Real&                 a_dx,
         const LinElastPhysics* const a_linElastPhysics,
@@ -89,17 +89,17 @@ public:
       constructed and not defined (i.e. its define() should not be called).
       */
     Real step(LevelData<FArrayBox>&       a_U,
-        LevelData<FArrayBox>&       a_B,
-        LayoutData<GridData>&       a_relateUB,
+        const Vector<LevelData<FArrayBox>*>&       a_B,
+        const Vector<LayoutData<GridData>*>&       a_relateUB,
         LevelData<FArrayBox>        a_flux[CH_SPACEDIM],
         LevelFluxRegister&          a_finerFluxRegister,
         LevelFluxRegister&          a_coarserFluxRegister,
         const LevelData<FArrayBox>& a_S,
         const LevelData<FArrayBox>& a_UCoarseOld,
-        const LevelData<FArrayBox>& a_BCoarseOld,
+        const Vector<LevelData<FArrayBox>*>& a_BCoarseOld,
         const Real&                 a_TCoarseOld,
         const LevelData<FArrayBox>& a_UCoarseNew,
-        const LevelData<FArrayBox>& a_BCoarseNew,
+        const Vector<LevelData<FArrayBox>*>& a_BCoarseNew,
         const Real&                 a_TCoarseNew,
         const Real&                 a_time,
         const Real&                 a_dt);
@@ -159,7 +159,7 @@ protected:
     DisjointBoxLayout m_grids;
 
     // Boundary box layout for this level
-    DisjointBoxLayout m_bdry;
+    Vector<DisjointBoxLayout> m_bdry;
 
     // Patch integrator
     LinElastPatchGodunov    m_patchGodunov;
@@ -169,19 +169,19 @@ protected:
 
     // Exchange copier
     Copier m_exchangeCopier;
-    Copier m_bdryExchangeCopier;
+    Vector<Copier> m_bdryExchangeCopier;
 
     // Temporary storage space for conserved variables
     LevelData<FArrayBox> m_U;
 
     // Temporary storage space for boundary variables
-    LevelData<FArrayBox> m_B;
+    Vector<LevelData<FArrayBox>*> m_B;
 
     // interpolator for filling in ghost cells from the next coarser level
     PiecewiseLinearFillPatch m_patcher;
 
     // interpolator for filling in ghost cells on the boundary from the next coarser level
-    D1PiecewiseLinearFillPatch m_bndPatcher;
+    Vector<D1PiecewiseLinearFillPatch*> m_bndPatcher;
 
     // Grid spacing
     Real m_dx;
@@ -190,13 +190,13 @@ protected:
     ProblemDomain m_domain;
 
     // Boundary Box, face centered
-    Box m_bdryFaceBox;
+    Vector<Box> m_bdryFaceBox;
 
     // Refinement ratio between this level and the next coarser
     int m_refineCoarse;
 
     // Number of boundary variables
-    int m_numBdryVars;
+    Vector<int> m_numBdryVars;
 
     // Number of conserved variables
     int m_numCons;

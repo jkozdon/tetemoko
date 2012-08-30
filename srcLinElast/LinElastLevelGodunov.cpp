@@ -30,9 +30,9 @@
 // Constructor - set up some defaults
 LinElastLevelGodunov::LinElastLevelGodunov()
 {
-    m_dx           = 0.0;
-    m_refineCoarse = 0;
-    m_isDefined    = false;
+  m_dx           = 0.0;
+  m_refineCoarse = 0;
+  m_isDefined    = false;
 }
 
 // Destructor - free up storage
@@ -43,11 +43,11 @@ LinElastLevelGodunov::~LinElastLevelGodunov()
 
 // Define the object so that time stepping can begin
 void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxLayout,
-    const DisjointBoxLayout&    a_bdryDisjointBoxLayout,
+    const Vector<DisjointBoxLayout>&    a_bdryDisjointBoxLayout,
     const DisjointBoxLayout&    a_coarserDisjointBoxLayout,
-    const DisjointBoxLayout&    a_bdryCoarserDisjointBoxLayout,
+    const Vector<DisjointBoxLayout>&    a_bdryCoarserDisjointBoxLayout,
     const ProblemDomain&        a_domain,
-    const Box&                  a_bdryFaceBox,
+    const Vector<Box>&                  a_bdryFaceBox,
     const int&                  a_refineCoarse,
     const Real&                 a_dx,
     const LinElastPhysics* const a_linElastPhysics,
@@ -61,109 +61,128 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
     const bool&                 a_hasCoarser,
     const bool&                 a_hasFiner)
 {
-    CH_TIME("LinElastLevelGodunov::define");
+  CH_TIME("LinElastLevelGodunov::define");
 
-    // Sanity checks
-    CH_assert(a_refineCoarse > 0);
-    CH_assert(a_dx > 0.0);
+  // Sanity checks
+  CH_assert(a_refineCoarse > 0);
+  CH_assert(a_dx > 0.0);
 
-    // Make a copy of the current grids
-    m_grids  = a_thisDisjointBoxLayout;
+  // Make a copy of the current grids
+  m_grids  = a_thisDisjointBoxLayout;
 
-    // Make a copy of the current grids
-    m_bdry  = a_bdryDisjointBoxLayout;
+  // Make a copy of the current grids
+  m_bdry  = a_bdryDisjointBoxLayout;
 
-    // Order of the normal predictor (1 -> PLM, 2-> PPM)
-    m_normalPredOrder = a_normalPredOrder;
+  // Order of the normal predictor (1 -> PLM, 2-> PPM)
+  m_normalPredOrder = a_normalPredOrder;
 
-    // Store the various slope computation flags
-    m_useFourthOrderSlopes = a_useFourthOrderSlopes;
-    m_usePrimLimiting      = a_usePrimLimiting;
-    m_useCharLimiting      = a_useCharLimiting;
-    m_useFlattening        = a_useFlattening;
+  // Store the various slope computation flags
+  m_useFourthOrderSlopes = a_useFourthOrderSlopes;
+  m_usePrimLimiting      = a_usePrimLimiting;
+  m_useCharLimiting      = a_useCharLimiting;
+  m_useFlattening        = a_useFlattening;
 
-    // Store the artificial viscosity flag and coefficient
-    m_useArtificialViscosity = a_useArtificialViscosity;
-    m_artificialViscosity    = a_artificialViscosity;
+  // Store the artificial viscosity flag and coefficient
+  m_useArtificialViscosity = a_useArtificialViscosity;
+  m_artificialViscosity    = a_artificialViscosity;
 
-    // Cache data
-    m_dx           = a_dx;
-    m_domain       = a_domain;
-    m_bdryFaceBox  = a_bdryFaceBox;
-    m_refineCoarse = a_refineCoarse;
-    m_hasCoarser   = a_hasCoarser;
-    m_hasFiner     = a_hasFiner;
+  // Cache data
+  m_dx           = a_dx;
+  m_domain       = a_domain;
+  m_bdryFaceBox  = a_bdryFaceBox;
+  m_refineCoarse = a_refineCoarse;
+  m_hasCoarser   = a_hasCoarser;
+  m_hasFiner     = a_hasFiner;
 
-    m_patchGodunov.define(m_domain,m_dx,
-        a_linElastPhysics,
-        m_normalPredOrder,
-        m_useFourthOrderSlopes,
-        m_usePrimLimiting,
-        m_useCharLimiting,
-        m_useFlattening,
-        m_useArtificialViscosity,
-        m_artificialViscosity);
+  m_patchGodunov.define(m_domain,m_dx,
+      a_linElastPhysics,
+      m_normalPredOrder,
+      m_useFourthOrderSlopes,
+      m_usePrimLimiting,
+      m_useCharLimiting,
+      m_useFlattening,
+      m_useArtificialViscosity,
+      m_artificialViscosity);
 
-    // Set the number of ghost cells appropriately
-    if (m_useFourthOrderSlopes || m_normalPredOrder == 2)
+  // Set the number of ghost cells appropriately
+  if (m_useFourthOrderSlopes || m_normalPredOrder == 2)
+  {
+    m_numGhost = 4;
+  }
+  else
+  {
+    m_numGhost = 2;
+  }
+
+  // (DFM, 9/29/2005) This is really silly, but the simplest
+  // work-around. The problem is that the numConserved and
+  // numFluxes functions are not const, but a_linElastPhysics is.
+  // So. the simplest thing is to cast away the const-ness
+  // just for this limited context.
+  // We may eventually want to make the functions non-const,
+  // but that will break all classes derived from GodunovPhysics.
+  {
+    LinElastPhysics* nonConstPhysicsPtr = (LinElastPhysics*) a_linElastPhysics;
+    m_numCons   = nonConstPhysicsPtr->numConserved();
+    m_numFluxes = nonConstPhysicsPtr->numFluxes();
+    m_numBdryVars = ((LEPhysIBC*) nonConstPhysicsPtr->getPhysIBC())->numBdryVars();
+  }
+
+  m_exchangeCopier.exchangeDefine(a_thisDisjointBoxLayout,
+      m_numGhost*IntVect::Unit);
+
+  m_bdryExchangeCopier.resize(2*CH_SPACEDIM);
+  for(int idim = 0;idim < CH_SPACEDIM;idim++)
+    for(int ix = 2*idim;ix < 2*idim+2;ix++)
+      m_bdryExchangeCopier[ix].exchangeDefine(m_bdry[ix],
+          m_numGhost*(IntVect::Unit-BASISV(idim)));
+
+  // Setup an interval corresponding to the conserved variables
+  Interval UInterval(0,m_numCons-1);
+
+  // Create temporary storage with a layer of "m_numGhost" ghost cells
+  {
+    CH_TIME("setup::Udefine");
+    m_U.define(m_grids,m_numCons,m_numGhost*IntVect::Unit);
+    m_B.resize(2*CH_SPACEDIM,NULL);
+    for(int idim = 0;idim < CH_SPACEDIM;idim++)
     {
-        m_numGhost = 4;
+      for(int ix = 2*idim;ix < 2*idim+2;ix++)
+      {
+        m_B[ix] = new LevelData<FArrayBox>();
+        (*m_B[ix]).define(m_bdry[ix], m_numBdryVars[ix],m_numGhost*(IntVect::Unit-BASISV(idim)));
+      }
     }
-    else
+  }
+
+  // Set up the interpolator if there is a coarser level
+  if (m_hasCoarser)
+  {
+    m_patcher.define(a_thisDisjointBoxLayout,
+        a_coarserDisjointBoxLayout,
+        m_numCons,
+        coarsen(a_domain,a_refineCoarse),
+        a_refineCoarse,
+        m_numGhost);
+    m_bndPatcher.resize(2*CH_SPACEDIM,NULL);
+    for(int idim = 0; idim<CH_SPACEDIM;idim++)
     {
-        m_numGhost = 2;
-    }
-
-    // (DFM, 9/29/2005) This is really silly, but the simplest
-    // work-around. The problem is that the numConserved and
-    // numFluxes functions are not const, but a_linElastPhysics is.
-    // So. the simplest thing is to cast away the const-ness
-    // just for this limited context.
-    // We may eventually want to make the functions non-const,
-    // but that will break all classes derived from GodunovPhysics.
-    {
-        LinElastPhysics* nonConstPhysicsPtr = (LinElastPhysics*) a_linElastPhysics;
-        m_numCons   = nonConstPhysicsPtr->numConserved();
-        m_numFluxes = nonConstPhysicsPtr->numFluxes();
-        m_numBdryVars = ((LEPhysIBC*) nonConstPhysicsPtr->getPhysIBC())->numBdryVars();
-    }
-
-    m_exchangeCopier.exchangeDefine(a_thisDisjointBoxLayout,
-        m_numGhost*IntVect::Unit);
-
-    m_bdryExchangeCopier.exchangeDefine(a_bdryDisjointBoxLayout,
-        m_numGhost*(IntVect::Unit-BASISV(1)));
-
-    // Setup an interval corresponding to the conserved variables
-    Interval UInterval(0,m_numCons-1);
-
-    // Create temporary storage with a layer of "m_numGhost" ghost cells
-    {
-        CH_TIME("setup::Udefine");
-        m_U.define(m_grids,m_numCons,m_numGhost*IntVect::Unit);
-        m_B.define(m_bdry, m_numBdryVars,m_numGhost*(IntVect::Unit-BASISV(1)));
-    }
-
-    // Set up the interpolator if there is a coarser level
-    if (m_hasCoarser)
-    {
-        m_patcher.define(a_thisDisjointBoxLayout,
-            a_coarserDisjointBoxLayout,
-            m_numCons,
-            coarsen(a_domain,a_refineCoarse),
+      for(int ix = 2*idim;ix<2*(idim+1);ix++)
+      {
+        m_bndPatcher[ix] = new D1PiecewiseLinearFillPatch();
+        (*m_bndPatcher[ix]).define(m_bdry[ix],
+            a_bdryCoarserDisjointBoxLayout[ix],
+            m_numBdryVars[ix],
+            m_bdryFaceBox[ix],
+            idim,
             a_refineCoarse,
             m_numGhost);
-        m_bndPatcher.define(a_bdryDisjointBoxLayout,
-            a_bdryCoarserDisjointBoxLayout,
-            m_numBdryVars,
-            a_bdryFaceBox,
-            1,
-            a_refineCoarse,
-            m_numGhost);
+      }
     }
+  }
 
-    // Everything is defined
-    m_isDefined = true;
+  // Everything is defined
+  m_isDefined = true;
 }
 
 // Advance the solution by "a_dt" by using an unsplit method.
@@ -172,229 +191,255 @@ void LinElastLevelGodunov::define(const DisjointBoxLayout&    a_thisDisjointBoxL
 // If source terms do not exist, "a_S" should be null constructed and not
 // defined (i.e. its define() should not be called).
 Real LinElastLevelGodunov::step(LevelData<FArrayBox>&       a_U,
-    LevelData<FArrayBox>&       a_B,
-    LayoutData<GridData>&       a_relateUB,
+    const Vector<LevelData<FArrayBox>*>&       a_B, // TODO: BOUNDARY
+    const Vector<LayoutData<GridData>*>&       a_relateUB, // TODO: BOUNDARY
     LevelData<FArrayBox>        a_flux[CH_SPACEDIM],
     LevelFluxRegister&          a_finerFluxRegister,
     LevelFluxRegister&          a_coarserFluxRegister,
     const LevelData<FArrayBox>& a_S,
     const LevelData<FArrayBox>& a_UCoarseOld,
-    const LevelData<FArrayBox>& a_BCoarseOld,
+    const Vector<LevelData<FArrayBox>*>& a_BCoarseOld, // TODO: BOUNDARY
     const Real&                 a_TCoarseOld,
     const LevelData<FArrayBox>& a_UCoarseNew,
-    const LevelData<FArrayBox>& a_BCoarseNew,
+    const Vector<LevelData<FArrayBox>*>& a_BCoarseNew, // TODO: BOUNDARY
     const Real&                 a_TCoarseNew,
     const Real&                 a_time,
     const Real&                 a_dt)
 {
-    CH_TIMERS("LinElastLevelGodunov::step");
+  CH_TIMERS("LinElastLevelGodunov::step");
 
-    CH_TIMER("LinElastLevelGodunov::step::setup"   ,timeSetup);
-    CH_TIMER("LinElastLevelGodunov::step::update"  ,timeUpdate);
-    CH_TIMER("LinElastLevelGodunov::step::reflux"  ,timeReflux);
-    CH_TIMER("LinElastLevelGodunov::step::conclude",timeConclude);
+  CH_TIMER("LinElastLevelGodunov::step::setup"   ,timeSetup);
+  CH_TIMER("LinElastLevelGodunov::step::update"  ,timeUpdate);
+  CH_TIMER("LinElastLevelGodunov::step::reflux"  ,timeReflux);
+  CH_TIMER("LinElastLevelGodunov::step::conclude",timeConclude);
 
-    // Make sure everything is defined
-    CH_assert(m_isDefined);
+  // Make sure everything is defined
+  CH_assert(m_isDefined);
 
-    CH_START(timeSetup);
+  CH_START(timeSetup);
 
-    // Clear flux registers with next finer level
-    if (m_hasFiner)
+  // Clear flux registers with next finer level
+  if (m_hasFiner)
+  {
+    a_finerFluxRegister.setToZero();
+  }
+
+  // Setup an interval corresponding to the conserved variables
+  Interval UInterval(0,m_numCons-1);
+
+  {
+    CH_TIME("setup::localU");
+    for (DataIterator dit = m_U.dataIterator(); dit.ok(); ++dit)
     {
-        a_finerFluxRegister.setToZero();
+      m_U[dit()].copy(a_U[dit()]);
+    }
+    for(int ix = 0;ix < 2*CH_SPACEDIM;ix++)
+    {
+      for (DataIterator dit = (*m_B[ix]).dataIterator(); dit.ok(); ++dit)
+      {
+        (*m_B[ix])[dit()].copy((*a_B[ix])[dit()]);
+      }
     }
 
-    // Setup an interval corresponding to the conserved variables
-    Interval UInterval(0,m_numCons-1);
+    m_U.exchange(m_exchangeCopier);
 
+    for(int idim = 0;idim < CH_SPACEDIM;idim++)
+      for(int ix = 2*idim;ix < 2*idim+2;ix++)
+        (*m_B[ix]).exchange(m_bdryExchangeCopier[ix]);
+  }
+
+  // Fill m_U's ghost cells using fillInterp
+  if (m_hasCoarser)
+  {
+    // Fraction "a_time" falls between the old and the new coarse times
+    Real alpha = (a_time - a_TCoarseOld) / (a_TCoarseNew - a_TCoarseOld);
+
+    // Truncate the fraction to the range [0,1] to remove floating-point
+    // subtraction roundoff effects
+    Real eps = 0.04 * a_dt / m_refineCoarse;
+
+    if (Abs(alpha) < eps)
     {
-        CH_TIME("setup::localU");
-        for (DataIterator dit = m_U.dataIterator(); dit.ok(); ++dit)
-        {
-            m_U[dit()].copy(a_U[dit()]);
-        }
-        for (DataIterator dit = m_B.dataIterator(); dit.ok(); ++dit)
-        {
-            m_B[dit()].copy(a_B[dit()]);
-        }
-
-        m_U.exchange(m_exchangeCopier);
-        m_B.exchange(m_bdryExchangeCopier);
+      alpha = 0.0;
     }
 
-    // Fill m_U's ghost cells using fillInterp
-    if (m_hasCoarser)
+    if (Abs(1.0-alpha) < eps)
     {
-        // Fraction "a_time" falls between the old and the new coarse times
-        Real alpha = (a_time - a_TCoarseOld) / (a_TCoarseNew - a_TCoarseOld);
-
-        // Truncate the fraction to the range [0,1] to remove floating-point
-        // subtraction roundoff effects
-        Real eps = 0.04 * a_dt / m_refineCoarse;
-
-        if (Abs(alpha) < eps)
-        {
-            alpha = 0.0;
-        }
-
-        if (Abs(1.0-alpha) < eps)
-        {
-            alpha = 1.0;
-        }
-
-        // Current time before old coarse time
-        if (alpha < 0.0)
-        {
-            MayDay::Error( "LinElastLevelGodunov::step: alpha < 0.0");
-        }
-
-        // Current time after new coarse time
-        if (alpha > 1.0)
-        {
-            MayDay::Error( "LinElastLevelGodunov::step: alpha > 1.0");
-        }
-
-        // Interpolate ghost cells from next coarser level using both space
-        // and time interpolation
-        m_patcher.fillInterp(m_U,
-            a_UCoarseOld,
-            a_UCoarseNew,
-            alpha,
-            0,0,m_numCons);
-        m_bndPatcher.fillInterp(m_B,
-            a_BCoarseOld,
-            a_BCoarseNew,
-            alpha,
-            0,0,m_numBdryVars);
+      alpha = 1.0;
     }
 
-    // Potentially used in boundary conditions
-    m_patchGodunov.setCurrentTime(a_time);
-
-    // Dummy source used if source term passed in is empty
-    FArrayBox zeroSource;
-
-    // Use to restrict maximum wave speed away from zero
-    Real maxWaveSpeed = 1.0e-12;
-
-    CH_STOP(timeSetup);
-
-    // Beginning of loop through patches/grids.
-    for (DataIterator dit = m_grids.dataIterator(); dit.ok(); ++dit)
+    // Current time before old coarse time
+    if (alpha < 0.0)
     {
-        CH_START(timeUpdate);
-
-        // The current box
-        Box curBox = m_grids.get(dit());
-
-        // The current grid of conserved variables
-        FArrayBox& curU = m_U[dit()];
-
-        // The current source terms if they exist
-        const FArrayBox* source = &zeroSource;
-        if (a_S.isDefined())
-        {
-            source = &a_S[dit()];
-        }
-
-        // The fluxes computed for this grid - used for refluxing and returning
-        // other face centered quantities
-        FluxBox flux;
-
-        // Set the current box for the patch integrator
-        m_patchGodunov.setCurrentBox(curBox);
-
-        Real maxWaveSpeedGrid;
-
-        //JK Push the current boundary data to m_patchGodunov
-        if(a_relateUB[dit()].hasBdryData())
-        {
-            FArrayBox& curB = m_B[a_relateUB[dit()].getBdryIndex()];
-            ((LEPhysIBC*)m_patchGodunov.getGodunovPhysicsPtr()->getPhysIBC())->setBdryData(&curB);
-        }
-
-        // Update the current grid's conserved variables, return the final
-        // fluxes used for this, and the maximum wave speed for this grid
-        m_patchGodunov.updateState(curU,
-            flux,
-            maxWaveSpeedGrid,
-            *source,
-            a_dt,
-            curBox);
-
-        // Clamp away from zero
-        maxWaveSpeed = Max(maxWaveSpeed,maxWaveSpeedGrid);
-
-        CH_STOP(timeUpdate);
-
-        CH_START(timeReflux);
-
-        // Do flux register updates
-        for (int idir = 0; idir < SpaceDim; idir++)
-        {
-            // Increment coarse flux register between this level and the next
-            // finer level - this level is the next coarser level with respect
-            // to the next finer level
-            if (m_hasFiner)
-            {
-                a_finerFluxRegister.incrementCoarse(flux[idir],a_dt,dit(),
-                    UInterval,
-                    UInterval,idir);
-            }
-
-            // Increment fine flux registers between this level and the next
-            // coarser level - this level is the next finer level with respect
-            // to the next coarser level
-            if (m_hasCoarser)
-            {
-                a_coarserFluxRegister.incrementFine(flux[idir],a_dt,dit(),
-                    UInterval,
-                    UInterval,idir);
-            }
-        }
-
-        CH_STOP(timeReflux);
+      MayDay::Error( "LinElastLevelGodunov::step: alpha < 0.0");
     }
 
-    CH_START(timeConclude);
-
+    // Current time after new coarse time
+    if (alpha > 1.0)
     {
-        CH_TIME("conclude::copyU");
-        // Now that we have completed the updates of all the patches, we copy the
-        // contents of temporary storage, m_U, into the permanent storage, a_U.
-        for (DataIterator dit = m_U.dataIterator(); dit.ok(); ++dit)
-        {
-            a_U[dit()].copy(m_U[dit()]);
-        }
-        for (DataIterator dit = m_B.dataIterator(); dit.ok(); ++dit)
-        {
-            a_B[dit()].copy(m_B[dit()]);
-        }
+      MayDay::Error( "LinElastLevelGodunov::step: alpha > 1.0");
     }
 
-    // Find the minimum of dt's over this level
-    Real local_dtNew = m_dx / maxWaveSpeed;
-    Real dtNew;
-
+    // Interpolate ghost cells from next coarser level using both space
+    // and time interpolation
+    m_patcher.fillInterp(m_U,
+        a_UCoarseOld,
+        a_UCoarseNew,
+        alpha,
+        0,0,m_numCons);
+    for(int idim = 0; idim<CH_SPACEDIM;idim++)
     {
-        CH_TIME("conclude::getDt");
+      for(int ix = 2*idim;ix<2*(idim+1);ix++)
+      {
+        if( (*a_BCoarseOld[ix]).boxLayout().size() != 0 &&
+            (*a_BCoarseNew[ix]).boxLayout().size() != 0)
+          (*m_bndPatcher[ix]).fillInterp((*m_B[ix]),
+              *a_BCoarseOld[ix],
+              *a_BCoarseNew[ix],
+              alpha,
+              0,0,m_numBdryVars[ix]);
+      }
+    }
+  }
+
+  // Potentially used in boundary conditions
+  m_patchGodunov.setCurrentTime(a_time);
+
+  // Dummy source used if source term passed in is empty
+  FArrayBox zeroSource;
+
+  // Use to restrict maximum wave speed away from zero
+  Real maxWaveSpeed = 1.0e-12;
+
+  CH_STOP(timeSetup);
+
+  // Beginning of loop through patches/grids.
+  for (DataIterator dit = m_grids.dataIterator(); dit.ok(); ++dit)
+  {
+    CH_START(timeUpdate);
+
+    // The current box
+    Box curBox = m_grids.get(dit());
+
+    // The current grid of conserved variables
+    FArrayBox& curU = m_U[dit()];
+
+    // The current source terms if they exist
+    const FArrayBox* source = &zeroSource;
+    if (a_S.isDefined())
+    {
+      source = &a_S[dit()];
+    }
+
+    // The fluxes computed for this grid - used for refluxing and returning
+    // other face centered quantities
+    FluxBox flux;
+
+    // Set the current box for the patch integrator
+    m_patchGodunov.setCurrentBox(curBox);
+
+    Real maxWaveSpeedGrid;
+
+    //JK Push the current boundary data to m_patchGodunov
+    for(int idim = 0;idim < CH_SPACEDIM;idim++)
+    {
+      for(int ix = 2*idim;ix < 2*idim+2;ix++)
+      {
+        if((*a_relateUB[ix])[dit()].hasBdryData())
+        {
+          FArrayBox& curB = (*m_B[ix])[(*a_relateUB[ix])[dit()].getBdryIndex()];
+          ((LEPhysIBC*)m_patchGodunov.getGodunovPhysicsPtr()->getPhysIBC())->setBdryData(&curB,ix);
+        }
+      }
+    }
+
+    // Update the current grid's conserved variables, return the final
+    // fluxes used for this, and the maximum wave speed for this grid
+    m_patchGodunov.updateState(curU,
+        flux,
+        maxWaveSpeedGrid,
+        *source,
+        a_dt,
+        curBox);
+
+    // Clamp away from zero
+    maxWaveSpeed = Max(maxWaveSpeed,maxWaveSpeedGrid);
+
+    CH_STOP(timeUpdate);
+
+    CH_START(timeReflux);
+
+    // Do flux register updates
+    for (int idir = 0; idir < SpaceDim; idir++)
+    {
+      // Increment coarse flux register between this level and the next
+      // finer level - this level is the next coarser level with respect
+      // to the next finer level
+      if (m_hasFiner)
+      {
+        a_finerFluxRegister.incrementCoarse(flux[idir],a_dt,dit(),
+            UInterval,
+            UInterval,idir);
+      }
+
+      // Increment fine flux registers between this level and the next
+      // coarser level - this level is the next finer level with respect
+      // to the next coarser level
+      if (m_hasCoarser)
+      {
+        a_coarserFluxRegister.incrementFine(flux[idir],a_dt,dit(),
+            UInterval,
+            UInterval,idir);
+      }
+    }
+
+    CH_STOP(timeReflux);
+  }
+
+  CH_START(timeConclude);
+
+  {
+    CH_TIME("conclude::copyU");
+    // Now that we have completed the updates of all the patches, we copy the
+    // contents of temporary storage, m_U, into the permanent storage, a_U.
+    for (DataIterator dit = m_U.dataIterator(); dit.ok(); ++dit)
+    {
+      a_U[dit()].copy(m_U[dit()]);
+    }
+    for(int idim = 0;idim < CH_SPACEDIM;idim++)
+    {
+      for(int ix = 2*idim;ix < 2*idim+2;ix++)
+      {
+        for (DataIterator dit = (*m_B[ix]).dataIterator(); dit.ok(); ++dit)
+        {
+          (*a_B[ix])[dit()].copy((*m_B[ix])[dit()]);
+        }
+      }
+    }
+  }
+
+  // Find the minimum of dt's over this level
+  Real local_dtNew = m_dx / maxWaveSpeed;
+  Real dtNew;
+
+  {
+    CH_TIME("conclude::getDt");
 #ifdef CH_MPI
-        int result = MPI_Allreduce(&local_dtNew, &dtNew, 1, MPI_CH_REAL,
-            MPI_MIN, Chombo_MPI::comm);
-        if (result != MPI_SUCCESS)
-        {
-            MayDay::Error("LinElastLevelGodunov::step: MPI communcation error");
-        }
-#else
-        dtNew = local_dtNew;
-#endif
+    int result = MPI_Allreduce(&local_dtNew, &dtNew, 1, MPI_CH_REAL,
+        MPI_MIN, Chombo_MPI::comm);
+    if (result != MPI_SUCCESS)
+    {
+      MayDay::Error("LinElastLevelGodunov::step: MPI communcation error");
     }
+#else
+    dtNew = local_dtNew;
+#endif
+  }
 
-    CH_STOP(timeConclude);
+  CH_STOP(timeConclude);
 
-    // Return the maximum stable time step
-    return dtNew;
+  // Return the maximum stable time step
+  return dtNew;
 }
 
 // To be added...
@@ -408,120 +453,120 @@ void LinElastLevelGodunov::computeWHalf(LayoutData<FluxBox>&        a_WHalf,
     const Real&                 a_time,
     const Real&                 a_dt)
 {
-    CH_TIME("LinElastLevelGodunov::computeWHalf");
+  CH_TIME("LinElastLevelGodunov::computeWHalf");
 
-    CH_assert(false);
+  CH_assert(false);
 
-    // Make sure everything is defined
-    CH_assert(m_isDefined);
+  // Make sure everything is defined
+  CH_assert(m_isDefined);
 
-    // Setup an interval corresponding to the conserved variables
-    Interval UInterval(0,m_numCons-1);
+  // Setup an interval corresponding to the conserved variables
+  Interval UInterval(0,m_numCons-1);
 
-    // Create temporary storage with a layer of "m_numGhost" ghost cells
-    LevelData<FArrayBox> U(m_grids,m_numCons,m_numGhost*IntVect::Unit);
+  // Create temporary storage with a layer of "m_numGhost" ghost cells
+  LevelData<FArrayBox> U(m_grids,m_numCons,m_numGhost*IntVect::Unit);
 
-    for (DataIterator dit = U.dataIterator(); dit.ok(); ++dit)
+  for (DataIterator dit = U.dataIterator(); dit.ok(); ++dit)
+  {
+    U[dit()].setVal(0.0);
+  }
+
+  // Copy the current conserved variables into the temporary storage
+  a_U.copyTo(UInterval,U,UInterval);
+
+  // Fill U's ghost cells using fillInterp
+  if (m_hasCoarser)
+  {
+    // Fraction "a_time" falls between the old and the new coarse times
+    Real alpha = (a_time - a_TCoarseOld) / (a_TCoarseNew - a_TCoarseOld);
+
+    // Truncate the fraction to the range [0,1] to remove floating-point
+    // subtraction roundoff effects
+    Real eps = 0.04 * a_dt / m_refineCoarse;
+
+    if (Abs(alpha) < eps)
     {
-        U[dit()].setVal(0.0);
+      alpha = 0.0;
     }
 
-    // Copy the current conserved variables into the temporary storage
-    a_U.copyTo(UInterval,U,UInterval);
-
-    // Fill U's ghost cells using fillInterp
-    if (m_hasCoarser)
+    if (Abs(1.0-alpha) < eps)
     {
-        // Fraction "a_time" falls between the old and the new coarse times
-        Real alpha = (a_time - a_TCoarseOld) / (a_TCoarseNew - a_TCoarseOld);
-
-        // Truncate the fraction to the range [0,1] to remove floating-point
-        // subtraction roundoff effects
-        Real eps = 0.04 * a_dt / m_refineCoarse;
-
-        if (Abs(alpha) < eps)
-        {
-            alpha = 0.0;
-        }
-
-        if (Abs(1.0-alpha) < eps)
-        {
-            alpha = 1.0;
-        }
-
-        // Current time before old coarse time
-        if (alpha < 0.0)
-        {
-            MayDay::Error( "LinElastLevelGodunov::step: alpha < 0.0");
-        }
-
-        // Current time after new coarse time
-        if (alpha > 1.0)
-        {
-            MayDay::Error( "LinElastLevelGodunov::step: alpha > 1.0");
-        }
-
-        // Interpolate ghost cells from next coarser level using both space
-        // and time interpolation
-        m_patcher.fillInterp(U,
-            a_UCoarseOld,
-            a_UCoarseNew,
-            alpha,
-            0,0,m_numCons);
-        //JK m_bndPatcher.fillInterp(B,
-        //JK     a_BCoarseOld,
-        //JK     a_BCoarseNew,
-        //JK     alpha,
-        //JK     0,0,m_numCons);
+      alpha = 1.0;
     }
 
-    // Exchange all the data between grids at this level
-    // I don't think this is necessary
-    //U.exchange(UInterval);
-
-    // Now we copy the contents of temporary storage, U, into the permanent
-    // storage, a_U, to get ghost cells set for call "computeUpdate".
-    for (DataIterator dit = U.dataIterator(); dit.ok(); ++dit)
+    // Current time before old coarse time
+    if (alpha < 0.0)
     {
-        a_U[dit()].copy(U[dit()]);
+      MayDay::Error( "LinElastLevelGodunov::step: alpha < 0.0");
     }
 
-    // Potentially used in boundary conditions
-    m_patchGodunov.setCurrentTime(a_time);
-
-    // Dummy source used if source term passed in is empty
-    FArrayBox zeroSource;
-    // Beginning of loop through patches/grids.
-    for (DataIterator dit = m_grids.dataIterator(); dit.ok(); ++dit)
+    // Current time after new coarse time
+    if (alpha > 1.0)
     {
-        // The current box
-        Box curBox = m_grids.get(dit());
-
-        // The current grid of conserved variables
-        const FArrayBox& curU = U[dit()];
-
-        // The current grid of primitive variables extrapolated to faces and
-        // half a time step
-        FluxBox& curWHalf = a_WHalf[dit()];
-
-        // The current source terms if they exist
-        const FArrayBox* source = &zeroSource;
-        if (a_S.isDefined())
-        {
-            source = &a_S[dit()];
-        }
-
-        // Set the current box for the patch integrator
-        m_patchGodunov.setCurrentBox(curBox);
-
-        // Update the current grid's conserved variables, return the final
-        // fluxes used for this, and the maximum wave speed for this grid
-        m_patchGodunov.computeWHalf(curWHalf,
-            curU,
-            *source,
-            a_dt,
-            curBox);
+      MayDay::Error( "LinElastLevelGodunov::step: alpha > 1.0");
     }
+
+    // Interpolate ghost cells from next coarser level using both space
+    // and time interpolation
+    m_patcher.fillInterp(U,
+        a_UCoarseOld,
+        a_UCoarseNew,
+        alpha,
+        0,0,m_numCons);
+    //JK m_bndPatcher.fillInterp(B,
+    //JK     a_BCoarseOld,
+    //JK     a_BCoarseNew,
+    //JK     alpha,
+    //JK     0,0,m_numCons);
+  }
+
+  // Exchange all the data between grids at this level
+  // I don't think this is necessary
+  //U.exchange(UInterval);
+
+  // Now we copy the contents of temporary storage, U, into the permanent
+  // storage, a_U, to get ghost cells set for call "computeUpdate".
+  for (DataIterator dit = U.dataIterator(); dit.ok(); ++dit)
+  {
+    a_U[dit()].copy(U[dit()]);
+  }
+
+  // Potentially used in boundary conditions
+  m_patchGodunov.setCurrentTime(a_time);
+
+  // Dummy source used if source term passed in is empty
+  FArrayBox zeroSource;
+  // Beginning of loop through patches/grids.
+  for (DataIterator dit = m_grids.dataIterator(); dit.ok(); ++dit)
+  {
+    // The current box
+    Box curBox = m_grids.get(dit());
+
+    // The current grid of conserved variables
+    const FArrayBox& curU = U[dit()];
+
+    // The current grid of primitive variables extrapolated to faces and
+    // half a time step
+    FluxBox& curWHalf = a_WHalf[dit()];
+
+    // The current source terms if they exist
+    const FArrayBox* source = &zeroSource;
+    if (a_S.isDefined())
+    {
+      source = &a_S[dit()];
+    }
+
+    // Set the current box for the patch integrator
+    m_patchGodunov.setCurrentBox(curBox);
+
+    // Update the current grid's conserved variables, return the final
+    // fluxes used for this, and the maximum wave speed for this grid
+    m_patchGodunov.computeWHalf(curWHalf,
+        curU,
+        *source,
+        a_dt,
+        curBox);
+  }
 }
 
 // To be added...
@@ -533,206 +578,206 @@ Real LinElastLevelGodunov::computeUpdate(LevelData<FArrayBox>&       a_dU,
     const Real&                 a_time,
     const Real&                 a_dt)
 {
-    CH_TIME("LinElastLevelGodunov::computeUpdate");
+  CH_TIME("LinElastLevelGodunov::computeUpdate");
 
-    // Make sure everything is defined
-    CH_assert(m_isDefined);
+  // Make sure everything is defined
+  CH_assert(m_isDefined);
 
-    // Clear flux registers with next finer level
-    if (m_hasFiner)
+  // Clear flux registers with next finer level
+  if (m_hasFiner)
+  {
+    a_finerFluxRegister.setToZero();
+  }
+
+  // Setup an interval corresponding to the conserved variables
+  Interval UInterval(0,m_numCons-1);
+
+  // Potentially used in boundary conditions
+  m_patchGodunov.setCurrentTime(a_time);
+
+  // Use to restrict maximum wave speed away from zero
+  Real maxWaveSpeed = 1.0e-12;
+
+  // Beginning of loop through patches/grids.
+  for (DataIterator dit = m_grids.dataIterator(); dit.ok(); ++dit)
+  {
+    // The current box
+    Box curBox = m_grids.get(dit());
+
+    // The current grid of conserved variables changes
+    FArrayBox& curDU = a_dU[dit()];
+
+    // The fluxes computed for this grid - used for refluxing and returning
+    // other face centered quantities
+    FluxBox flux;
+    flux.resize(curBox,m_numFluxes);
+    flux.setVal(0.0);
+
+    // The current grid of conserved variables
+    const FArrayBox& curU = a_U[dit()];
+
+    // The current grid of primitive variables extrapolated to faces and a
+    // half time step
+    const FluxBox& curWHalf = a_WHalf[dit()];
+
+    // Set the current box for the patch integrator
+    m_patchGodunov.setCurrentBox(curBox);
+
+    Real maxWaveSpeedGrid;
+
+    // Update the current grid's conserved variables, return the final
+    // fluxes used for this, and the maximum wave speed for this grid
+    m_patchGodunov.computeUpdate(curDU,
+        flux,
+        curU,
+        curWHalf,
+        a_dt,
+        curBox);
+
+    // Get maximum wave speed for this grid
+    maxWaveSpeedGrid = m_patchGodunov.getGodunovPhysicsPtr()->getMaxWaveSpeed(curU, curBox);
+
+    // Clamp away from zero
+    maxWaveSpeed = Max(maxWaveSpeed,maxWaveSpeedGrid);
+
+    // Do flux register updates
+    for (int idir = 0; idir < SpaceDim; idir++)
     {
-        a_finerFluxRegister.setToZero();
+      // Increment coarse flux register between this level and the next
+      // finer level - this level is the next coarser level with respect
+      // to the next finer level
+      if (m_hasFiner)
+      {
+        a_finerFluxRegister.incrementCoarse(flux[idir],a_dt,dit(),
+            UInterval,
+            UInterval,idir);
+      }
+
+      // Increment fine flux registers between this level and the next
+      // coarser level - this level is the next finer level with respect
+      // to the next coarser level
+      if (m_hasCoarser)
+      {
+        a_coarserFluxRegister.incrementFine(flux[idir],a_dt,dit(),
+            UInterval,
+            UInterval,idir);
+      }
     }
+  }
 
-    // Setup an interval corresponding to the conserved variables
-    Interval UInterval(0,m_numCons-1);
-
-    // Potentially used in boundary conditions
-    m_patchGodunov.setCurrentTime(a_time);
-
-    // Use to restrict maximum wave speed away from zero
-    Real maxWaveSpeed = 1.0e-12;
-
-    // Beginning of loop through patches/grids.
-    for (DataIterator dit = m_grids.dataIterator(); dit.ok(); ++dit)
-    {
-        // The current box
-        Box curBox = m_grids.get(dit());
-
-        // The current grid of conserved variables changes
-        FArrayBox& curDU = a_dU[dit()];
-
-        // The fluxes computed for this grid - used for refluxing and returning
-        // other face centered quantities
-        FluxBox flux;
-        flux.resize(curBox,m_numFluxes);
-        flux.setVal(0.0);
-
-        // The current grid of conserved variables
-        const FArrayBox& curU = a_U[dit()];
-
-        // The current grid of primitive variables extrapolated to faces and a
-        // half time step
-        const FluxBox& curWHalf = a_WHalf[dit()];
-
-        // Set the current box for the patch integrator
-        m_patchGodunov.setCurrentBox(curBox);
-
-        Real maxWaveSpeedGrid;
-
-        // Update the current grid's conserved variables, return the final
-        // fluxes used for this, and the maximum wave speed for this grid
-        m_patchGodunov.computeUpdate(curDU,
-            flux,
-            curU,
-            curWHalf,
-            a_dt,
-            curBox);
-
-        // Get maximum wave speed for this grid
-        maxWaveSpeedGrid = m_patchGodunov.getGodunovPhysicsPtr()->getMaxWaveSpeed(curU, curBox);
-
-        // Clamp away from zero
-        maxWaveSpeed = Max(maxWaveSpeed,maxWaveSpeedGrid);
-
-        // Do flux register updates
-        for (int idir = 0; idir < SpaceDim; idir++)
-        {
-            // Increment coarse flux register between this level and the next
-            // finer level - this level is the next coarser level with respect
-            // to the next finer level
-            if (m_hasFiner)
-            {
-                a_finerFluxRegister.incrementCoarse(flux[idir],a_dt,dit(),
-                    UInterval,
-                    UInterval,idir);
-            }
-
-            // Increment fine flux registers between this level and the next
-            // coarser level - this level is the next finer level with respect
-            // to the next coarser level
-            if (m_hasCoarser)
-            {
-                a_coarserFluxRegister.incrementFine(flux[idir],a_dt,dit(),
-                    UInterval,
-                    UInterval,idir);
-            }
-        }
-    }
-
-    // Find the minimum of dt's over this level
-    Real local_dtNew = m_dx / maxWaveSpeed;
-    Real dtNew;
+  // Find the minimum of dt's over this level
+  Real local_dtNew = m_dx / maxWaveSpeed;
+  Real dtNew;
 
 #ifdef CH_MPI
-    int result = MPI_Allreduce(&local_dtNew, &dtNew, 1, MPI_CH_REAL,
-        MPI_MIN, Chombo_MPI::comm);
-    if (result != MPI_SUCCESS)
-    {
-        MayDay::Error("LinElastLevelGodunov::step: MPI communcation error");
-    }
+  int result = MPI_Allreduce(&local_dtNew, &dtNew, 1, MPI_CH_REAL,
+      MPI_MIN, Chombo_MPI::comm);
+  if (result != MPI_SUCCESS)
+  {
+    MayDay::Error("LinElastLevelGodunov::step: MPI communcation error");
+  }
 #else
-    dtNew = local_dtNew;
+  dtNew = local_dtNew;
 #endif
 
-    // Return the maximum stable time step
-    return dtNew;
+  // Return the maximum stable time step
+  return dtNew;
 }
 
 // Compute the plastic correction to the solution
 void LinElastLevelGodunov::plasticUpdate(LevelData<FArrayBox>&  a_U,
     const Real& a_dt)
 {
-    CH_TIME("LinElastLevelGodunov::plasticUpdate");
+  CH_TIME("LinElastLevelGodunov::plasticUpdate");
 
-    // pout() << "LinElastLevelGodunov::plasticUpdate" << endl;
+  // pout() << "LinElastLevelGodunov::plasticUpdate" << endl;
 
-    // make sure things are defined
-    CH_assert(m_isDefined);
+  // make sure things are defined
+  CH_assert(m_isDefined);
 
-    // Beginning of loop through patches/grids.
-    for (DataIterator dit = m_grids.dataIterator(); dit.ok(); ++dit)
-    {
-        // The current box
-        const Box curBox = m_grids.get(dit());
+  // Beginning of loop through patches/grids.
+  for (DataIterator dit = m_grids.dataIterator(); dit.ok(); ++dit)
+  {
+    // The current box
+    const Box curBox = m_grids.get(dit());
 
-        // The current grid of conserved variables
-        FArrayBox& curU = a_U[dit()];
+    // The current grid of conserved variables
+    FArrayBox& curU = a_U[dit()];
 
-        // Implicitly update the values stress to take into account plasticity
-        m_patchGodunov.plasticUpdate(curU,
-            a_dt,
-            curBox);
-    }
+    // Implicitly update the values stress to take into account plasticity
+    m_patchGodunov.plasticUpdate(curU,
+        a_dt,
+        curBox);
+  }
 }
 
 // Find the maximum wave speed on the current level
 Real LinElastLevelGodunov::getMaxWaveSpeed(const LevelData<FArrayBox>& a_U)
 {
-    CH_TIME("LinElastLevelGodunov::getMaxWaveSpeed");
+  CH_TIME("LinElastLevelGodunov::getMaxWaveSpeed");
 
-    const DisjointBoxLayout& disjointBoxLayout = a_U.disjointBoxLayout();
-    DataIterator dit = disjointBoxLayout.dataIterator();
+  const DisjointBoxLayout& disjointBoxLayout = a_U.disjointBoxLayout();
+  DataIterator dit = disjointBoxLayout.dataIterator();
 
-    // Initial maximum wave speed
-    Real speed = 0.0;
+  // Initial maximum wave speed
+  Real speed = 0.0;
 
-    // This computation doesn't need involve a time but the time being set
-    // is checked by LinElastPatchGodunov::getMaxWaveSpeed so we have to set it
-    // to something...
-    m_patchGodunov.setCurrentTime(0.0);
+  // This computation doesn't need involve a time but the time being set
+  // is checked by LinElastPatchGodunov::getMaxWaveSpeed so we have to set it
+  // to something...
+  m_patchGodunov.setCurrentTime(0.0);
 
-    // Loop over all grids to get the maximum wave speed
-    for (dit.begin(); dit.ok(); ++dit)
+  // Loop over all grids to get the maximum wave speed
+  for (dit.begin(); dit.ok(); ++dit)
+  {
+    const Box& curBox = disjointBoxLayout.get(dit());
+
+    // Set the current box and get the maximum wave speed on the current grid
+    m_patchGodunov.setCurrentBox(curBox);
+
+    // Get maximum wave speed for this grid
+    Real speedOverBox = m_patchGodunov.getGodunovPhysicsPtr()->getMaxWaveSpeed(a_U[dit()], curBox);
+
+    // Compute a running maximum
+    speed = Max(speed,speedOverBox);
+  }
+
+  // Gather maximum wave speeds and broadcast the maximum over these
+  Vector<Real> allSpeeds;
+
+  gather(allSpeeds,speed,uniqueProc(SerialTask::compute));
+
+  if (procID() == uniqueProc(SerialTask::compute))
+  {
+    speed = allSpeeds[0];
+    for (int i = 1; i < allSpeeds.size (); ++i)
     {
-        const Box& curBox = disjointBoxLayout.get(dit());
-
-        // Set the current box and get the maximum wave speed on the current grid
-        m_patchGodunov.setCurrentBox(curBox);
-
-        // Get maximum wave speed for this grid
-        Real speedOverBox = m_patchGodunov.getGodunovPhysicsPtr()->getMaxWaveSpeed(a_U[dit()], curBox);
-
-        // Compute a running maximum
-        speed = Max(speed,speedOverBox);
+      speed = Max(speed,allSpeeds[i]);
     }
+  }
 
-    // Gather maximum wave speeds and broadcast the maximum over these
-    Vector<Real> allSpeeds;
+  broadcast(speed,uniqueProc(SerialTask::compute));
 
-    gather(allSpeeds,speed,uniqueProc(SerialTask::compute));
-
-    if (procID() == uniqueProc(SerialTask::compute))
-    {
-        speed = allSpeeds[0];
-        for (int i = 1; i < allSpeeds.size (); ++i)
-        {
-            speed = Max(speed,allSpeeds[i]);
-        }
-    }
-
-    broadcast(speed,uniqueProc(SerialTask::compute));
-
-    // Return the maximum wave speed
-    return speed;
+  // Return the maximum wave speed
+  return speed;
 }
 
 void LinElastLevelGodunov::highOrderLimiter(bool a_highOrderLimiter)
 {
-    CH_assert(m_isDefined);
-    m_patchGodunov.highOrderLimiter(a_highOrderLimiter);
+  CH_assert(m_isDefined);
+  m_patchGodunov.highOrderLimiter(a_highOrderLimiter);
 }
 
-GodunovPhysics*
+  GodunovPhysics*
 LinElastLevelGodunov::getGodunovPhysicsPtr()
 {
-    return  m_patchGodunov.getGodunovPhysicsPtr();
+  return  m_patchGodunov.getGodunovPhysicsPtr();
 }
 
 const GodunovPhysics*
 LinElastLevelGodunov::getGodunovPhysicsPtrConst() const
 {
-    return  ((LinElastPatchGodunov&)m_patchGodunov).getGodunovPhysicsPtr();
+  return  ((LinElastPatchGodunov&)m_patchGodunov).getGodunovPhysicsPtr();
 }
 
 

@@ -67,17 +67,12 @@ public:
     /// Set up initial boundary data
     /**
     */
-    virtual void initializeBdry(LevelData<FArrayBox>& a_U);
+    virtual void initializeBdry(LevelData<FArrayBox>& a_U,int a_side);
 
     /// Set up initial boundary data
     /**
     */
     virtual bool hasBdryData();
-
-    /// Store pointer to boundary data
-    /**
-    */
-    virtual void setBdryData(FArrayBox* a_bdryData);
 
     /// Set boundary primitive values.
     /**
@@ -129,26 +124,18 @@ public:
         return tagCellsInit(markFAB,threshold);
     }
 
-    virtual int numBdryVars()
-    {
-        return m_numBdryVars;
-    }
-
     /// Set R0
     /**
      * Used in tagCells to refined level based on R0
     */
     virtual void setR0(const Real& a_R0);
 
-    virtual Vector<string> bdryNames();
+    virtual Vector<string> bdryNames(int a_side);
 
 protected:
     bool m_isFortranCommonSet;
     Real m_psi;
     Vector<int> m_boundaryType;
-
-    bool m_tmpBdryDataSet;
-    FArrayBox* m_tmpBdryData;
 
     Real m_R0;
     Real m_x0;
