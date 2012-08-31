@@ -35,7 +35,6 @@
 #include "GodunovUtilitiesF_F.H"
 
 // Constructor
-//JK: NO BOUNDARY FIX
 AMRLevelLinElast::AMRLevelLinElast()
 {
   if (s_verbosity >= 3)
@@ -45,10 +44,16 @@ AMRLevelLinElast::AMRLevelLinElast()
 
   m_linElastPhysics = NULL;
   m_paramsDefined = false;
+  m_bdryFaceBox.resize(2*CH_SPACEDIM);
+  m_bdryGrids.resize(2*CH_SPACEDIM);
+  m_BNew.resize(2*CH_SPACEDIM,NULL);
+  m_BOld.resize(2*CH_SPACEDIM,NULL);
+  m_relateUB.resize(2*CH_SPACEDIM,NULL);
+  m_bdryCoarseAverage.resize(2*CH_SPACEDIM,NULL);
+  m_bdryFineInterp.resize(2*CH_SPACEDIM,NULL);
 }
 
 // Destructor
-//JK: NO BOUNDARY FIX
 AMRLevelLinElast::~AMRLevelLinElast()
 {
   if (s_verbosity >= 3)
@@ -176,7 +181,6 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
 }
 
 // This instance should never get called - historical
-//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::define(AMRLevel*  a_coarserLevelPtr,
     const Box& a_problemDomain,
     int        a_level,
@@ -188,7 +192,6 @@ void AMRLevelLinElast::define(AMRLevel*  a_coarserLevelPtr,
 }
 
 // Define new AMR level
-//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     const ProblemDomain& a_problemDomain,
     int                  a_level,
@@ -243,7 +246,6 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
     m_bdryNames.push_back(((LEPhysIBC*) m_linElastPhysics->getPhysIBC())->bdryNames(ix));
   }
 
-  m_bdryFaceBox.resize(2*CH_SPACEDIM);
   // Setup the boundary Face box
   for(int idim = 0;idim < CH_SPACEDIM;idim++)
   {
@@ -369,7 +371,6 @@ void AMRLevelLinElast::define(AMRLevel*            a_coarserLevelPtr,
 }
 
 // Advance by one timestep
-//JK: NO BOUNDARY FIX
 Real AMRLevelLinElast::advance()
 {
   CH_assert(allDefined());
@@ -434,8 +435,8 @@ Real AMRLevelLinElast::advance()
     coarserDataOld = &coarserPtr->m_UOld;
     coarserDataNew = &coarserPtr->m_UNew;
 
-    coarserBdryOld = coarserPtr->m_BOld; //TODO: BOUNDARY
-    coarserBdryNew = coarserPtr->m_BNew; //TODO: BOUNDARY
+    coarserBdryOld = coarserPtr->m_BOld;
+    coarserBdryNew = coarserPtr->m_BNew;
 
     tCoarserNew = coarserPtr->m_time;
     tCoarserOld = tCoarserNew - coarserPtr->m_dt;
@@ -573,7 +574,6 @@ void AMRLevelLinElast::postTimeStep()
 }
 
 // Create tags for regridding
-//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
 {
   CH_assert(allDefined());
@@ -703,7 +703,6 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
 }
 
 // Create tags at initialization
-//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::tagCellsInit(IntVectSet& a_tags)
 {
   CH_assert(allDefined());
@@ -766,7 +765,6 @@ void AMRLevelLinElast::tagCellsInit(IntVectSet& a_tags)
 }
 
 // Set up data on this level after regridding
-//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
 {
   CH_assert(allDefined());
@@ -817,7 +815,7 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
         vectBndPIDLo.push_back(constGrids.procID(lit()));
         if (s_verbosity >= 4)
         {
-          pout() << "boundary grid: " << tmpBndBoxLo << " for: " << constGrids[lit()] << endl;
+          pout() << "boundary grid["<< 2*idim<<"]: " << tmpBndBoxLo << " for: " << constGrids[lit()] << endl;
         }
       }
 
@@ -828,7 +826,7 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
         vectBndPIDHi.push_back(constGrids.procID(lit()));
         if (s_verbosity >= 4)
         {
-          pout() << "boundary grid: " << tmpBndBoxHi << " for: " << constGrids[lit()] << endl;
+          pout() << "boundary grid["<< 2*idim+1<<"]: " << tmpBndBoxHi << " for: " << constGrids[lit()] << endl;
         }
       }
     }
@@ -926,7 +924,6 @@ void AMRLevelLinElast::initialGrid(const Vector<Box>& a_newGrids)
   /////////
   /////////
   /////////
-  m_bdryGrids.resize(2*CH_SPACEDIM);
   for(int idim = 0;idim < CH_SPACEDIM;idim++)
   {
     // Indicate/guarantee that the indexing below is only for reading
@@ -993,9 +990,6 @@ void AMRLevelLinElast::initialGrid(const Vector<Box>& a_newGrids)
   m_UNew.define(m_grids,m_numStates,ivGhost);
   m_UOld.define(m_grids,m_numStates,ivGhost);
 
-  m_BNew.resize(2*CH_SPACEDIM,NULL);
-  m_BOld.resize(2*CH_SPACEDIM,NULL);
-  m_relateUB.resize(2*CH_SPACEDIM,NULL);
 
   for(int idim = 0;idim < CH_SPACEDIM;idim++)
   {
@@ -1038,7 +1032,6 @@ void AMRLevelLinElast::initialData()
 }
 
 // Things to do after initialization
-//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::postInitialize()
 {
   CH_assert(allDefined());
@@ -1065,7 +1058,6 @@ void AMRLevelLinElast::postInitialize()
 #ifdef CH_USE_HDF5
 
 // Write checkpoint header
-//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::writeCheckpointHeader(HDF5Handle& a_handle) const
 {
   CH_assert(allDefined());
@@ -1087,12 +1079,17 @@ void AMRLevelLinElast::writeCheckpointHeader(HDF5Handle& a_handle) const
     header.m_string[compStr] = m_stateNames[comp];
   }
 
-  header.m_int["num_boundary_variables"] = m_numBdryVars[2];
-
-  for (int comp = 0; comp < m_numBdryVars[2]; ++comp)
+  header.m_int["num_boundary_data"] = 2*CH_SPACEDIM;
+  
+  for(int ix = 0; ix < 2*CH_SPACEDIM; ix++)
   {
-    sprintf(compStr,"boundary_variable_%d",comp);
-    header.m_string[compStr] = m_bdryNames[2][comp];
+    sprintf(compStr,"num_boundary_%d_variables",ix);
+    header.m_int[compStr] = m_numBdryVars[ix];
+    for (int comp = 0; comp < m_numBdryVars[ix]; ++comp)
+    {
+      sprintf(compStr,"boundary_%d_variable_%d",ix,comp);
+      header.m_string[compStr] = m_bdryNames[ix][comp];
+    }
   }
 
   // Write the header
@@ -1105,7 +1102,6 @@ void AMRLevelLinElast::writeCheckpointHeader(HDF5Handle& a_handle) const
 }
 
 // Write checkpoint data for this level
-//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::writeCheckpointLevel(HDF5Handle& a_handle) const
 {
   CH_assert(allDefined());
@@ -1173,12 +1169,18 @@ void AMRLevelLinElast::writeCheckpointLevel(HDF5Handle& a_handle) const
   write(a_handle,m_UNew,"data");
 
   // Write the data for this level
-  if((*m_BNew[2]).boxLayout().numCells() > 0) //TODO: BOUNDARY
-    write(a_handle,*m_BNew[2],"boundary_data"); //TODO: BOUNDARY
+  for(int ix = 0; ix < 2*CH_SPACEDIM; ix++)
+  {
+    char tmpName[60];
+    sprintf(tmpName,"boundary_%d_data",ix);
+    pout() << "START: "<<  tmpName<<endl;
+    if((*m_BNew[ix]).boxLayout().numCells() > 0)
+      write(a_handle,*m_BNew[ix],tmpName);
+    pout() << "DONE: "<<  tmpName<<endl;
+  }
 }
 
 // Read checkpoint header
-//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::readCheckpointHeader(HDF5Handle& a_handle)
 {
   if (s_verbosity >= 3)
@@ -1228,38 +1230,57 @@ void AMRLevelLinElast::readCheckpointHeader(HDF5Handle& a_handle)
 
   //
   // Get the number of components
-  if (header.m_int.find("num_boundary_variables") == header.m_int.end())
+  if (header.m_int.find("num_boundary_data") == header.m_int.end())
   {
-    MayDay::Error("AMRLevelLinElast::readCheckpointHeader: checkpoint file does not have num_boundary_variables");
+    MayDay::Error("AMRLevelLinElast::readCheckpointHeader: checkpoint file does not have num_boundary_data");
   }
 
-  int numBdryVars = header.m_int["num_boundary_variables"];
-  if (numBdryVars != m_numBdryVars[2])
+  int numBdryData = header.m_int["num_boundary_data"];
+  if (numBdryData != 2*CH_SPACEDIM)
   {
-    MayDay::Error("AMRLevelLinElast::readCheckpointHeader: num_boundary_variables in checkpoint file does not match solver");
+    MayDay::Error("AMRLevelLinElast::readCheckpointHeader: num_boundary_data in checkpoint file does not match solver");
   }
 
-  // Get the component names
-  std::string bdryStateName;
-  // char compStr[60];
-  for (int comp = 0; comp < m_numBdryVars[2]; ++comp)
+  //
+  // Get the number of components
+  for(int ix = 0; ix < 2*CH_SPACEDIM; ix++)
   {
-    sprintf(compStr,"boundary_variable_%d",comp);
-    if (header.m_string.find(compStr) == header.m_string.end())
+    sprintf(compStr,"num_boundary_%d_variables",ix);
+    if (header.m_int.find(compStr) == header.m_int.end())
     {
-      MayDay::Error("AMRLevelLinElast::readCheckpointHeader: checkpoint file does not have enough component names");
+      sprintf(compStr,"AMRLevelLinElast::readCheckpointHeader: checkpoint file does not have %s",compStr);
+      MayDay::Error(compStr);
     }
 
-    bdryStateName = header.m_string[compStr];
-    if (bdryStateName != m_bdryNames[2][comp])
+    int numBdryVars = header.m_int[compStr];
+    if (numBdryVars != m_numBdryVars[ix])
     {
-      MayDay::Error("AMRLevelLinElast::readCheckpointHeader: boundary_variable_name in checkpoint does not match solver");
+      sprintf(compStr,"AMRLevelLinElast::readCheckpointHeader: %s in checkpoint file does not match solver",compStr);
+      MayDay::Error(compStr);
+    }
+
+    // Get the component names
+    std::string bdryStateName;
+    // char compStr[60];
+    for (int comp = 0; comp < m_numBdryVars[ix]; ++comp)
+    {
+      sprintf(compStr,"boundary_%d_variable_%d",ix,comp);
+      if (header.m_string.find(compStr) == header.m_string.end())
+      {
+        MayDay::Error("AMRLevelLinElast::readCheckpointHeader: checkpoint file does not have enough component names");
+      }
+
+      bdryStateName = header.m_string[compStr];
+      if (bdryStateName != m_bdryNames[ix][comp])
+      {
+        sprintf(compStr,"AMRLevelLinElast::readCheckpointHeader: %s in checkpoint does not match solver",compStr);
+        MayDay::Error(compStr);
+      }
     }
   }
 }
 
 // Read checkpoint data for this level
-//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::readCheckpointLevel(HDF5Handle& a_handle)
 {
   if (s_verbosity >= 3)
@@ -1465,7 +1486,7 @@ void AMRLevelLinElast::readCheckpointLevel(HDF5Handle& a_handle)
         vectBndPIDLo.push_back(constGrids.procID(lit()));
         if (s_verbosity >= 4)
         {
-          pout() << "boundary grid: " << tmpBndBoxLo << " for: " << constGrids[lit()] << endl;
+          pout() << "boundary grid["<< 2*idim<<"]: " << tmpBndBoxLo << " for: " << constGrids[lit()] << endl;
         }
       }
 
@@ -1476,7 +1497,7 @@ void AMRLevelLinElast::readCheckpointLevel(HDF5Handle& a_handle)
         vectBndPIDHi.push_back(constGrids.procID(lit()));
         if (s_verbosity >= 4)
         {
-          pout() << "boundary grid: " << tmpBndBoxHi << " for: " << constGrids[lit()] << endl;
+          pout() << "boundary grid["<< 2*idim+1<<"]: " << tmpBndBoxHi << " for: " << constGrids[lit()] << endl;
         }
       }
     }
@@ -1488,20 +1509,39 @@ void AMRLevelLinElast::readCheckpointLevel(HDF5Handle& a_handle)
     m_bdryGrids[2*idim+1] = tmpBndGridsHi;
   }
 
-  const int bdryDataStatus = read<FArrayBox>(a_handle,
-      *m_BNew[2], //TODO: BOUNDARY
-      "boundary_data",
-      m_bdryGrids[2]);
+  for(int idim = 0;idim < CH_SPACEDIM;idim++)
+  {
+    for(int ix = 2*idim; ix < 2*(idim+1); ix++)
+    {
 
-  if (bdryDataStatus != 0)
-  {
-    MayDay::Error("AMRLevelLinElast::readCheckpointLevel: file does not contain boundary data");
+      IntVect ivBGhost = m_numGhost*(IntVect::Unit-BASISV(idim));
+      m_BNew[ix] = new LevelData<FArrayBox>(m_bdryGrids[ix],m_numBdryVars[ix],ivBGhost);
+      m_BOld[ix] = new LevelData<FArrayBox>(m_bdryGrids[ix],m_numBdryVars[ix],ivBGhost);
+
+      char tmpName[60];
+      sprintf(tmpName,"boundary_%d_data",ix);
+
+      // only query the checkpoint file if we have data on this level!
+      if(m_bdryGrids[ix].size() != 0)
+      {
+        const int bdryDataStatus = read<FArrayBox>(a_handle,
+            *m_BNew[ix], //TODO: BOUNDARY
+            tmpName,
+            m_bdryGrids[ix]);
+
+        if (bdryDataStatus != 0)
+        {
+          sprintf(tmpName,"AMRLevelLinElast::readCheckpointLevel: file does not contain %s",tmpName);
+          MayDay::Error(tmpName);
+        }
+      }
+
+      // Define the data holder to relate the grid data to the boundary data
+      m_relateUB[ix] = new LayoutData<GridData>();
+      (*m_relateUB[ix]).define(m_grids);
+    }
   }
-  for(int ix = 0;ix < 2*CH_SPACEDIM;ix++)
-  {
-    (*m_BOld[ix]).define(m_bdryGrids[ix],m_numBdryVars[ix]);
-    (*m_relateUB[ix]).define(m_grids);
-  }
+
   setupRelateUB();
 
   // Set up data structures
@@ -1509,7 +1549,6 @@ void AMRLevelLinElast::readCheckpointLevel(HDF5Handle& a_handle)
 }
 
 // Write plotfile header
-//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::writePlotHeader(HDF5Handle& a_handle) const
 {
   CH_assert(allDefined());
@@ -1545,7 +1584,6 @@ void AMRLevelLinElast::writePlotHeader(HDF5Handle& a_handle) const
 }
 
 // Write plotfile data for this level
-//JK: NO BOUNDARY FIX
 void AMRLevelLinElast::writePlotLevel(HDF5Handle& a_handle) const
 {
   CH_assert(allDefined());
@@ -1686,7 +1724,7 @@ void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle, int ix)
   {
     pout() << "AMRLevelLinElast::writeThisBdryLevel" << endl;
   }
-  if((*m_BNew[ix]).boxLayout().numCells()>0) //TODO: BOUNDARY
+  if((*m_BNew[ix]).boxLayout().numCells()>0)
   {
 
     // Setup the level string
@@ -1715,10 +1753,10 @@ void AMRLevelLinElast::writeThisBdryLevel(HDF5Handle& a_handle, int ix)
     }
 
     // Write the data for this level
-    // write(a_handle,(*m_BNew[ix]).boxLayout()); //TODO: BOUNDARY
-    // write(a_handle,(*m_BNew[ix]),"data", IntVect::Unit); //TODO: BOUNDARY
-    write(a_handle,(*m_BNew[ix]).boxLayout()); //TODO: BOUNDARY
-    write(a_handle,(*m_BNew[ix]),"data", IntVect::Unit); //TODO: BOUNDARY
+    // write(a_handle,(*m_BNew[ix]).boxLayout());
+    // write(a_handle,(*m_BNew[ix]),"data", IntVect::Unit);
+    write(a_handle,(*m_BNew[ix]).boxLayout());
+    write(a_handle,(*m_BNew[ix]),"data", IntVect::Unit);
   }
 
   if (m_hasFiner)
@@ -1735,9 +1773,9 @@ void AMRLevelLinElast::writeStationLevel()
   }
 
   // First we do that fault stations
-  if((*m_BNew[2]).boxLayout().numCells()>0) //TODO: BOUNDARY
+  if((*m_BNew[2]).boxLayout().numCells()>0)
   {
-    for (DataIterator dit = (*m_BNew[2]).dataIterator(); dit.ok(); ++dit) //TODO: BOUNDARY
+    for (DataIterator dit = (*m_BNew[2]).dataIterator(); dit.ok(); ++dit)
     {
       for(int itor = 0; itor < m_ivFaultStations.size();itor++)
       {
@@ -1758,16 +1796,16 @@ void AMRLevelLinElast::writeStationLevel()
           {
             if(SpaceDim < 3)
             {
-              Real value = (*m_BNew[2])[dit()].get(tmpLoc,i_c)*(1-m_dxFaultStation[itor]) //TODO: BOUNDARY
-                +(*m_BNew[2])[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxFaultStation[itor]; //TODO: BOUNDARY
+              Real value = (*m_BNew[2])[dit()].get(tmpLoc,i_c)*(1-m_dxFaultStation[itor])
+                +(*m_BNew[2])[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxFaultStation[itor];
               fwrite(&value,sizeof(Real), 1, stationData );
             }
             else
             {
-              Real value = (*m_BNew[2])[dit()].get(tmpLoc,i_c)*(1-m_dxFaultStation[itor])*(1-m_dzFaultStation[itor]) //TODO: BOUNDARY
-                +(*m_BNew[2])[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxFaultStation[itor]*(1-m_dzFaultStation[itor]) //TODO: BOUNDARY
-                +(*m_BNew[2])[dit()].get(tmpLoc+BASISV(2),i_c)*(1-m_dxFaultStation[itor])*m_dzFaultStation[itor] //TODO: BOUNDARY
-                +(*m_BNew[2])[dit()].get(tmpLoc+BASISV(0)+BASISV(2),i_c)*m_dxFaultStation[itor]*m_dzFaultStation[itor]; //TODO: BOUNDARY
+              Real value = (*m_BNew[2])[dit()].get(tmpLoc,i_c)*(1-m_dxFaultStation[itor])*(1-m_dzFaultStation[itor])
+                +(*m_BNew[2])[dit()].get(tmpLoc+BASISV(0),i_c)*m_dxFaultStation[itor]*(1-m_dzFaultStation[itor])
+                +(*m_BNew[2])[dit()].get(tmpLoc+BASISV(2),i_c)*(1-m_dxFaultStation[itor])*m_dzFaultStation[itor]
+                +(*m_BNew[2])[dit()].get(tmpLoc+BASISV(0)+BASISV(2),i_c)*m_dxFaultStation[itor]*m_dzFaultStation[itor];
               fwrite(&value,sizeof(Real), 1, stationData );
             }
           }
@@ -1843,7 +1881,6 @@ void AMRLevelLinElast::writeStationLevel()
 #endif
 
 // Returns the dt computed earlier for this level
-//JK: NO BOUNDARY FIX
 Real AMRLevelLinElast::computeDt()
 {
   CH_assert(allDefined());
@@ -1860,7 +1897,6 @@ Real AMRLevelLinElast::computeDt()
 }
 
 // Compute dt using initial data
-//JK: NO BOUNDARY FIX
 Real AMRLevelLinElast::computeInitialDt()
 {
   CH_assert(allDefined());
@@ -1875,7 +1911,6 @@ Real AMRLevelLinElast::computeInitialDt()
   return newDT;
 }
 
-//JK: NO BOUNDARY FIX
 const LevelData<FArrayBox>& AMRLevelLinElast::getStateNew() const
 {
   CH_assert(allDefined());
@@ -1883,7 +1918,6 @@ const LevelData<FArrayBox>& AMRLevelLinElast::getStateNew() const
   return m_UNew;
 }
 
-//JK: NO BOUNDARY FIX
 const LevelData<FArrayBox>& AMRLevelLinElast::getStateOld() const
 {
   CH_assert(allDefined());
@@ -1891,7 +1925,6 @@ const LevelData<FArrayBox>& AMRLevelLinElast::getStateOld() const
   return m_UOld;
 }
 
-//JK: NO BOUNDARY FIX
 bool AMRLevelLinElast::allDefined() const
 {
   return isDefined()     &&
@@ -1899,7 +1932,6 @@ bool AMRLevelLinElast::allDefined() const
 }
 
 // Create a load-balanced DisjointBoxLayout from a collection of Boxes
-//JK: NO BOUNDARY FIX
 DisjointBoxLayout AMRLevelLinElast::loadBalance(const Vector<Box>& a_grids)
 {
   CH_assert(allDefined());
@@ -1957,8 +1989,6 @@ void AMRLevelLinElast::levelSetup()
         nRefCrse,
         m_problem_domain);
 
-    m_bdryCoarseAverage.resize(2*CH_SPACEDIM,NULL);
-    m_bdryFineInterp.resize(2*CH_SPACEDIM,NULL);
     for(int idim = 0;idim < CH_SPACEDIM;idim++)
     {
       for(int ix = 2*idim; ix < 2*(idim+1); ix++)
@@ -2041,7 +2071,6 @@ void AMRLevelLinElast::levelSetup()
 }
 
 // Get the next coarser level
-//JK: NO BOUNDARY FIX
 AMRLevelLinElast* AMRLevelLinElast::getCoarserLevel() const
 {
   CH_assert(allDefined());
@@ -2062,7 +2091,6 @@ AMRLevelLinElast* AMRLevelLinElast::getCoarserLevel() const
 }
 
 // Get the next finer level
-//JK: NO BOUNDARY FIX
 AMRLevelLinElast* AMRLevelLinElast::getFinerLevel() const
 {
   CH_assert(allDefined());

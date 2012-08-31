@@ -134,16 +134,28 @@ public:
       }
       else
       {
+        // WOULD BE BETTER TO CALL ORIGINAL FUNCTION!
+
         // MUST MATCH LEPhysIBC.H ORDER!!!
-        bdryNames.push_back("vn");
-        bdryNames.push_back("vm");
-        bdryNames.push_back("vz");
-        bdryNames.push_back("sn");
-        bdryNames.push_back("sm");
-        bdryNames.push_back("sz");
-        bdryNames.push_back("un");
-        bdryNames.push_back("um");
-        bdryNames.push_back("uz");
+        bdryNames.push_back("vx_1");
+        bdryNames.push_back("vy_1");
+        bdryNames.push_back("vz_1");
+        bdryNames.push_back("Tx_1");
+        bdryNames.push_back("Ty_1");
+        bdryNames.push_back("Tz_1");
+        bdryNames.push_back("un_1");
+        bdryNames.push_back("um_1");
+        bdryNames.push_back("uz_1");
+
+        bdryNames.push_back("vx_2");
+        bdryNames.push_back("vy_2");
+        bdryNames.push_back("vz_2");
+        bdryNames.push_back("Tx_2");
+        bdryNames.push_back("Ty_2");
+        bdryNames.push_back("Tz_2");
+        bdryNames.push_back("un_2");
+        bdryNames.push_back("um_2");
+        bdryNames.push_back("uz_2");
       }
       return bdryNames;
     }

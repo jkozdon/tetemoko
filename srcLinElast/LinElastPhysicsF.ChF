@@ -1404,3 +1404,72 @@ c
         return
         end
 
+
+C
+C Set the data on the boundary
+C
+        subroutine LESETBND(
+     &    CHF_FRA[Bout],
+     &    CHF_BOX[box],
+     &    CHF_CONST_FRA[Bin],
+     &    CHF_CONST_FRA[U],
+     &    CHF_CONST_REAL[dt],
+     &    CHF_CONST_REAL[dx],
+     &    CHF_CONST_INT[side],
+     &    CHF_CONST_REAL[time])
+
+        integer CHF_DDECL[i;j;k]
+
+        real_t n1(1:3)
+        real_t n2(1:3)
+        if(side .eq. 0) then
+          n1 = (/-1, 0, 0/)
+          n2 = (/-1, 0, 0/)
+        elseif(side .eq. 1) then
+          n1 = (/ 1, 0, 0/)
+          n2 = (/ 1, 0, 0/)
+        elseif(side .eq. 2) then
+          n1 = (/ 0,-1, 0/)
+          n2 = (/ 0, 1, 0/)
+        elseif(side .eq. 3) then
+          n1 = (/ 0, 1, 0/)
+          n2 = (/ 0,-1, 0/)
+        elseif(side .eq. 4) then
+          n1 = (/ 0, 0,-1/)
+          n2 = (/ 0, 0,-1/)
+        elseif(side .eq. 5) then
+          n1 = (/ 0, 0, 1/)
+          n2 = (/ 0, 0, 1/)
+        endif
+
+        CHF_MULTIDO[box;i;j;k]
+
+          Bout(CHF_IX[i;j;k],BX1_VX) = U(CHF_IX[i;j;k],IX1_VX)
+          Bout(CHF_IX[i;j;k],BX1_VY) = U(CHF_IX[i;j;k],IX1_VY)
+          Bout(CHF_IX[i;j;k],BX1_VZ) = U(CHF_IX[i;j;k],IX1_VZ)
+
+          Bout(CHF_IX[i;j;k],BX1_UX) = Bin(CHF_IX[i;j;k],BX1_UX) + dt*U(CHF_IX[i;j;k],IX1_VX)
+          Bout(CHF_IX[i;j;k],BX1_UY) = Bin(CHF_IX[i;j;k],BX1_UY) + dt*U(CHF_IX[i;j;k],IX1_VY)
+          Bout(CHF_IX[i;j;k],BX1_UZ) = Bin(CHF_IX[i;j;k],BX1_UZ) + dt*U(CHF_IX[i;j;k],IX1_VZ)
+
+          Bout(CHF_IX[i;j;k],BX1_TX) = n1(1)*U(CHF_IX[i;j;k],IX1_SXX) + n1(2)*U(CHF_IX[i;j;k],IX1_SXY) + n1(3)*U(CHF_IX[i;j;k],IX1_SXZ)
+          Bout(CHF_IX[i;j;k],BX1_TY) = n1(1)*U(CHF_IX[i;j;k],IX1_SXY) + n1(2)*U(CHF_IX[i;j;k],IX1_SYY) + n1(3)*U(CHF_IX[i;j;k],IX1_SYZ)
+          Bout(CHF_IX[i;j;k],BX1_TZ) = n1(1)*U(CHF_IX[i;j;k],IX1_SXZ) + n1(2)*U(CHF_IX[i;j;k],IX1_SYZ) + n1(3)*U(CHF_IX[i;j;k],IX1_SZZ)
+
+          Bout(CHF_IX[i;j;k],BX2_VX) = U(CHF_IX[i;j;k],IX2_VX)
+          Bout(CHF_IX[i;j;k],BX2_VY) = U(CHF_IX[i;j;k],IX2_VY)
+          Bout(CHF_IX[i;j;k],BX2_VZ) = U(CHF_IX[i;j;k],IX2_VZ)
+
+          Bout(CHF_IX[i;j;k],BX2_UX) = Bin(CHF_IX[i;j;k],BX2_UX) + dt*U(CHF_IX[i;j;k],IX2_VX)
+          Bout(CHF_IX[i;j;k],BX2_UY) = Bin(CHF_IX[i;j;k],BX2_UY) + dt*U(CHF_IX[i;j;k],IX2_VY)
+          Bout(CHF_IX[i;j;k],BX2_UZ) = Bin(CHF_IX[i;j;k],BX2_UZ) + dt*U(CHF_IX[i;j;k],IX2_VZ)
+
+          Bout(CHF_IX[i;j;k],BX2_TX) = n2(1)*U(CHF_IX[i;j;k],IX2_SXX) + n2(2)*U(CHF_IX[i;j;k],IX2_SXY) + n2(3)*U(CHF_IX[i;j;k],IX2_SXZ)
+          Bout(CHF_IX[i;j;k],BX2_TY) = n2(1)*U(CHF_IX[i;j;k],IX2_SXY) + n2(2)*U(CHF_IX[i;j;k],IX2_SYY) + n2(3)*U(CHF_IX[i;j;k],IX2_SYZ)
+          Bout(CHF_IX[i;j;k],BX2_TZ) = n2(1)*U(CHF_IX[i;j;k],IX2_SXZ) + n2(2)*U(CHF_IX[i;j;k],IX2_SYZ) + n2(3)*U(CHF_IX[i;j;k],IX2_SZZ)
+
+        CHF_ENDDO
+
+        return
+        end
+

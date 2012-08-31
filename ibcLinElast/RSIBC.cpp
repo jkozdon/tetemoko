@@ -312,26 +312,113 @@ void RSIBC::artViscBC(FArrayBox&       a_F,
 
 void RSIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,const Real& a_dx,const Real& a_time,const bool a_final)
 {
-  if(a_dir == 1 && bdryLo(m_domain,a_dir).contains(bdryLo(a_WHalf.box(),a_dir)))
+  if(bdryLo(m_domain,a_dir).contains(bdryLo(a_WHalf.box(),a_dir)))
   {
+    if(a_dir == 1)
+    {
+      if(a_final)
+      {
+        FORT_RSSETBND(
+            CHF_FRA((*m_bdryData[2*a_dir])),
+            CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),
+            CHF_CONST_FRA((*m_bdryData[2*a_dir])),
+            CHF_CONST_FRA(a_WHalf),
+            CHF_CONST_REAL(a_dt),
+            CHF_CONST_REAL(a_dx),
+            CHF_CONST_REAL(a_time));
+      }
+      // THIS MAY BE NECESSARY IN 3-D, NOT SURE!!!
+      // else if(m_tmpBdryDataSet[2*a_dir])
+      // {
+      //     FORT_RSSETBND(
+      //         CHF_FRA((*m_tmpBdryData[2*a_dir])),
+      //         CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),
+      //         CHF_CONST_FRA((*m_tmpBdryData[2*a_dir])),
+      //         CHF_CONST_FRA(a_WHalf),
+      //         CHF_CONST_REAL(a_dt),
+      //         CHF_CONST_REAL(a_dx),
+      //         CHF_CONST_REAL(a_time));
+      // }
+      else
+      {
+        // m_tmpBdryData[2*a_dir] = new FArrayBox(m_bdryData[2*a_dir]->box(), m_numBdryVars[2*a_dir]);
+        FORT_RSSETBND(
+            CHF_FRA((*m_tmpBdryData[2*a_dir])),
+            CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),
+            CHF_CONST_FRA((*m_bdryData[2*a_dir])),
+            CHF_CONST_FRA(a_WHalf),
+            CHF_CONST_REAL(a_dt),
+            CHF_CONST_REAL(a_dx),
+            CHF_CONST_REAL(a_time));
+        m_tmpBdryDataSet[2*a_dir] = true;
+      }
+    }
+    else
+    {
+      int side = 2*a_dir;
+      if(a_final)
+      {
+        FORT_LESETBND(
+            CHF_FRA((*m_bdryData[side])),
+            CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),
+            CHF_CONST_FRA((*m_bdryData[side])),
+            CHF_CONST_FRA(a_WHalf),
+            CHF_CONST_REAL(a_dt),
+            CHF_CONST_REAL(a_dx),
+            CHF_CONST_INT(side),
+            CHF_CONST_REAL(a_time));
+      }
+      // THIS MAY BE NECESSARY IN 3-D, NOT SURE!!!
+      // else if(m_tmpBdryDataSet[side])
+      // {
+      //     FORT_LESETBND(
+      //         CHF_FRA((*m_tmpBdryData[side])),
+      //         CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),
+      //         CHF_CONST_FRA((*m_tmpBdryData[side])),
+      //         CHF_CONST_FRA(a_WHalf),
+      //         CHF_CONST_REAL(a_dt),
+      //         CHF_CONST_REAL(a_dx),
+      //         CHF_CONST_REAL(a_time));
+      // }
+      else
+      {
+        // m_tmpBdryData[side] = new FArrayBox(m_bdryData[side]->box(), m_numBdryVars[side]);
+        FORT_LESETBND(
+            CHF_FRA((*m_tmpBdryData[side])),
+            CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),
+            CHF_CONST_FRA((*m_bdryData[side])),
+            CHF_CONST_FRA(a_WHalf),
+            CHF_CONST_REAL(a_dt),
+            CHF_CONST_REAL(a_dx),
+            CHF_CONST_INT(side),
+            CHF_CONST_REAL(a_time));
+        m_tmpBdryDataSet[side] = true;
+      }
+    }
+  }
+
+  if(bdryHi(m_domain,a_dir).contains(bdryHi(a_WHalf.box(),a_dir)))
+  {
+    int side = 2*a_dir+1;
     if(a_final)
     {
-      FORT_RSSETBND(
-          CHF_FRA((*m_bdryData[2])),
-          CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),
-          CHF_CONST_FRA((*m_bdryData[2])),
+      FORT_LESETBND(
+          CHF_FRA((*m_bdryData[side])),
+          CHF_BOX(bdryHi(a_WHalf.box(),a_dir)),
+          CHF_CONST_FRA((*m_bdryData[side])),
           CHF_CONST_FRA(a_WHalf),
           CHF_CONST_REAL(a_dt),
           CHF_CONST_REAL(a_dx),
+          CHF_CONST_INT(side),
           CHF_CONST_REAL(a_time));
     }
     // THIS MAY BE NECESSARY IN 3-D, NOT SURE!!!
-    // else if(m_tmpBdryDataSet[2])
+    // else if(m_tmpBdryDataSet[side])
     // {
-    //     FORT_RSSETBND(
-    //         CHF_FRA((*m_tmpBdryData[2])),
-    //         CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),
-    //         CHF_CONST_FRA((*m_tmpBdryData[2])),
+    //     FORT_LESETBND(
+    //         CHF_FRA((*m_tmpBdryData[side])),
+    //         CHF_BOX(bdryHi(a_WHalf.box(),a_dir)),
+    //         CHF_CONST_FRA((*m_tmpBdryData[side])),
     //         CHF_CONST_FRA(a_WHalf),
     //         CHF_CONST_REAL(a_dt),
     //         CHF_CONST_REAL(a_dx),
@@ -339,16 +426,17 @@ void RSIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,c
     // }
     else
     {
-      // m_tmpBdryData[2] = new FArrayBox(m_bdryData[2]->box(), m_numBdryVars[2]);
-      FORT_RSSETBND(
-          CHF_FRA((*m_tmpBdryData[2])),
-          CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),
-          CHF_CONST_FRA((*m_bdryData[2])),
+      // m_tmpBdryData[side] = new FArrayBox(m_bdryData[side]->box(), m_numBdryVars[side]);
+      FORT_LESETBND(
+          CHF_FRA((*m_tmpBdryData[side])),
+          CHF_BOX(bdryHi(a_WHalf.box(),a_dir)),
+          CHF_CONST_FRA((*m_bdryData[side])),
           CHF_CONST_FRA(a_WHalf),
           CHF_CONST_REAL(a_dt),
           CHF_CONST_REAL(a_dx),
+          CHF_CONST_INT(side),
           CHF_CONST_REAL(a_time));
-      m_tmpBdryDataSet[2] = true;
+      m_tmpBdryDataSet[side] = true;
     }
   }
 }
@@ -358,6 +446,7 @@ void RSIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,c
 */
 bool RSIBC::tagCellsInit(FArrayBox& markFAB,const Real& threshold)
 {
+  return true;
   // If grid spacing > R0 refine otherwise only refine the nucleation patch
   if(m_dx > m_R0)
   {
@@ -415,16 +504,28 @@ Vector<string> RSIBC::bdryNames(int a_side)
   }
   else
   {
+    // WOULD BE BETTER TO CALL ORIGINAL FUNCTION!
+
     // MUST MATCH LEPhysIBC.H ORDER!!!
-    bdryNames.push_back("vn");
-    bdryNames.push_back("vm");
-    bdryNames.push_back("vz");
-    bdryNames.push_back("sn");
-    bdryNames.push_back("sm");
-    bdryNames.push_back("sz");
-    bdryNames.push_back("un");
-    bdryNames.push_back("um");
-    bdryNames.push_back("uz");
+    bdryNames.push_back("vx_1");
+    bdryNames.push_back("vy_1");
+    bdryNames.push_back("vz_1");
+    bdryNames.push_back("Tx_1");
+    bdryNames.push_back("Ty_1");
+    bdryNames.push_back("Tz_1");
+    bdryNames.push_back("un_1");
+    bdryNames.push_back("um_1");
+    bdryNames.push_back("uz_1");
+
+    bdryNames.push_back("vx_2");
+    bdryNames.push_back("vy_2");
+    bdryNames.push_back("vz_2");
+    bdryNames.push_back("Tx_2");
+    bdryNames.push_back("Ty_2");
+    bdryNames.push_back("Tz_2");
+    bdryNames.push_back("un_2");
+    bdryNames.push_back("um_2");
+    bdryNames.push_back("uz_2");
   }
   return bdryNames;
 }

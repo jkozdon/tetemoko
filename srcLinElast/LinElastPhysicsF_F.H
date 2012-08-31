@@ -763,6 +763,46 @@ inline void FORTRAN_NAME(inlineARTDISP, inlineARTDISP)(
 }
 #endif  // GUARDARTDISP 
 
+#ifndef GUARDLESETBND 
+#define GUARDLESETBND 
+// Prototype for Fortran procedure LESETBND ...
+//
+void FORTRAN_NAME( LESETBND ,lesetbnd )(
+      CHFp_FRA(Bout)
+      ,CHFp_BOX(box)
+      ,CHFp_CONST_FRA(Bin)
+      ,CHFp_CONST_FRA(U)
+      ,CHFp_CONST_REAL(dt)
+      ,CHFp_CONST_REAL(dx)
+      ,CHFp_CONST_INT(side)
+      ,CHFp_CONST_REAL(time) );
+
+#define FORT_LESETBND FORTRAN_NAME( inlineLESETBND, inlineLESETBND)
+#define FORTNT_LESETBND FORTRAN_NAME( LESETBND, lesetbnd)
+
+inline void FORTRAN_NAME(inlineLESETBND, inlineLESETBND)(
+      CHFp_FRA(Bout)
+      ,CHFp_BOX(box)
+      ,CHFp_CONST_FRA(Bin)
+      ,CHFp_CONST_FRA(U)
+      ,CHFp_CONST_REAL(dt)
+      ,CHFp_CONST_REAL(dx)
+      ,CHFp_CONST_INT(side)
+      ,CHFp_CONST_REAL(time) )
+{
+ CH_TIMELEAF("FORT_LESETBND");
+ FORTRAN_NAME( LESETBND ,lesetbnd )(
+      CHFt_FRA(Bout)
+      ,CHFt_BOX(box)
+      ,CHFt_CONST_FRA(Bin)
+      ,CHFt_CONST_FRA(U)
+      ,CHFt_CONST_REAL(dt)
+      ,CHFt_CONST_REAL(dx)
+      ,CHFt_CONST_INT(side)
+      ,CHFt_CONST_REAL(time) );
+}
+#endif  // GUARDLESETBND 
+
 }
 
 #endif

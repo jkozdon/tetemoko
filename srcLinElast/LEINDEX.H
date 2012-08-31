@@ -46,5 +46,36 @@
 #define IX2_LAM    (IX_OFFSET + IX_LAM)
 #define IX2_GAM    (IX_OFFSET + IX_GAM)
 
+#define NUM_BDRY_HAT_VARS (2*9)
+#define BX_VX             (0)
+#define BX_VY             (1)
+#define BX_VZ             (2)
+#define BX_TX             (3)
+#define BX_TY             (4)
+#define BX_TZ             (5)
+#define BX_UX             (6)
+#define BX_UY             (7)
+#define BX_UZ             (8)
+
+#define BX1_VX             (BX_VX)
+#define BX1_VY             (BX_VY)
+#define BX1_VZ             (BX_VZ)
+#define BX1_TX             (BX_TX)
+#define BX1_TY             (BX_TY)
+#define BX1_TZ             (BX_TZ)
+#define BX1_UX             (BX_UX)
+#define BX1_UY             (BX_UY)
+#define BX1_UZ             (BX_UZ)
+
+#define BX2_VX             (BX_VX+NUM_BDRY_HAT_VARS)
+#define BX2_VY             (BX_VY+NUM_BDRY_HAT_VARS)
+#define BX2_VZ             (BX_VZ+NUM_BDRY_HAT_VARS)
+#define BX2_TX             (BX_TX+NUM_BDRY_HAT_VARS)
+#define BX2_TY             (BX_TY+NUM_BDRY_HAT_VARS)
+#define BX2_TZ             (BX_TZ+NUM_BDRY_HAT_VARS)
+#define BX2_UX             (BX_UX+NUM_BDRY_HAT_VARS)
+#define BX2_UY             (BX_UY+NUM_BDRY_HAT_VARS)
+#define BX2_UZ             (BX_UZ+NUM_BDRY_HAT_VARS)
+
 #include "BaseNamespaceFooter.H"
 #endif /*_LEINDEX_H_*/

@@ -8,23 +8,13 @@
 #ifndef _LEPHYSIBC_H_
 #define _LEPHYSIBC_H_
 
-#define NUM_BDRY_HAT_VARS (9)
-#define BX_VN             (0)
-#define BX_VM             (1)
-#define BX_VX             (2)
-#define BX_SN             (3)
-#define BX_SM             (4)
-#define BX_SZ             (5)
-#define BX_UN             (6)
-#define BX_UM             (7)
-#define BX_UZ             (8)
-
 #include "FArrayBox.H"
 #include "REAL.H"
 #include "LevelData.H"
 #include "ProblemDomain.H"
 #include "PhysIBC.H"
 #include "NamespaceHeader.H"
+#include "LEINDEX.H"
 
 /// Physical/domain initial and boundary conditions
 /**
@@ -99,15 +89,25 @@ public:
     {
       Vector<string> bdryNames;
       // MUST MATCH LEPhysIBC.H ORDER!!!
-      bdryNames.push_back("vn");
-      bdryNames.push_back("vm");
-      bdryNames.push_back("vz");
-      bdryNames.push_back("sn");
-      bdryNames.push_back("sm");
-      bdryNames.push_back("sz");
-      bdryNames.push_back("un");
-      bdryNames.push_back("um");
-      bdryNames.push_back("uz");
+      bdryNames.push_back("vx_1");
+      bdryNames.push_back("vy_1");
+      bdryNames.push_back("vz_1");
+      bdryNames.push_back("Tx_1");
+      bdryNames.push_back("Ty_1");
+      bdryNames.push_back("Tz_1");
+      bdryNames.push_back("un_1");
+      bdryNames.push_back("um_1");
+      bdryNames.push_back("uz_1");
+
+      bdryNames.push_back("vx_2");
+      bdryNames.push_back("vy_2");
+      bdryNames.push_back("vz_2");
+      bdryNames.push_back("Tx_2");
+      bdryNames.push_back("Ty_2");
+      bdryNames.push_back("Tz_2");
+      bdryNames.push_back("un_2");
+      bdryNames.push_back("um_2");
+      bdryNames.push_back("uz_2");
       return bdryNames;
     }
 
