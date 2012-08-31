@@ -343,7 +343,7 @@ Real LinElastLevelGodunov::step(LevelData<FArrayBox>&       a_U,
     //JK Push the current boundary data to m_patchGodunov
     for(int idim = 0;idim < CH_SPACEDIM;idim++)
     {
-      for(int ix = 2*idim;ix < 2*idim+2;ix++)
+      for(int ix = 2*idim;ix < 2*(idim+1);ix++)
       {
         if((*a_relateUB[ix])[dit()].hasBdryData())
         {

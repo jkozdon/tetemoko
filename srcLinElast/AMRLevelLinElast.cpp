@@ -375,13 +375,7 @@ Real AMRLevelLinElast::advance()
 {
   CH_assert(allDefined());
 
-  if (s_verbosity >= 1 && procID() == 0)
-  {
-    for(int i = 0; i < m_level;i++) pout() << "   ";
-    pout() << "AMRLevelLinElast::advance level " << m_level << " to time " << scientific << m_time + m_dt << " by dt " << m_dt << endl;
-  }
-
-  if (s_verbosity >= 2)
+  if ((s_verbosity >= 1 && procID() == 0) || s_verbosity >= 2)
   {
     for(int i = 0; i < m_level;i++) pout() << "   ";
     pout() << "AMRLevelLinElast::advance level " << m_level << " to time " << scientific << m_time + m_dt << " by dt " << m_dt << endl;
@@ -480,6 +474,12 @@ Real AMRLevelLinElast::advance()
   Real returnDt = m_cfl * newDt;
 
   m_dtNew = returnDt;
+
+  if (s_verbosity >= 3)
+  {
+    for(int i = 0; i < m_level;i++) pout() << "   ";
+    pout() << "AMRLevelLinElast::advance level " << m_level << " to time " << scientific << m_time <<" complete" << endl;
+  }
 
   return returnDt;
 }
@@ -808,7 +808,8 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
       // box edge with the boundary. I believe that this should let the
       // boundary grid have the same layout structure as the underlying
       // grid
-      const Box tmpBndBoxLo = (m_bdryFaceBox[2*idim] & bdryLo(constGrids[lit()],idim,1));
+      // const Box tmpBndBoxLo = (m_bdryFaceBox[2*idim] & bdryLo(constGrids[lit()],idim,1));
+      const Box tmpBndBoxLo = (m_bdryFaceBox[2*idim] & Box(constGrids[lit()]).shiftHalf(idim,-1));
       if(!tmpBndBoxLo.isEmpty())
       {
         vectBndBoxLo.push_back(tmpBndBoxLo);
@@ -819,7 +820,8 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
         }
       }
 
-      const Box tmpBndBoxHi = (m_bdryFaceBox[2*idim+1] & bdryHi(constGrids[lit()],idim,1));
+      // const Box tmpBndBoxHi = (m_bdryFaceBox[2*idim+1] & bdryHi(constGrids[lit()],idim,1));
+      const Box tmpBndBoxHi = (m_bdryFaceBox[2*idim+1] & Box(constGrids[lit()]).shiftHalf(idim,1));
       if(!tmpBndBoxHi.isEmpty())
       {
         vectBndBoxHi.push_back(tmpBndBoxHi);
@@ -885,7 +887,9 @@ void AMRLevelLinElast::regrid(const Vector<Box>& a_newGrids)
     AMRLevelLinElast* amrGodCoarserPtr = getCoarserLevel();
     m_fineInterp.interpToFine(m_UNew,amrGodCoarserPtr->m_UNew);
     for(int ix = 0; ix < 2*CH_SPACEDIM; ix++)
+    {
       (*m_bdryFineInterp[ix]).interpToFine((*m_BNew[ix]),*(amrGodCoarserPtr->m_BNew[ix]));
+    }
   }
 
   // Copy from old state
@@ -950,7 +954,8 @@ void AMRLevelLinElast::initialGrid(const Vector<Box>& a_newGrids)
       // box edge with the boundary. I believe that this should let the
       // boundary grid have the same layout structure as the underlying
       // grid
-      const Box tmpBndBoxLo = (m_bdryFaceBox[2*idim] & bdryLo(constGrids[lit()],idim,1));
+      // const Box tmpBndBoxLo = (m_bdryFaceBox[2*idim] & bdryLo(constGrids[lit()],idim,1));
+      const Box tmpBndBoxLo = (m_bdryFaceBox[2*idim] & Box(constGrids[lit()]).shiftHalf(idim,-1));
       if(!tmpBndBoxLo.isEmpty())
       {
         vectBndBoxLo.push_back(tmpBndBoxLo);
@@ -961,7 +966,8 @@ void AMRLevelLinElast::initialGrid(const Vector<Box>& a_newGrids)
         }
       }
 
-      const Box tmpBndBoxHi = (m_bdryFaceBox[2*idim+1] & bdryHi(constGrids[lit()],idim,1));
+      // const Box tmpBndBoxHi = (m_bdryFaceBox[2*idim+1] & bdryHi(constGrids[lit()],idim,1));
+      const Box tmpBndBoxHi = (m_bdryFaceBox[2*idim+1] & Box(constGrids[lit()]).shiftHalf(idim,1));
       if(!tmpBndBoxHi.isEmpty())
       {
         vectBndBoxHi.push_back(tmpBndBoxHi);
@@ -1173,10 +1179,8 @@ void AMRLevelLinElast::writeCheckpointLevel(HDF5Handle& a_handle) const
   {
     char tmpName[60];
     sprintf(tmpName,"boundary_%d_data",ix);
-    pout() << "START: "<<  tmpName<<endl;
     if((*m_BNew[ix]).boxLayout().numCells() > 0)
       write(a_handle,*m_BNew[ix],tmpName);
-    pout() << "DONE: "<<  tmpName<<endl;
   }
 }
 
@@ -1479,7 +1483,8 @@ void AMRLevelLinElast::readCheckpointLevel(HDF5Handle& a_handle)
       // box edge with the boundary. I believe that this should let the
       // boundary grid have the same layout structure as the underlying
       // grid
-      const Box tmpBndBoxLo = (m_bdryFaceBox[2*idim] & bdryLo(constGrids[lit()],idim,1));
+      // const Box tmpBndBoxLo = (m_bdryFaceBox[2*idim] & bdryLo(constGrids[lit()],idim,1));
+      const Box tmpBndBoxLo = (m_bdryFaceBox[2*idim] & Box(constGrids[lit()]).shiftHalf(idim,-1));
       if(!tmpBndBoxLo.isEmpty())
       {
         vectBndBoxLo.push_back(tmpBndBoxLo);
@@ -1490,7 +1495,8 @@ void AMRLevelLinElast::readCheckpointLevel(HDF5Handle& a_handle)
         }
       }
 
-      const Box tmpBndBoxHi = (m_bdryFaceBox[2*idim+1] & bdryHi(constGrids[lit()],idim,1));
+      // const Box tmpBndBoxHi = (m_bdryFaceBox[2*idim+1] & bdryHi(constGrids[lit()],idim,1));
+      const Box tmpBndBoxHi = (m_bdryFaceBox[2*idim+1] & Box(constGrids[lit()]).shiftHalf(idim,1));
       if(!tmpBndBoxHi.isEmpty())
       {
         vectBndBoxHi.push_back(tmpBndBoxHi);
@@ -2117,7 +2123,8 @@ void AMRLevelLinElast::setupRelateUB()
   {
     for (DataIterator dit = m_UNew.dataIterator(); dit.ok(); ++dit)
     {
-      const Box tmpBndBoxLo = (m_bdryFaceBox[2*idim] & bdryLo(m_UNew[dit()].box(),idim,1+m_numGhost));
+      // const Box tmpBndBoxLo = (m_bdryFaceBox[2*idim] & bdryLo(m_UNew[dit()].box(),idim,1+m_numGhost));
+      const Box tmpBndBoxLo = (m_bdryFaceBox[2*idim] & Box(m_UNew[dit()].box()).shiftHalf(idim,-1));
       if(!tmpBndBoxLo.isEmpty())
       {
         for (DataIterator bit = (*m_BNew[2*idim]).dataIterator(); bit.ok(); ++bit)
@@ -2130,7 +2137,8 @@ void AMRLevelLinElast::setupRelateUB()
         }
       }
 
-      const Box tmpBndBoxHi = (m_bdryFaceBox[2*idim+1] & bdryHi(m_UNew[dit()].box(),idim,1+m_numGhost));
+      // const Box tmpBndBoxHi = (m_bdryFaceBox[2*idim+1] & bdryHi(m_UNew[dit()],idim,1));
+      const Box tmpBndBoxHi = (m_bdryFaceBox[2*idim+1] & Box(m_UNew[dit()].box()).shiftHalf(idim,1));
       if(!tmpBndBoxHi.isEmpty())
       {
         for (DataIterator bit = (*m_BNew[2*idim+1]).dataIterator(); bit.ok(); ++bit)

@@ -383,6 +383,7 @@ void RSIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,c
       else
       {
         // m_tmpBdryData[side] = new FArrayBox(m_bdryData[side]->box(), m_numBdryVars[side]);
+
         FORT_LESETBND(
             CHF_FRA((*m_tmpBdryData[side])),
             CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),

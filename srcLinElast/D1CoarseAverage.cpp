@@ -44,7 +44,7 @@ D1CoarseAverage::define(const DisjointBoxLayout& a_fine_domain,
 
   const DisjointBoxLayout& constGrids = a_fine_domain;
   DisjointBoxLayout coarsened_fine_domain;
-  coarsen (coarsened_fine_domain, a_fine_domain, m_ref_ratio*(IntVect::Unit-BASISV(m_dir))+BASISV(m_dir));
+  coarsen (coarsened_fine_domain, a_fine_domain, m_ref_ratio);
   m_coarsened_fine_data.define ( coarsened_fine_domain,
       m_numcomps);
 
