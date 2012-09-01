@@ -1,0 +1,275 @@
+diff --git AMRTimeDependent/AMR.cpp AMRTimeDependent/AMR.cpp
+index 08dea0f..6533e65 100644
+--- AMRTimeDependent/AMR.cpp
++++ AMRTimeDependent/AMR.cpp
+@@ -685,6 +685,13 @@ void AMR::conclude() const
+     writePlotFile();
+   }
+ 
++  m_amrlevels[0]->writeCustomPlotFile(m_plotfile_prefix,
++      m_max_level,
++      m_finest_level,
++      m_cur_step,
++      m_cur_time,
++      true);
++
+   if ((m_checkpoint_interval >= 0)     &&
+       (m_lastcheck_step != m_cur_step) &&
+       (m_restart_step != m_cur_step))
+@@ -789,12 +796,25 @@ void AMR::run(Real a_max_time, int a_max_step)
+           writePlotFile();
+         }
+ 
++      m_amrlevels[0]->writeCustomPlotFile(m_plotfile_prefix,
++          m_max_level,
++          m_finest_level,
++          m_cur_step,
++          m_cur_time,
++          false);
++
+       // Plot if enough time has passed.
+       if ((m_plot_period > 0.0) &&
+           (m_cur_time >= m_next_plot_time))
+         {
+           writePlotFile();
+           m_next_plot_time = m_cur_time + m_plot_period;
++          m_amrlevels[0]->writeCustomPlotFile(m_plotfile_prefix,
++              m_max_level,
++              m_finest_level,
++              m_cur_step,
++              m_cur_time,
++              false);
+         }
+ 
+       // Call any scheduled functions. This is placed here so that
+@@ -1804,6 +1824,25 @@ void AMR::writeCheckpointFile() const
+     }
+ 
+   handle.close();
++
++  // Write out the file to track the restart number
++  int rank = 0;
++#ifdef CH_MPI
++  MPI_Comm_rank(Chombo_MPI::comm, &rank);
++#endif
++
++  if(rank == 0)
++  {
++      char chk_file[100];
++      sprintf(chk_file,
++          "%s%dd.current",
++          m_checkpointfile_prefix.c_str(), SpaceDim );
++      FILE * chk_track;
++      chk_track = fopen(chk_file,"w");
++      fprintf(chk_track,"%06d",m_cur_step);
++      fclose(chk_track);
++  }
++
+ #endif
+ }
+ //-----------------------------------------------------------------------
+diff --git AMRTimeDependent/AMRLevel.H AMRTimeDependent/AMRLevel.H
+index 45a254d..e68a6b6 100644
+--- AMRTimeDependent/AMRLevel.H
++++ AMRTimeDependent/AMRLevel.H
+@@ -312,6 +312,13 @@ public:
+   virtual void writeCustomPlotFile(const std::string& a_prefix,
+                                    int a_step) const;
+ 
++  virtual void writeCustomPlotFile(const std::string& a_prefix,
++      const int& a_max_level,
++      const int& a_finest_level,
++      const int& a_step,
++      const Real& a_time,
++      const bool& a_final){/*default does nothing*/}
++
+   /**@}*/
+ 
+   /**
+diff --git AMRTools/AverageF.ChF AMRTools/AverageF.ChF
+index 5885f2a..b5bfb22 100644
+--- AMRTools/AverageF.ChF
++++ AMRTools/AverageF.ChF
+@@ -6,6 +6,55 @@ C    Please refer to Copyright.txt, in Chombo's root directory.
+ 
+ #include "CONSTANTS.H"
+ 
++C    do an average in D-1 dimensions
++      subroutine d1average(
++     &     CHF_FRA[coarse],
++     &     CHF_CONST_FRA[fine],
++     &     CHF_BOX[box],
++     &     CHF_CONST_INT[refRatio],
++     &     CHF_BOX[bref])
++
++      integer var
++      integer CHF_AUTODECL[ic]
++      integer CHF_AUTODECL[ip]
++      integer CHF_AUTODECL[ii]
++
++      real_t refScale,coarseSum
++
++c     bref is a box that will go from (0,0,0) to (refRatio-1)*(1,1,1)
++c     Most, if not all, of the times this function is called,
++c     refRatio will be 2 or 4.  To speed thing up here, we
++c     unroll the loop if refRatio is 2 or 4.  Otherwise, use original
++c     loop.  This optimization is particularly effective on the
++c     POWER3 chip (seaborg) (ndk)
++
++c     no unrolling for now with D-1 average
++
++      refScale = one / (refRatio**(CH_SPACEDIM-1))
++
++      do var = 0, CHF_NCOMP[coarse] - 1
++        CHF_AUTOMULTIDO[box;ic]
++          CHF_DTERM[
++          ip0 = ic0*refRatio;
++          ip1 = ic1*refRatio;
++          ip2 = ic2*refRatio;
++          ip3 = ic3*refRatio;
++          ip4 = ic4*refRatio;
++          ip5 = ic5*refRatio]
++
++          coarseSum = zero
++
++          CHF_AUTOMULTIDO[ bref; ii ]
++            coarseSum = coarseSum + fine( CHF_OFFSETIX[ip;+ii],var)
++          CHF_ENDDO
++
++          coarse(CHF_AUTOIX[ic],var) = coarseSum * refScale
++        CHF_ENDDO
++      enddo
++
++      return
++      end
++
+       subroutine average(
+      &     CHF_FRA[coarse],
+      &     CHF_CONST_FRA[fine],
+diff --git BoxTools/BoxLayout.H BoxTools/BoxLayout.H
+index 8eb7d29..e39890b 100644
+--- BoxTools/BoxLayout.H
++++ BoxTools/BoxLayout.H
+@@ -405,6 +405,16 @@ public:
+ 
+   ///
+   /**
++     returns true iff:
++     - every Box in the BoxLayout can be coarsened by refRatio as defined by
++     refRatio IntVect and return back to the original Box when refined by
++     refRatio.
++     - refRatio must be a positive non-zero integer.
++  */
++  bool coarsenable(IntVect refRatio) const;
++
++  ///
++  /**
+      Coarsen a BoxLayout:
+      - <i>output</i> must be open
+      - <i>input</i> must be closed
+@@ -676,7 +686,6 @@ BoxLayout::operator<(const BoxLayout& rhs) const
+ 
+ // member functions
+ // ================
+-
+ inline  Box
+ BoxLayout::get(const LayoutIndex& a_layoutIndex) const
+ {
+diff --git BoxTools/BoxLayout.cpp BoxTools/BoxLayout.cpp
+index f04437e..7ef9f49 100644
+--- BoxTools/BoxLayout.cpp
++++ BoxTools/BoxLayout.cpp
+@@ -164,6 +164,21 @@ bool BoxLayout::coarsenable(int refRatio) const
+ }
+ 
+ 
++bool BoxLayout::coarsenable(IntVect refRatio) const
++{
++ // if (size() == 0) return false;
++  for (int i=0; i<size(); i++)
++    {
++      Box b =  m_boxes->operator[](i).box;
++      b.coarsen(refRatio);
++      b.refine(refRatio);
++      if (b !=  m_boxes->operator[](i).box)
++        return false;
++    }
++  return true;
++}
++
++
+ // Constructors and such
+ // =====================
+ 
+diff --git BoxTools/DisjointBoxLayout.H BoxTools/DisjointBoxLayout.H
+index 4ef249f..bedd1e9 100644
+--- BoxTools/DisjointBoxLayout.H
++++ BoxTools/DisjointBoxLayout.H
+@@ -271,6 +271,10 @@ public:
+                       const DisjointBoxLayout& input,
+                       int refinement);
+ 
++  friend void coarsen(DisjointBoxLayout& output,
++                      const DisjointBoxLayout& input,
++                      IntVect refinement);
++
+   ///
+   /**
+      Refine a DisjointBoxLayout:
+diff --git BoxTools/DisjointBoxLayout.cpp BoxTools/DisjointBoxLayout.cpp
+index 6a764f2..28b0cdc 100644
+--- BoxTools/DisjointBoxLayout.cpp
++++ BoxTools/DisjointBoxLayout.cpp
+@@ -537,6 +537,52 @@ coarsen(DisjointBoxLayout& a_output, const DisjointBoxLayout& a_input,
+   a_output.closeN(a_input.m_neighbors);
+ }
+ 
++
++  void
++coarsen(DisjointBoxLayout& a_output, const DisjointBoxLayout& a_input,
++    IntVect a_refinement)
++{
++  if (a_input.size() == 0)
++  {
++    a_output = a_input;
++    return;
++  }
++  CH_assert(a_input.coarsenable(a_refinement));
++  if (!a_input.isClosed())
++  {
++    MayDay::Error("input to coarsen must be called with closed BoxLayout");
++  }
++  if (a_output.isClosed())
++  {
++    MayDay::Error("output of coarsen must be called on open BoxLayout");
++  }
++
++  // copy first, then coarsen everything
++  // a_output.deepCopy(a_input);
++  a_output.m_boxes      = RefCountedPtr<Vector<Entry> >(new Vector<Entry>(*(a_input.m_boxes)));
++  a_output.m_layout     = a_input.m_layout;
++#ifdef CH_MPI
++  a_output.m_dataIndex  = a_input.m_dataIndex;
++#endif
++
++  // now coarsen the physDomain
++  // a_output.m_physDomain = coarsen(a_input.m_physDomain, a_refinement,a_dir);
++
++  Vector<Entry>& boxes = *(a_output.m_boxes);
++  int j=0;
++  for (int i=0 ; i<=(int)boxes.size()-4; i+=4)
++    {
++      boxes[i].box.coarsen(a_refinement);
++      boxes[i+1].box.coarsen(a_refinement);
++      boxes[i+2].box.coarsen(a_refinement);
++      boxes[i+3].box.coarsen(a_refinement);
++      j+=4;
++    }
++  for (; j<boxes.size(); j++) boxes[j].box.coarsen(a_refinement);
++
++  a_output.closeN(a_input.m_neighbors);
++}
++
+ // we have an easier time with refine, since we know that refinement will
+ // not change the state of a sort, but, we will play it safe for now
+ // until this function shows up in the profiler.
