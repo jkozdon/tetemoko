@@ -1,8 +1,16 @@
 diff --git AMRTimeDependent/AMR.cpp AMRTimeDependent/AMR.cpp
-index 08dea0f..6533e65 100644
+index 08dea0f..913575e 100644
 --- AMRTimeDependent/AMR.cpp
 +++ AMRTimeDependent/AMR.cpp
-@@ -685,6 +685,13 @@ void AMR::conclude() const
+@@ -583,6 +583,7 @@ void AMR::setupForRestart(HDF5Handle& a_handle)
+     }
+ 
+   m_cur_step = header.m_int ["iteration"];
++  m_lastcheck_step = m_cur_step;
+   s_step = m_cur_step;
+ 
+   if (m_verbosity >= 2)
+@@ -685,6 +686,13 @@ void AMR::conclude() const
      writePlotFile();
    }
  
@@ -16,7 +24,7 @@ index 08dea0f..6533e65 100644
    if ((m_checkpoint_interval >= 0)     &&
        (m_lastcheck_step != m_cur_step) &&
        (m_restart_step != m_cur_step))
-@@ -789,12 +796,25 @@ void AMR::run(Real a_max_time, int a_max_step)
+@@ -789,12 +797,25 @@ void AMR::run(Real a_max_time, int a_max_step)
            writePlotFile();
          }
  
@@ -42,7 +50,16 @@ index 08dea0f..6533e65 100644
          }
  
        // Call any scheduled functions. This is placed here so that
-@@ -1804,6 +1824,25 @@ void AMR::writeCheckpointFile() const
+@@ -1766,7 +1787,7 @@ void AMR::writeCheckpointFile() const
+ 
+   iter_str += suffix;
+ 
+-  if (m_verbosity >= 2)
++  if (m_verbosity >= 1)
+     {
+       pout() << "checkpoint file name = " << iter_str << endl;
+     }
+@@ -1804,6 +1825,52 @@ void AMR::writeCheckpointFile() const
      }
  
    handle.close();
@@ -63,6 +80,33 @@ index 08dea0f..6533e65 100644
 +      chk_track = fopen(chk_file,"w");
 +      fprintf(chk_track,"%06d",m_cur_step);
 +      fclose(chk_track);
++      if((m_lastcheck_step > -1) && (m_lastcheck_step != m_cur_step))
++      {
++          string remove_str = m_checkpointfile_prefix;
++
++          char suffix[100];
++          sprintf(suffix,"%06d.%dd.hdf5",m_lastcheck_step,SpaceDim);
++
++          remove_str += suffix;
++
++          if (m_verbosity >= 1)
++          {
++              pout() << "removing checkpoint file " << remove_str << endl;
++          }
++          int rm_err = remove(remove_str.c_str());
++
++          if(rm_err == 0)
++          {
++              if (m_verbosity >= 1)
++              {
++                  pout() << "checkpoint file " << remove_str << " successfully removed" << endl;
++              }
++          }
++          else
++          {
++              pout() << "checkpoint file " << remove_str << " could not be removed: error = " << rm_err << endl;
++          }
++      }
 +  }
 +
  #endif
@@ -146,6 +190,19 @@ index 5885f2a..b5bfb22 100644
        subroutine average(
       &     CHF_FRA[coarse],
       &     CHF_CONST_FRA[fine],
+diff --git BaseTools/parstream.cpp BaseTools/parstream.cpp
+index 6f12048..c341426 100644
+--- BaseTools/parstream.cpp
++++ BaseTools/parstream.cpp
+@@ -95,7 +95,7 @@ static void openFile()
+   {
+     s_pout.close();
+   }
+-  s_pout.open( s_pout_filename.c_str() );
++  s_pout.open( s_pout_filename.c_str(), std::ofstream::app);
+   // if open() fails, we have problems, but it's better
+   // to try again later than to make believe it succeeded
+   s_pout_open = (bool)s_pout ;
 diff --git BoxTools/BoxLayout.H BoxTools/BoxLayout.H
 index 8eb7d29..e39890b 100644
 --- BoxTools/BoxLayout.H
