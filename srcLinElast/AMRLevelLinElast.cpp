@@ -83,6 +83,10 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
     const bool&                 a_useSourceTerm,
     const Real&                 a_sourceTermScaling,
     const bool&                 a_highOrderLimiter,
+    const Vector<Real>&         a_xCoarsen2,
+    const Vector<Real>&         a_yCoarsen2,
+    const Vector<Real>&         a_zCoarsen2,
+    const int&                  a_coarsen2MaxLevel,
     const Vector<Real>&         a_xCoarsen,
     const Vector<Real>&         a_yCoarsen,
     const Vector<Real>&         a_zCoarsen,
@@ -167,6 +171,11 @@ void AMRLevelLinElast::defineParams(const Real&                 a_cfl,
     m_usePlasticity = a_usePlasticity;
 
     m_paramsDefined = true;
+
+    m_xCoarsen2     = a_xCoarsen2;
+    m_yCoarsen2     = a_yCoarsen2;
+    m_zCoarsen2     = a_zCoarsen2;
+    m_coarsen2MaxLevel = a_coarsen2MaxLevel;
 
     m_xCoarsen     = a_xCoarsen;
     m_yCoarsen     = a_yCoarsen;
@@ -366,17 +375,17 @@ Real AMRLevelLinElast::advance()
 {
     CH_assert(allDefined());
 
-    if (s_verbosity >= 1 && procID() == 0)
+    if (s_verbosity >= 1)// && procID() == 0)
     {
         for(int i = 0; i < m_level;i++) pout() << "   ";
         pout() << "AMRLevelLinElast::advance level " << m_level << " to time " << scientific << m_time + m_dt << " by dt " << m_dt << endl;
     }
 
-    if (s_verbosity >= 2)
-    {
-        for(int i = 0; i < m_level;i++) pout() << "   ";
-        pout() << "AMRLevelLinElast::advance level " << m_level << " to time " << scientific << m_time + m_dt << " by dt " << m_dt << endl;
-    }
+    // if (s_verbosity >= 2)
+    // {
+    //     for(int i = 0; i < m_level;i++) pout() << "   ";
+    //     pout() << "AMRLevelLinElast::advance level " << m_level << " to time " << scientific << m_time + m_dt << " by dt " << m_dt << endl;
+    // }
 
     // Copy the new to the old
     for (DataIterator dit = m_UNew.dataIterator(); dit.ok(); ++dit)
@@ -674,11 +683,25 @@ void AMRLevelLinElast::tagCells(IntVectSet& a_tags)
 
             Real refineThresh = m_refineThresh*(1+r*m_slopeCoarsen/m_widthCoarsen);
 
-            if (gradMagFab(iv) >= refineThresh || UFab.get(iv,IX1_GAM) >= m_plasticThresh || UFab.get(iv,IX2_GAM) >= m_plasticThresh)
+            if(m_level < m_coarsen2MaxLevel || (x >= m_xCoarsen2[0] && x <= m_xCoarsen2[1]
+#if(CH_SPACEDIM >= 2)
+                        && y >= m_yCoarsen2[0] && y <= m_yCoarsen2[1]
+#endif
+#if(CH_SPACEDIM >= 3)
+                        && z >= m_zCoarsen2[0] && z <= m_zCoarsen2[1]
+#endif
+                        ))
             {
-                localTags |= iv;
-                //pout() << gradFab(iv,0) << "     " << gradFab(iv,1) << "     " << gradMagFab(iv) << "    " << m_refineThresh << endl;
+                if (gradMagFab(iv) >= refineThresh || UFab.get(iv,IX1_GAM) >= m_plasticThresh || UFab.get(iv,IX2_GAM) >= m_plasticThresh)
+                {
+                    localTags |= iv;
+                    //pout() << gradFab(iv,0) << "     " << gradFab(iv,1) << "     " << gradMagFab(iv) << "    " << m_refineThresh << endl;
+                }
             }
+            // else
+            // {
+            //     pout() << "NOPE: " << x << "  "<< y<<endl;
+            // }
         }
     }
 

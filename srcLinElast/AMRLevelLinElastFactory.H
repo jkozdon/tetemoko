@@ -52,6 +52,10 @@ public:
                       const bool&                 a_useSourceTerm,
                       const Real&                 a_sourceTermScaling,
                       const bool&                 a_highOrderLimiter,
+                      const Vector<Real>&         a_xCoarsen2,
+                      const Vector<Real>&         a_yCoarsen2,
+                      const Vector<Real>&         a_zCoarsen2,
+                      const int&                  a_coarsen2MaxLevel,
                       const Vector<Real>&         a_xCoarsen,
                       const Vector<Real>&         a_yCoarsen,
                       const Vector<Real>&         a_zCoarsen,
@@ -155,6 +159,11 @@ protected:
   int m_plotInterval;
 
   // Used for forcing coarsening
+  Vector<Real> m_xCoarsen2;
+  Vector<Real> m_yCoarsen2;
+  Vector<Real> m_zCoarsen2;
+  int m_coarsen2MaxLevel;
+
   Vector<Real> m_xCoarsen;
   Vector<Real> m_yCoarsen;
   Vector<Real> m_zCoarsen;
