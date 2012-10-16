@@ -399,6 +399,25 @@ void amrGodunov()
         }
     }
 
+    std::vector<Real> xCoarsen2(2,0);
+    xCoarsen2[0] = -1e40;
+    xCoarsen2[1] =  1e40;
+    ppcomp.queryarr("x_coarsen2",xCoarsen2,0,2);
+
+    std::vector<Real> yCoarsen2(2,0);
+    yCoarsen2[0] = -1e40;
+    yCoarsen2[1] =  1e40;
+    ppcomp.queryarr("y_coarsen2",yCoarsen2,0,2);
+
+    std::vector<Real> zCoarsen2(2,0);
+    zCoarsen2[0] = -1e40;
+    zCoarsen2[1] =  1e40;
+    ppcomp.queryarr("z_coarsen2",zCoarsen2,0,2);
+
+    int coarsen2MaxLevel = maxLevel;
+    ppcomp.query("coarsen2_max_level",coarsen2MaxLevel);
+
+
     std::vector<Real> xCoarsen(2,0);
     xCoarsen[0] = -1e40;
     xCoarsen[1] =  1e40;
@@ -899,6 +918,10 @@ void amrGodunov()
         useSourceTerm,
         sourceTermScaling,
         highOrderLimiter,
+        xCoarsen2,
+        yCoarsen2,
+        zCoarsen2,
+        coarsen2MaxLevel,
         xCoarsen,
         yCoarsen,
         zCoarsen,

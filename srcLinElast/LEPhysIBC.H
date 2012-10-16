@@ -14,7 +14,6 @@
 #include "ProblemDomain.H"
 #include "PhysIBC.H"
 #include "NamespaceHeader.H"
-#include "LEINDEX.H"
 
 /// Physical/domain initial and boundary conditions
 /**
@@ -32,7 +31,7 @@ public:
     /// Set up initial conditions for the boundary data
     /**
     */
-    virtual void initializeBdry(LevelData<FArrayBox>& a_Psi,int a_side)
+    virtual void initializeBdry(LevelData<FArrayBox>& a_Psi)
     {
         // MayDay::Error("No boundary data for this problem");
     }
@@ -48,11 +47,9 @@ public:
     /// Store pointer to boundary data
     /**
     */
-    virtual void setBdryData(FArrayBox* a_bdryData, int a_side)
+    virtual void setBdryData(FArrayBox* a_bdryData)
     {
-      m_bdryData[a_side]    = a_bdryData;
-      m_tmpBdryData[a_side] = new FArrayBox(m_bdryData[a_side]->box(), m_numBdryVars[a_side]);
-      m_tmpBdryDataSet[a_side] = false;
+        m_bdryData = a_bdryData;
     }
 
     /// Store pointer to boundary data
@@ -80,35 +77,16 @@ public:
         return false;
     }
 
-    virtual Vector<int> numBdryVars()
+    virtual int numBdryVars()
     {
-        return m_numBdryVars;
+        return 1;
     }
 
-    virtual Vector<string> bdryNames(int a_side)
+    virtual Vector<string> bdryNames()
     {
-      Vector<string> bdryNames;
-      // MUST MATCH LEPhysIBC.H ORDER!!!
-      bdryNames.push_back("vx_1");
-      bdryNames.push_back("vy_1");
-      bdryNames.push_back("vz_1");
-      bdryNames.push_back("Tx_1");
-      bdryNames.push_back("Ty_1");
-      bdryNames.push_back("Tz_1");
-      bdryNames.push_back("un_1");
-      bdryNames.push_back("um_1");
-      bdryNames.push_back("uz_1");
-
-      bdryNames.push_back("vx_2");
-      bdryNames.push_back("vy_2");
-      bdryNames.push_back("vz_2");
-      bdryNames.push_back("Tx_2");
-      bdryNames.push_back("Ty_2");
-      bdryNames.push_back("Tz_2");
-      bdryNames.push_back("un_2");
-      bdryNames.push_back("um_2");
-      bdryNames.push_back("uz_2");
-      return bdryNames;
+        Vector<string> junk;
+        junk.push_back("junk");
+        return junk;
     }
 
     virtual void dumpBdryData(FILE * a_boundaryDataFile)
@@ -122,10 +100,8 @@ public:
     void setFortranCommonPlastic(const Real& a_mu, const Real& a_beta, const Real& a_eta);
 
 protected:
-    FArrayBox* m_bdryData[2*CH_SPACEDIM];
-    FArrayBox* m_tmpBdryData[2*CH_SPACEDIM];
-    Vector<int> m_numBdryVars;
-    bool       m_tmpBdryDataSet[2*CH_SPACEDIM];
+    FArrayBox* m_bdryData;
+    int        m_numBdryVars;
     bool       m_isFortranCommonLESet;
     bool       m_isFortranCommonPlasticSet;
 private:

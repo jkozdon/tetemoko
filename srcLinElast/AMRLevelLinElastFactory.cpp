@@ -48,6 +48,10 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
     const bool&                 a_useSourceTerm,
     const Real&                 a_sourceTermScaling,
     const bool&                 a_highOrderLimiter,
+    const Vector<Real>&         a_xCoarsen2,
+    const Vector<Real>&         a_yCoarsen2,
+    const Vector<Real>&         a_zCoarsen2,
+    const int&                  a_coarsen2MaxLevel,
     const Vector<Real>&         a_xCoarsen,
     const Vector<Real>&         a_yCoarsen,
     const Vector<Real>&         a_zCoarsen,
@@ -151,6 +155,11 @@ void AMRLevelLinElastFactory::define(const Real&                 a_cfl,
     // The object is defined
     m_isDefined = true;
 
+    m_xCoarsen2     = a_xCoarsen2;
+    m_yCoarsen2     = a_yCoarsen2;
+    m_zCoarsen2     = a_zCoarsen2;
+    m_coarsen2MaxLevel = a_coarsen2MaxLevel;
+
     m_xCoarsen     = a_xCoarsen;
     m_yCoarsen     = a_yCoarsen;
     m_zCoarsen     = a_zCoarsen;
@@ -186,6 +195,10 @@ AMRLevel* AMRLevelLinElastFactory::new_amrlevel() const
         m_useSourceTerm,
         m_sourceTermScaling,
         m_highOrderLimiter,
+        m_xCoarsen2,
+        m_yCoarsen2,
+        m_zCoarsen2,
+        m_coarsen2MaxLevel,
         m_xCoarsen,
         m_yCoarsen,
         m_zCoarsen,

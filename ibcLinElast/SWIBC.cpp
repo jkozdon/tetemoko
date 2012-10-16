@@ -46,11 +46,7 @@ SWIBC::SWIBC(const Real& a_fricS,
     m_fricBoxWidth    = a_fricBoxWidth; 
     m_outsideFriction = a_outsideFriction;
 
-    m_numBdryVars.resize(2*CH_SPACEDIM,NUM_BDRY_HAT_VARS);
-    for(int ix = 0; ix < 2*CH_SPACEDIM; ix++) m_tmpBdryDataSet[ix] = false;
-
-    m_numBdryVars[2] = 9;
-
+    m_numBdryVars = 9;
 }
 
 /// Destructor
@@ -92,8 +88,7 @@ PhysIBC* SWIBC::new_physIBC()
     retval->m_patchBoxes          = m_patchBoxes;
     retval->m_smoothValue         = m_smoothValue;
     retval->m_smoothWidthNumCells = m_smoothWidthNumCells;
-    for(int ix = 0; ix < 2*CH_SPACEDIM; ix++)
-      retval->m_numBdryVars[ix]  = m_numBdryVars[ix];
+    retval->m_numBdryVars         = m_numBdryVars;
     return static_cast<PhysIBC*>(retval);
 }
 
@@ -123,32 +118,12 @@ void SWIBC::initialize(LevelData<FArrayBox>& a_U)
 }
 
 /// Set up initial conditions
-void SWIBC::initializeBdry(LevelData<FArrayBox>& a_B,int a_side)
+void SWIBC::initializeBdry(LevelData<FArrayBox>& a_B)
 {
     const Real tmpVal  =  0.0;
     const Real tmpVal2 = 100;
-    if(a_side!=2)
+    for (DataIterator dit = a_B.dataIterator(); dit.ok(); ++dit)
     {
-      for (DataIterator dit = a_B.dataIterator(); dit.ok(); ++dit)
-      {
-        // Storage for current grid
-        FArrayBox& B = a_B[dit()];
-
-        // Box of current grid
-        Box bBox = B.box();
-        bBox &= m_domain;
-
-        // Set up initial condition in this grid
-        for(int ix = 0; ix < NUM_BDRY_HAT_VARS; ix++)
-          FORT_LINELASTSETFAB(CHF_FRA1(B,ix),
-              CHF_BOX(bBox),
-              CHF_CONST_REAL(tmpVal));
-      }
-    }
-    else
-    {
-      for (DataIterator dit = a_B.dataIterator(); dit.ok(); ++dit)
-      {
         // Storage for current grid
         FArrayBox& B = a_B[dit()];
 
@@ -166,8 +141,15 @@ void SWIBC::initializeBdry(LevelData<FArrayBox>& a_B,int a_side)
         FORT_LINELASTSETFAB(CHF_FRA1(B,6),
             CHF_BOX(bBox),
             CHF_CONST_REAL(tmpVal2));
-      }
     }
+}
+
+// SET pointer and make a temporary storage array
+void SWIBC::setBdryData(FArrayBox* a_bdryData)
+{
+    m_bdryData    = a_bdryData;
+    m_tmpBdryData = new FArrayBox(m_bdryData->box(), m_numBdryVars);
+    m_tmpBdryDataSet = false;
 }
 
 bool SWIBC::hasBdryData()
@@ -217,7 +199,7 @@ void SWIBC::primBC(FArrayBox& a_WGdnv,
 
             if(lohisign == -1 && a_dir == 1)
             {
-                if(m_tmpBdryDataSet[2])
+                if(m_tmpBdryDataSet)
                 {
                     FORT_SWFAULTBCF(CHF_FRA(a_WGdnv),
                         CHF_CONST_FRA(a_WShiftInside),
@@ -226,7 +208,7 @@ void SWIBC::primBC(FArrayBox& a_WGdnv,
                         CHF_CONST_REAL(m_dx),
                         CHF_CONST_REAL(a_time),
                         CHF_CONST_INT(a_dir),
-                        CHF_CONST_FRA((*m_tmpBdryData[2])),
+                        CHF_CONST_FRA((*m_tmpBdryData)),
                         CHF_CONST_INT(m_numPatches),
                         CHF_CONST_VR(m_xcPatches),
                         CHF_CONST_VR(m_xwPatches),
@@ -247,7 +229,7 @@ void SWIBC::primBC(FArrayBox& a_WGdnv,
                         CHF_CONST_REAL(m_dx),
                         CHF_CONST_REAL(a_time),
                         CHF_CONST_INT(a_dir),
-                        CHF_CONST_FRA((*m_bdryData[2])),
+                        CHF_CONST_FRA((*m_bdryData)),
                         CHF_CONST_INT(m_numPatches),
                         CHF_CONST_VR(m_xcPatches),
                         CHF_CONST_VR(m_xwPatches),
@@ -315,35 +297,35 @@ void SWIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,c
         if(a_final)
         {
             FORT_SWSETBND(
-                CHF_FRA((*m_bdryData[2])),
+                CHF_FRA((*m_bdryData)),
                 CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),
-                CHF_CONST_FRA((*m_bdryData[2])),
+                CHF_CONST_FRA((*m_bdryData)),
                 CHF_CONST_FRA(a_WHalf),
                 CHF_CONST_REAL(a_dt),
                 CHF_CONST_REAL(a_time));
         }
         // THIS MAY BE NECESSARY IN 3-D, NOT SURE!!!
-        // else if(m_tmpBdryDataSet[2])
+        // else if(m_tmpBdryDataSet)
         // {
         //     FORT_SWSETBND(
-        //         CHF_FRA((*m_tmpBdryData[2])),
+        //         CHF_FRA((*m_tmpBdryData)),
         //         CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),
-        //         CHF_CONST_FRA((*m_tmpBdryData[2])),
+        //         CHF_CONST_FRA((*m_tmpBdryData)),
         //         CHF_CONST_FRA(a_WHalf),
         //         CHF_CONST_REAL(a_dt),
         //         CHF_CONST_REAL(a_time));
         // }
         else
         {
-            // m_tmpBdryData[2][2] = new FArrayBox(m_bdryData[2]->box(), m_numBdryVars[2]);
+            // m_tmpBdryData = new FArrayBox(m_bdryData->box(), m_numBdryVars);
             FORT_SWSETBND(
-                CHF_FRA((*m_tmpBdryData[2])),
+                CHF_FRA((*m_tmpBdryData)),
                 CHF_BOX(bdryLo(a_WHalf.box(),a_dir)),
-                CHF_CONST_FRA((*m_bdryData[2])),
+                CHF_CONST_FRA((*m_bdryData)),
                 CHF_CONST_FRA(a_WHalf),
                 CHF_CONST_REAL(a_dt),
                 CHF_CONST_REAL(a_time));
-            m_tmpBdryDataSet[2] = true;
+            m_tmpBdryDataSet = true;
         }
     }
 }
@@ -416,7 +398,7 @@ bool SWIBC::tagCellsInit(FArrayBox& markFAB,const Real& threshold)
 void SWIBC::dumpBdryData(FILE * a_boundaryDataFile)
 {
     // Get the box that defines this layer
-    Box b = m_bdryData[2]->box();
+    Box b = m_bdryData->box();
 
     // Remove the ghost cells
     b.grow(-(IntVect::Unit - BASISV(1)));
@@ -431,7 +413,7 @@ void SWIBC::dumpBdryData(FILE * a_boundaryDataFile)
         Real z = (iv[2]+0.5)*m_dx-m_fricBoxCenter[1];
         if(abs(x) <= m_fricBoxWidth[0] & abs(z) <= m_fricBoxWidth[1])
         {
-            fprintf(a_boundaryDataFile,"%E %E %E\n", x, z, m_bdryData[2]->get(iv,6));
+            fprintf(a_boundaryDataFile,"%E %E %E\n", x, z, m_bdryData->get(iv,6));
         }
     }
 }

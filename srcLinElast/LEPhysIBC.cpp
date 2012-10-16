@@ -7,7 +7,6 @@ LEPhysIBC::LEPhysIBC()
 {
     m_isFortranCommonLESet = false;
     m_isFortranCommonPlasticSet = false;
-    m_numBdryVars.resize(2*CH_SPACEDIM,NUM_BDRY_HAT_VARS);
 }
 
 /// Set the fortran parameters for linear elasticity

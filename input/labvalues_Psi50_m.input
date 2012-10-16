@@ -2,10 +2,8 @@
 physics.problem = rateandstate
 
 # Physical parameters: S- and P- wave speed, shear modulus
-physics.cs = 3.464
-# physics.cp = 6
-physics.G = 32.04
-# physics.rho = 2.670
+physics.cs = 3464.0
+physics.G = 32040.0
 
 # Set the background values
 physics.syy0 = -126
@@ -14,61 +12,57 @@ physics.plas_Psi = 50
 
 physics.a   = 0.016
 physics.b   = 0.020
-physics.L   = 0.257186864151274
+physics.L   = 0.257186864151274e-4
 physics.V0  = 1e-6
 physics.f0  = 0.7
 physics.Vw  = 0.17
 physics.fw  = 0.13
 physics.psi = 0.436735460718965
 physics.fric_exp = 8.0
-physics.nuc_R = 0.3
+physics.R0 = 0.03
+physics.nuc_R = 0.03
 physics.nuc_T = 1e-9
-# physics.nuc_x = 51.2
-physics.nuc_x = 30
+physics.nuc_x = 60
 physics.nuc_y = 0
 physics.nuc_S = 72
 physics.nuc_N = 0
 
-physics.nuc_ramp_x  = -6.0
-physics.nuc_ramp_w  = -6
+physics.nuc_ramp_x  = -0.6
+physics.nuc_ramp_w  = -0.6
 physics.nuc_ramp_a  = 0.008
 physics.nuc_ramp_Vw = 5
 
-comp.x_coarsen = 10 105
-comp.y_coarsen = -1 40 
-comp.slope_coarsen = 0
-comp.width_coarsen = 0.005
+# Size of the domain's longest dimension
+comp.domain_length = 100
+
+comp.x_coarsen = 20 1028.576
+comp.y_coarsen = -100 242.144 
+comp.slope_coarsen = 2
+comp.width_coarsen = 0.0005
+
+comp.x_coarsen2 = 20 1028.576
+comp.y_coarsen2 = -100 20
+comp.coarsen2_level = 3
 
 physics.rupture_front_vel_thresh = 0.001
 
 # define plasticity
 physics.plasticity = 1
-# physics.plas_mu    = 0.5735
-# physics.plas_beta  = 0.2867
-# physics.plas_eta   = 0.2775
 physics.plas_beta = 0.286731172181664
 physics.plas_mu = 0.573462344363328
-physics.plas_eta = 0.277482678983834
+physics.plas_eta = 0.277482678983834e-1
 
 # Turn on some output
 # comp.verbosity = 10
 comp.verbosity = 1
 
 # Number of steps, final time, and time step
-# comp.restart_file = = bssa_hdf5/check.bssa_G160x80x80_L2_R4.750.3d.hdf5
-# comp.max_step = 10000
-# comp.max_step = 20000000
-comp.max_step = 10
-comp.max_time = 18.75
-# comp.fixed_dt = 0.002
-
-# Size of the domain's longest dimension
-# comp.domain_length = 103.4
-comp.domain_length = 115.2
-# comp.domain_length = 25.6
+# comp.restart_file = = labvalues_Psi50/check.labvalues_Psi50
+comp.max_step = 20
+comp.max_time = 0.3
 
 # Coarsest grid
-comp.num_cells = 384 192
+comp.num_cells = 64 32
 
 # # 0 : Outflow
 # # 1 : Free surface
@@ -79,20 +73,20 @@ comp.z_boundary  = 0 1
 
 
 # Grid refinement
-comp.max_level = 2
+comp.max_level = 5
 # For 2D
-comp.ref_ratio = 4 4 4 4 4 4
+comp.ref_ratio = 8 8 4 4 4 4
 # For 3D
 # comp.ref_ratio = 2 2 2 2 2
 
 # Regridding parameters
-comp.regrid_interval = 2 2 2 2 2 2 2 2 2 2
-comp.tag_buffer_size = 2
+comp.regrid_interval = 8 8 8 8 8 8 8 8 8 8
+comp.tag_buffer_size = 8
 comp.refine_thresh = 0.01
 
 # Grid generation parameters
-comp.block_factor = 16
-comp.max_grid_size = 128
+comp.block_factor = 8
+comp.max_grid_size = 32
 comp.fill_ratio = 0.75
 
 # Normal predictor method
@@ -114,8 +108,8 @@ comp.artificial_viscosity = 0.1
 # Plot file information
 comp.plot_interval = 5
 # comp.plot_interval = 1
-comp.plot_prefix  = data/test/test.
-comp.pout_name  = pout/test
+comp.plot_prefix  = /data/dunham1/jkozdon/tetemoko/data/labvalues_Psi50/labvalues_Psi50.
+comp.pout_name  = /data/dunham1/jkozdon/tetemoko/pout/labvalues_Psi50
 
 # comp.bound_plot_interval = 1
 
@@ -129,13 +123,14 @@ comp.pout_name  = pout/test
 # comp.y_body_stations  = 3 3
 
 # Checkpoint file information
-comp.checkpoint_interval = 10
+comp.checkpoint_interval = 3
 # comp.checkpoint_interval = 1
-comp.chk_prefix  = data/test/test.check.
+comp.chk_prefix  = /data/dunham1/jkozdon/tetemoko/data/labvalues_Psi50/labvalues_Psi50.check.
+# comp.restart_file  =
 comp.restart_bool = 0
 
 # Restart file information
-# comp.restart_file = bssa_hdf5/check.rs.200.3d.hdf5
+# comp.restart_file = labvalues_Psi50/check.rs.200.3d.hdf5
 
 # CFL multipliers
 comp.cfl = 0.9

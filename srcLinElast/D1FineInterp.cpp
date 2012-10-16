@@ -42,7 +42,7 @@ D1FineInterp::define(const DisjointBoxLayout& a_fine_domain,
     // manually coarsen the domain all all dims except m_dir
     const DisjointBoxLayout& constGrids = a_fine_domain;
     DisjointBoxLayout coarsened_fine_domain;
-    coarsen (coarsened_fine_domain, a_fine_domain, m_ref_ratio);
+    coarsen (coarsened_fine_domain, a_fine_domain, m_ref_ratio*(IntVect::Unit-BASISV(m_dir))+BASISV(m_dir));
 
     //define
     m_coarsened_fine_data.define ( coarsened_fine_domain,
@@ -202,8 +202,8 @@ const
                 CHF_CONST_FRA ( a_coarse ),
                 CHF_BOX ( blo ),
                 CHF_CONST_INT ( dir )
-                );
 
+                );
         }
         const Box bhi = b & adjCellHi(grow(m_coarse_box,-BASISV(dir)),dir);
         if (!bhi.isEmpty())

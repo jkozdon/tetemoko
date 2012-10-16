@@ -70,6 +70,10 @@ public:
                     const bool&                 a_useSourceTerm,
                     const Real&                 a_sourceTermScaling,
                     const bool&                 a_highOrderLimiter,
+                    const Vector<Real>&         a_xCoarsen2,
+                    const Vector<Real>&         a_yCoarsen2,
+                    const Vector<Real>&         a_zCoarsen2,
+                    const int&                  a_coarsen2MaxLevel,
                     const Vector<Real>&         a_xCoarsen,
                     const Vector<Real>&         a_yCoarsen,
                     const Vector<Real>&         a_zCoarsen,
@@ -233,8 +237,9 @@ protected:
 
   // Conserved state, U, at old and new time
   LevelData<FArrayBox> m_UOld,m_UNew;
-  Vector<LevelData<FArrayBox>* > m_BOld,m_BNew; // TODO: BOUNDARY // pointers since no copy constructor or assignment
-  Vector<LayoutData<GridData>*> m_relateUB; //TODO: BOUNDARY
+  LevelData<FArrayBox> m_BOld,m_BNew;
+  LevelData<FArrayBox> m_BOld_old,m_BNew_old;
+  LayoutData<GridData> m_relateUB;
 
   // CFL number
   Real m_cfl;
@@ -249,10 +254,10 @@ protected:
   CoarseAverage m_coarseAverage;
 
   // Interpolation from coarse to fine level
-  Vector<D1FineInterp*> m_bdryFineInterp; // pointers since no copy constructor or assignment
+  D1FineInterp m_bdryFineInterp;
 
   // Averaging from fine to coarse level
-  Vector<D1CoarseAverage*> m_bdryCoarseAverage; // pointers since no copy constructor or assignment
+  D1CoarseAverage m_bdryCoarseAverage;
 
   // New time step
   Real m_dtNew;
@@ -260,12 +265,12 @@ protected:
   // Number of conserved states
   int m_numStates;
 
-  // Number of boundary variables
-  Vector<int> m_numBdryVars; // TODO: BOUNDARY
+  // Number of boundary varialbes
+  int m_numBdryVars;
 
   // Names of conserved states
   Vector<string> m_stateNames;
-  Vector<Vector<string> > m_bdryNames; // TODO: BOUNDARY
+  Vector<string> m_bdryNames;
 
   // Number of ghost cells (in each direction)
   int m_numGhost;
@@ -323,16 +328,19 @@ protected:
   // True if all the parameters for this object are defined
   bool m_paramsDefined;
 
+  // boolean to keep track of boundary data usage
+  bool m_bdryUseData;
+
   // Boundary Box, face centered
-  Vector<Box> m_bdryFaceBox; // TODO: BOUNDARY
+  Box m_bdryFaceBox;
 
   // Boundary Grid Layout for this level
-  Vector<DisjointBoxLayout> m_bdryGrids; // TODO: BOUNDARY
+  DisjointBoxLayout m_bdryGrids;
 
   // Save the fault stations we will need
-  Vector<Real>    m_xFaultStations;
-  Vector<Real>    m_zFaultStations;
-  Vector<string>  m_faultSationNames;
+  Vector<Real>     m_xFaultStations;
+  Vector<Real>     m_zFaultStations;
+  Vector<string>   m_faultSationNames;
   Vector<IntVect> m_ivFaultStations;
   Vector<Real>    m_dxFaultStation;
   Vector<Real>    m_dzFaultStation;
@@ -357,6 +365,10 @@ protected:
 
 
 private:
+  Vector<Real> m_xCoarsen2;
+  Vector<Real> m_yCoarsen2;
+  Vector<Real> m_zCoarsen2;
+  int m_coarsen2MaxLevel;
   Vector<Real> m_xCoarsen;
   Vector<Real> m_yCoarsen;
   Vector<Real> m_zCoarsen;
@@ -364,8 +376,6 @@ private:
   Real m_widthCoarsen;
 
   bool m_usePlasticity;
-
-  int numBdryLevels(int ix);
 
   // Disallowed for all the usual reasons
   void operator=(const AMRLevelLinElast& a_input)
@@ -379,7 +389,7 @@ private:
     MayDay::Error("invalid operator");
   }
 #ifdef CH_USE_HDF5
-  void writeThisBdryLevel(HDF5Handle& a_handle,int ix);
+  void writeThisBdryLevel(HDF5Handle& a_handle);
   void writeStationLevel();
 #endif
 };
