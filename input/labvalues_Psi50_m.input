@@ -108,8 +108,8 @@ comp.artificial_viscosity = 0.1
 # Plot file information
 comp.plot_interval = 5
 # comp.plot_interval = 1
-comp.plot_prefix  = /data/dunham1/jkozdon/tetemoko/data/labvalues_Psi50/labvalues_Psi50.
-comp.pout_name  = /data/dunham1/jkozdon/tetemoko/pout/labvalues_Psi50
+comp.plot_prefix  = /Users/jekozdon/codes/tetemoko/data/labvalues_Psi50/labvalues_Psi50.
+comp.pout_name  = /Users/jekozdon/codes/tetemoko/pout/labvalues_Psi50
 
 # comp.bound_plot_interval = 1
 
@@ -125,9 +125,9 @@ comp.pout_name  = /data/dunham1/jkozdon/tetemoko/pout/labvalues_Psi50
 # Checkpoint file information
 comp.checkpoint_interval = 3
 # comp.checkpoint_interval = 1
-comp.chk_prefix  = /data/dunham1/jkozdon/tetemoko/data/labvalues_Psi50/labvalues_Psi50.check.
+comp.chk_prefix  = /Users/jekozdon/codes/tetemoko/data/labvalues_Psi50/labvalues_Psi50.check.
 # comp.restart_file  =
-comp.restart_bool = 0
+# comp.restart_bool = 0
 
 # Restart file information
 # comp.restart_file = labvalues_Psi50/check.rs.200.3d.hdf5
