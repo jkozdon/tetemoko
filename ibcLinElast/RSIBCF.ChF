@@ -72,6 +72,7 @@ C
         integer CHF_DDECL[i;j;k]
         real_t Vx, Vz, V, psi, fss, f,tau_xy_0,tau_yz_0
         real_t c_rs_a, c_rs_Vw, c_ramp
+        real_t dPsi
         real_t CHF_DDECL[x;y;z]
 
         CHF_MULTIDO[box;i;j;k]
@@ -128,12 +129,24 @@ C          psi
            if(rs_fExp > 0d0) then
                fss = rs_fw + (fss - rs_fw)/((1d0 + (V/c_rs_Vw)**8)**(0.125d0))
            endif
-           Bout(CHF_IX[i;j;k],RX_PSI) = psi - dt * (V / rs_L)*(f - fss)
-           ! print*,psi,Bout(CHF_IX[i;j;k],RX_PSI),V,IX1_VX,IX2_VX
-           ! print *,i,psi,V,f,fss
+           dPsi = psi - dt * (V / rs_L)*(f - fss)
+           if(isnan(dPsi)) then
+             print*,"psi = ", psi
+             print*,"V   = ", V
+             print*,"Vx  = ", Vx
+             print*,"Vz  = ", Vz
+             print*, "vx1 = ", U(CHF_IX[i;j;k],IX1_VX)
+             print*, "vx2 = ", U(CHF_IX[i;j;k],IX2_VX)
+             print*, "vz1 = ", U(CHF_IX[i;j;k],IX1_VZ)
+             print*, "vz2 = ", U(CHF_IX[i;j;k],IX2_VZ)
+             print*,"f   = ", f
+             print*,"fss = ", fss
+             stop "dPsi is nan"
+           endif
+           Bout(CHF_IX[i;j;k],RX_PSI) = dPsi
 
         CHF_ENDDO
-        
+
         return
         end
 
@@ -247,7 +260,6 @@ C             \vec{\tau} = \vec{phi} - \frac{\tilde{Z}_{S} \vec{V}
 C          which since \vec{\tau} = \alpha \vec{V} implies they are
 C          parallel with \vec{phi} as well. So we can use this to split
 C          tau (magnitude) into tau_xy and tau_yz
-C 
 C          phi_xy = (wpxy2*Zs1-wpxy1*Zs2)/(Zs1+Zs2)
 C          phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
 
@@ -262,8 +274,8 @@ C          phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
 
            sxy1   = (phi_xy/phi) * tau - tau_xy_0
            syz1   = (phi_yz/phi) * tau - tau_yz_0
-           ! Vx     = (phi_xy/phi) * V
-           ! Vz     = (phi_yz/phi) * V
+           Vx     = (phi_xy/phi) * V
+           Vz     = (phi_yz/phi) * V
 
            vx1    = -(sxy1 + wpxy1)/Zs
            vz1    = -(syz1 + wpyz1)/Zs
@@ -285,10 +297,10 @@ C          phi_yz = (wpyz2*Zs1-wpyz1*Zs2)/(Zs1+Zs2)
            sxy2   = (phi_xy/phi) * tau - tau_xy_0
            syz2   = (phi_yz/phi) * tau - tau_yz_0
 
-           vx2    = (sxy2 - wpxy2)/Zs
-           vz2    = (syz2 - wpyz2)/Zs
-           ! vx2    = vx1 - Vx
-           ! vz2    = vz1 - Vz
+           ! vx2    = (sxy2 - wpxy2)/Zs
+           ! vz2    = (syz2 - wpyz2)/Zs
+           vx2    = vx1 - Vx
+           vz2    = vz1 - Vz
 
            SHF = -(vy2 - syy2) * lam / (lam + 2.0d0 * G)
 
