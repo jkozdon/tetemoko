@@ -341,12 +341,12 @@ void RSIBC::updateBoundary(const FArrayBox& a_WHalf,int a_dir,const Real& a_dt,c
 bool RSIBC::tagCellsInit(FArrayBox& markFAB,const Real& threshold)
 {
     // If grid spacing > R0 refine otherwise only refine the nucleation patch
-    if(m_dx > m_R0)
+    // if(m_dx > m_R0)
     {
         // pout() << m_dx << "  " << m_R0 << endl;
-        markFAB.setVal(1,bdryLo(m_domain.domainBox(),1,1) & markFAB.box(),0);
+        // markFAB.setVal(1,bdryLo(m_domain.domainBox(),1,1) & markFAB.box(),0);
     }
-    else
+    // else
     {
         IntVect nucSm;
         IntVect nucBg;
